@@ -11,3 +11,8 @@ burnBot_runs.json
 *-slowburnbot-*.json
 *credentials*.json
 *service-account*.json
+
+# Local secrets (Railway token, etc.)
+.env
+.env.*
+!.env.example
