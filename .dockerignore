@@ -4,3 +4,10 @@
 *.xlsx
 *.xls
 *.gsheet
+.env
+.env.*
+.claude/
+docs/
+scripts/
+public/
+*.md
