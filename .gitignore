@@ -1,0 +1,13 @@
+# Spreadsheet exports from Google Drive often contain passwords, API keys, and PII.
+# Do not commit live workbooks. Use docs/sheets-schema.md for structure-only reference.
+*.xlsx
+*.xls
+
+# Google Sheets shortcut stubs (cloud-only; not useful in git)
+*.gsheet
+
+# Local bot state / secrets (common in sibling Beta tree; mirror here if copied)
+burnBot_runs.json
+*-slowburnbot-*.json
+*credentials*.json
+*service-account*.json
