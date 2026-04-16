@@ -1,0 +1,6 @@
+.git
+.gitignore
+**/.git
+*.xlsx
+*.xls
+*.gsheet
