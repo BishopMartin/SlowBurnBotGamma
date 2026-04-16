@@ -1,24 +1,24 @@
-# Deploy from CI/script: requires RAILWAY_TOKEN in env (see .env.example).
-# Interactive: run `npx @railway/cli@latest login` once in a normal terminal (browser OAuth);
-# Cursor agent cannot complete `railway login` (non-interactive).
-# Usage (PowerShell, from repo root):
-#   $env:RAILWAY_TOKEN = "railway_..."   # or: Get-Content .env | ForEach-Object { if ($_ -match '^([^#][^=]+)=(.*)$') { Set-Item -Path env:$($matches[1]) -Value $matches[2].Trim() } }
-#   .\scripts\railway-deploy.ps1
+# Deploy this repo to Railway.
 #
-# Or one line after creating .env with RAILWAY_TOKEN set:
-#   Get-Content .env | Where-Object { $_ -match '^\s*RAILWAY_TOKEN=' } | ForEach-Object { Invoke-Expression "`$env:$($_.Split('=',2)[0].Trim())='$($_.Split('=',2)[1].Trim())'" }; .\scripts\railway-deploy.ps1
+# Works after either:
+#   - `npx @railway/cli@latest login` (interactive, stores session), or
+#   - `$env:RAILWAY_TOKEN = "railway_..."` from https://railway.com/account/tokens (CI/scripts).
+#
+# Usage (PowerShell, from repo root):
+#   .\scripts\railway-deploy.ps1
 
 $ErrorActionPreference = "Stop"
 $ProjectId = if ($env:RAILWAY_PROJECT_ID) { $env:RAILWAY_PROJECT_ID } else { "7ea1c94f-861d-49d6-a428-6771c62ce371" }
-
-if (-not $env:RAILWAY_TOKEN -or $env:RAILWAY_TOKEN.Trim().Length -eq 0) {
-    Write-Error "RAILWAY_TOKEN is not set. Create a token at https://railway.com/account/tokens and set `$env:RAILWAY_TOKEN or add it to a .env file (see .env.example)."
-    exit 1
-}
+$ServiceName = if ($env:RAILWAY_SERVICE_NAME) { $env:RAILWAY_SERVICE_NAME } else { "SlowBurnBotGamma" }
 
 Set-Location (Join-Path $PSScriptRoot "..")
-Write-Host "Linking to Railway project $ProjectId ..."
+
+Write-Host "Linking project $ProjectId ..."
 npx --yes @railway/cli@latest link -p $ProjectId
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+Write-Host "Linking service '$ServiceName' (avoids 'multiple services' error on up) ..."
+npx --yes @railway/cli@latest service link $ServiceName
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "Deploying (detached, CI log stream) ..."
