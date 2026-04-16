@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +15,16 @@ class Settings(BaseSettings):
 
     # CORS (set once Next.js is deployed)
     cors_origins: list[str] = []
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def fix_async_driver(cls, v: str) -> str:
+        # Railway injects postgresql:// — SQLAlchemy async needs postgresql+asyncpg://
+        if v.startswith("postgresql://"):
+            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        if v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql+asyncpg://", 1)
+        return v
 
 
 settings = Settings()
