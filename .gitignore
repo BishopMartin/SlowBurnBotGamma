@@ -12,6 +12,11 @@ burnBot_runs.json
 *credentials*.json
 *service-account*.json
 
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
 # Local secrets (Railway token, etc.)
 .env
 .env.*
