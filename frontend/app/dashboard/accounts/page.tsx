@@ -43,27 +43,9 @@ export default function AccountsPage() {
     <div className="space-y-6">
       <h1 className="text-xl font-semibold">Accounts</h1>
 
-      <form onSubmit={handleAdd} className="flex gap-3">
-        <input
-          type="text"
-          placeholder="Account name (Instagram handle)"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          className="flex-1 bg-gray-800 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          type="submit"
-          disabled={adding}
-          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-        >
-          Add
-        </button>
-      </form>
-      {error && <p className="text-red-400 text-sm">{error}</p>}
-
       {accounts.length === 0 ? (
         <div className="bg-gray-900 rounded-xl p-8 text-center text-gray-400 text-sm">
-          No accounts yet. Add one above.
+          No accounts yet. Add one below.
         </div>
       ) : (
         <div className="bg-gray-900 rounded-xl divide-y divide-gray-800">
@@ -107,6 +89,24 @@ export default function AccountsPage() {
           ))}
         </div>
       )}
+
+      <form onSubmit={handleAdd} className="flex gap-3">
+        <input
+          type="text"
+          placeholder="Account name (Instagram handle)"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          className="flex-1 bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          type="submit"
+          disabled={adding}
+          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+        >
+          Add
+        </button>
+      </form>
+      {error && <p className="text-red-400 text-sm">{error}</p>}
     </div>
   );
 }
