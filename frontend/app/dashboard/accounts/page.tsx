@@ -6,13 +6,17 @@ import {
   getAccounts,
   getAccountSettings,
   createAccount,
-  deleteAccount,
   updateAccount,
   Account,
   AccountSettings,
 } from "@/lib/api";
 import { scheduleLabel } from "@/lib/format";
 import { Bracket } from "@/lib/bracket";
+
+function fmtGroup(n: number | null | undefined): React.ReactNode {
+  if (n == null) return <span className="text-[#73726c]">—</span>;
+  return <Bracket className="text-[#bfbdb4]">{String(n).padStart(2, "0")}</Bracket>;
+}
 
 export default function AccountsPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -44,7 +48,7 @@ export default function AccountsPage() {
     setAdding(true);
     setError("");
     try {
-      await createAccount({ name: newName.trim() });
+      await createAccount({ name: newName.trim(), enabled: false });
       setNewName("");
       await load();
     } catch (err: unknown) {
@@ -52,12 +56,6 @@ export default function AccountsPage() {
     } finally {
       setAdding(false);
     }
-  }
-
-  async function handleDelete(id: string, name: string) {
-    if (!confirm(`Delete account "${name}"?`)) return;
-    await deleteAccount(id).catch(() => {});
-    await load();
   }
 
   async function handleToggleEnabled(account: Account) {
@@ -78,6 +76,7 @@ export default function AccountsPage() {
               <tr className="text-left text-[#73726c] border-b border-[#3d3d3a]">
                 <th className="px-4 py-2 font-normal">Account</th>
                 <th className="px-4 py-2 font-normal">On</th>
+                <th className="px-4 py-2 font-normal">Group</th>
                 <th className="px-4 py-2 font-normal">Schedule</th>
                 <th className="px-4 py-2 font-normal">Status</th>
                 <th className="px-4 py-2 font-normal"></th>
@@ -86,12 +85,7 @@ export default function AccountsPage() {
             <tbody className="divide-y divide-[#3d3d3a]">
               {accounts.map((account) => (
                 <tr key={account.id} className="hover:bg-[#1f1e1d] transition-colors">
-                  <td className="px-4 py-2 text-[#f0eee6]">
-                    {account.name}
-                    {account.group_number != null && (
-                      <span className="ml-2 text-[#73726c]">grp:{account.group_number}</span>
-                    )}
-                  </td>
+                  <td className="px-4 py-2 text-[#f0eee6]">{account.name}</td>
                   <td className="px-4 py-2">
                     <button
                       onClick={() => handleToggleEnabled(account)}
@@ -102,6 +96,7 @@ export default function AccountsPage() {
                       </Bracket>
                     </button>
                   </td>
+                  <td className="px-4 py-2">{fmtGroup(account.group_number)}</td>
                   <td className="px-4 py-2 text-[#73726c]">
                     {scheduleLabel(settingsMap[account.id])}
                   </td>
@@ -111,14 +106,9 @@ export default function AccountsPage() {
                     </Bracket>
                   </td>
                   <td className="px-4 py-2 text-right">
-                    <div className="flex items-center justify-end gap-4">
-                      <Link href={`/dashboard/accounts/${account.id}`} className="group transition-colors">
-                        <Bracket className="text-[#bfbdb4] group-hover:text-[#d97757]">settings</Bracket>
-                      </Link>
-                      <button onClick={() => handleDelete(account.id, account.name)} className="group transition-colors">
-                        <Bracket className="text-[#73726c] group-hover:text-red-400">delete</Bracket>
-                      </button>
-                    </div>
+                    <Link href={`/dashboard/accounts/${account.id}`} className="group transition-colors">
+                      <Bracket className="text-[#bfbdb4] group-hover:text-[#d97757]">settings</Bracket>
+                    </Link>
                   </td>
                 </tr>
               ))}
