@@ -18,6 +18,11 @@ body {
 
 select {
   color-scheme: dark;
+  accent-color: #d97757;
+}
+
+select:focus {
+  outline: none;
 }
 
 select option {
