@@ -190,11 +190,11 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
-                size={7}
-                value={settings.schedule_start ?? ""}
+                size={5}
+                value={(settings.schedule_start ?? "").slice(0, 5)}
                 onChange={(e) => setSettings((s) => ({ ...s, schedule_start: e.target.value || null }))}
                 placeholder="00:00"
-                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0"
+                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]"> ]</span>
             </span>
@@ -204,11 +204,11 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
-                size={7}
-                value={settings.schedule_end ?? ""}
+                size={5}
+                value={(settings.schedule_end ?? "").slice(0, 5)}
                 onChange={(e) => setSettings((s) => ({ ...s, schedule_end: e.target.value || null }))}
                 placeholder="00:00"
-                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0"
+                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]"> ]</span>
             </span>
@@ -218,12 +218,12 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
-                size={4}
+                size={3}
                 inputMode="numeric"
                 value={settings.delay_base_minutes != null ? String(settings.delay_base_minutes) : ""}
                 onChange={(e) => setSettings((s) => ({ ...s, delay_base_minutes: parseNum(e.target.value) }))}
                 placeholder="60"
-                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0"
+                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]"> ]</span>
             </span>
@@ -233,12 +233,12 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
-                size={4}
+                size={3}
                 inputMode="numeric"
                 value={settings.delay_random_minutes != null ? String(settings.delay_random_minutes) : ""}
                 onChange={(e) => setSettings((s) => ({ ...s, delay_random_minutes: parseNum(e.target.value) }))}
                 placeholder="0"
-                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0"
+                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]"> ]</span>
             </span>
@@ -248,12 +248,12 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
-                size={3}
+                size={2}
                 inputMode="numeric"
                 value={settings.max_runs_per_day != null ? String(settings.max_runs_per_day) : ""}
                 onChange={(e) => setSettings((s) => ({ ...s, max_runs_per_day: parseNum(e.target.value) || 1 }))}
                 placeholder="1"
-                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0"
+                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]"> ]</span>
             </span>
