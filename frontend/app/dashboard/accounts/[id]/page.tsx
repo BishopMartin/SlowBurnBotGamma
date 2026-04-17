@@ -187,8 +187,8 @@ export default function AccountDetailPage() {
           <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">days </span>
-              <span className="text-[#f0eee6]">[ </span>
+              <span className="text-[#73726c]">{"days: "}</span>
+              <span className="text-[#f0eee6]">{`[\u00a0`}</span>
               <select
                 value={settings.schedule_days ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, schedule_days: e.target.value || null }))}
@@ -199,12 +199,12 @@ export default function AccountDetailPage() {
                   <option key={d} value={d}>{d}</option>
                 ))}
               </select>
-              <span className="text-[#f0eee6]"> ]</span>
+              <span className="text-[#f0eee6]">{`\u00a0]`}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">start </span>
-              <span className="text-[#f0eee6]">[ </span>
+              <span className="text-[#73726c]">{"start: "}</span>
+              <span className="text-[#f0eee6]">{`[\u00a0`}</span>
               <input
                 type="text"
                 size={8}
@@ -215,12 +215,12 @@ export default function AccountDetailPage() {
                 placeholder="10:00 AM"
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]"> ]</span>
+              <span className="text-[#f0eee6]">{`\u00a0]`}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">end </span>
-              <span className="text-[#f0eee6]">[ </span>
+              <span className="text-[#73726c]">{"end: "}</span>
+              <span className="text-[#f0eee6]">{`[\u00a0`}</span>
               <input
                 type="text"
                 size={8}
@@ -231,11 +231,11 @@ export default function AccountDetailPage() {
                 placeholder="10:00 PM"
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]"> ]</span>
+              <span className="text-[#f0eee6]">{`\u00a0]`}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">{"delay fixed "}</span>
+              <span className="text-[#73726c]">{"delay fixed: "}</span>
               <span className="text-[#f0eee6]">{`[\u00a0`}</span>
               <input
                 type="text"
@@ -250,7 +250,7 @@ export default function AccountDetailPage() {
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">{"delay random "}</span>
+              <span className="text-[#73726c]">{"delay random: "}</span>
               <span className="text-[#f0eee6]">{`[\u00a0`}</span>
               <input
                 type="text"
@@ -265,7 +265,7 @@ export default function AccountDetailPage() {
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">{"runs/day "}</span>
+              <span className="text-[#73726c]">{"runs/day: "}</span>
               <span className="text-[#f0eee6]">{`[\u00a0`}</span>
               <input
                 type="text"
@@ -276,7 +276,7 @@ export default function AccountDetailPage() {
                 style={{ width: `${Math.max(String(settings.max_runs_per_day ?? "").length || 1, 1) + 1}ch` }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]"> ]</span>
+              <span className="text-[#f0eee6]">{`\u00a0]`}</span>
             </span>
 
           </div>
