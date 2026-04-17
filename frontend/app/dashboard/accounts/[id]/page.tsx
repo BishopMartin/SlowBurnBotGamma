@@ -235,8 +235,8 @@ export default function AccountDetailPage() {
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">delay fixed </span>
-              <span className="text-[#f0eee6]">[ </span>
+              <span className="text-[#73726c]">{"delay fixed "}</span>
+              <span className="text-[#f0eee6]">{`[\u00a0`}</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -246,12 +246,12 @@ export default function AccountDetailPage() {
                 style={{ width: `${Math.max(String(settings.delay_base_minutes ?? "").length || 2, 2) + 1}ch` }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]"> ]</span>
+              <span className="text-[#f0eee6]">{`\u00a0]`}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">delay random </span>
-              <span className="text-[#f0eee6]">[ </span>
+              <span className="text-[#73726c]">{"delay random "}</span>
+              <span className="text-[#f0eee6]">{`[\u00a0`}</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -261,12 +261,12 @@ export default function AccountDetailPage() {
                 style={{ width: `${Math.max(String(settings.delay_random_minutes ?? "").length || 2, 2) + 1}ch` }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]"> ]</span>
+              <span className="text-[#f0eee6]">{`\u00a0]`}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">runs/day </span>
-              <span className="text-[#f0eee6]">[ </span>
+              <span className="text-[#73726c]">{"runs/day "}</span>
+              <span className="text-[#f0eee6]">{`[\u00a0`}</span>
               <input
                 type="text"
                 inputMode="numeric"
