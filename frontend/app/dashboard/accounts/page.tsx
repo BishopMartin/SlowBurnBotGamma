@@ -108,9 +108,14 @@ export default function AccountsPage() {
                     <span className="text-[#73726c]">]</span>
                   </td>
                   <td className="px-4 py-2 text-right">
-                    <Link href={`/dashboard/accounts/${account.id}`} className="group font-mono transition-colors">
-                      <Bracket className="text-[#73726c] group-hover:text-[#d97757]">settings</Bracket>
-                    </Link>
+                    <div className="flex items-center justify-end gap-3">
+                      <Link href={`/dashboard/accounts/${account.id}/database`} className="group font-mono transition-colors">
+                        <Bracket className="text-[#73726c] group-hover:text-[#d97757]">database</Bracket>
+                      </Link>
+                      <Link href={`/dashboard/accounts/${account.id}`} className="group font-mono transition-colors">
+                        <Bracket className="text-[#73726c] group-hover:text-[#d97757]">settings</Bracket>
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}

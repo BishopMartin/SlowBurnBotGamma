@@ -102,6 +102,12 @@ export async function adminSyncSubscription(userId: string) {
   return request(`/admin/users/${userId}/sync-subscription`, { method: "POST" });
 }
 
+export async function getAccountDatabase(id: string, page: number, pageSize = 100) {
+  return request<{ total: number; page: number; page_size: number; items: FollowTarget[] }>(
+    `/accounts/${id}/database?page=${page}&page_size=${pageSize}`
+  );
+}
+
 export async function adminListAccounts() {
   return request<AdminAccount[]>("/admin/accounts");
 }

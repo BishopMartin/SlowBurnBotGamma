@@ -1,14 +1,15 @@
 """Account CRUD — dashboard use."""
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import current_active_user
 from app.database import get_async_session
 from app.models.account import Account
 from app.models.account_settings import AccountSettings
+from app.models.follow_target import FollowTarget
 from app.models.user import User
 from app.schemas.account import AccountCreate, AccountRead, AccountUpdate
 from app.schemas.account_settings import AccountSettingsRead, AccountSettingsUpdate
@@ -125,3 +126,45 @@ async def upsert_account_settings(
     await session.commit()
     await session.refresh(settings)
     return settings
+
+
+@router.get("/{account_id}/database", response_model=dict)
+async def get_account_database(
+    account_id: uuid.UUID,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(100, ge=1, le=500),
+):
+    await _get_owned_account(account_id, user, session)
+    offset = (page - 1) * page_size
+
+    total = await session.scalar(
+        select(func.count()).where(FollowTarget.account_id == account_id)
+    )
+    result = await session.execute(
+        select(FollowTarget)
+        .where(FollowTarget.account_id == account_id)
+        .order_by(FollowTarget.follow_date.desc().nullslast(), FollowTarget.target_handle)
+        .offset(offset)
+        .limit(page_size)
+    )
+    targets = result.scalars().all()
+
+    return {
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "items": [
+            {
+                "id": str(t.id),
+                "target_handle": t.target_handle,
+                "source": t.source,
+                "status": t.status,
+                "follow_date": t.follow_date.isoformat() if t.follow_date else None,
+                "unfollow_date": t.unfollow_date.isoformat() if t.unfollow_date else None,
+                "follow_back": t.follow_back,
+            }
+            for t in targets
+        ],
+    }
