@@ -38,8 +38,11 @@ class AccountSettings(Base):
     # Actions (up to 4, stored as JSONB)
     actions: Mapped[list | None] = mapped_column(JSONB, nullable=True)
 
-    # Unfollow / topics
+    # Unfollow / follow sources
     unfollow_days: Mapped[int] = mapped_column(Integer, default=30)
+    list_tab: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    account_group: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    account_list_tab: Mapped[str | None] = mapped_column(String(150), nullable=True)
     topics: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     updated_at: Mapped[datetime] = mapped_column(

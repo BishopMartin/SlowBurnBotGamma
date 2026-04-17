@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+const API_URL = "/api";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -143,6 +143,9 @@ export interface AccountSettings {
   max_runs_per_day: number;
   actions: ActionBlock[] | null;
   unfollow_days: number;
+  list_tab: string | null;
+  account_group: string | null;
+  account_list_tab: string | null;
   topics: string | null;
   updated_at: string;
 }
