@@ -185,7 +185,7 @@ export default function AccountDetailPage() {
           <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c] mr-1">days</span>
+              <span className="text-[#73726c]">days </span>
               <span className="text-[#f0eee6]">[ </span>
               <select
                 value={settings.schedule_days ?? ""}
@@ -201,7 +201,7 @@ export default function AccountDetailPage() {
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c] mr-1">start</span>
+              <span className="text-[#73726c]">start </span>
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
@@ -215,7 +215,7 @@ export default function AccountDetailPage() {
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c] mr-1">end</span>
+              <span className="text-[#73726c]">end </span>
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
@@ -229,11 +229,11 @@ export default function AccountDetailPage() {
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c] mr-1">delay fixed</span>
+              <span className="text-[#73726c]">delay fixed </span>
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
-                size={3}
+                size={Math.max(String(settings.delay_base_minutes ?? "60").length, 1)}
                 inputMode="numeric"
                 value={settings.delay_base_minutes != null ? String(settings.delay_base_minutes) : ""}
                 onChange={(e) => setSettings((s) => ({ ...s, delay_base_minutes: parseNum(e.target.value) }))}
@@ -244,11 +244,11 @@ export default function AccountDetailPage() {
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c] mr-1">delay random</span>
+              <span className="text-[#73726c]">delay random </span>
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
-                size={3}
+                size={Math.max(String(settings.delay_random_minutes ?? "0").length, 1)}
                 inputMode="numeric"
                 value={settings.delay_random_minutes != null ? String(settings.delay_random_minutes) : ""}
                 onChange={(e) => setSettings((s) => ({ ...s, delay_random_minutes: parseNum(e.target.value) }))}
@@ -259,11 +259,11 @@ export default function AccountDetailPage() {
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c] mr-1">runs/day</span>
+              <span className="text-[#73726c]">runs/day </span>
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
-                size={2}
+                size={Math.max(String(settings.max_runs_per_day ?? "1").length, 1)}
                 inputMode="numeric"
                 value={settings.max_runs_per_day != null ? String(settings.max_runs_per_day) : ""}
                 onChange={(e) => setSettings((s) => ({ ...s, max_runs_per_day: parseNum(e.target.value) || 1 }))}
