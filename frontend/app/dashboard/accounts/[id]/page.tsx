@@ -199,7 +199,7 @@ export default function AccountDetailPage() {
                   <option key={d} value={d}>{d}</option>
                 ))}
               </select>
-              <span className="text-[#f0eee6]">{`\u00a0]`}</span>
+              <span className="text-[#f0eee6]">{" ]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
@@ -215,7 +215,7 @@ export default function AccountDetailPage() {
                 placeholder="10:00 AM"
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]">{`\u00a0]`}</span>
+              <span className="text-[#f0eee6]">{" ]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
@@ -231,7 +231,7 @@ export default function AccountDetailPage() {
                 placeholder="10:00 PM"
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]">{`\u00a0]`}</span>
+              <span className="text-[#f0eee6]">{" ]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
@@ -246,7 +246,7 @@ export default function AccountDetailPage() {
                 style={{ width: `${Math.max(String(settings.delay_base_minutes ?? "").length || 2, 2) + 1}ch` }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]">{`\u00a0]`}</span>
+              <span className="text-[#f0eee6]">{" ]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
@@ -261,7 +261,7 @@ export default function AccountDetailPage() {
                 style={{ width: `${Math.max(String(settings.delay_random_minutes ?? "").length || 2, 2) + 1}ch` }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]">{`\u00a0]`}</span>
+              <span className="text-[#f0eee6]">{" ]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
@@ -276,7 +276,7 @@ export default function AccountDetailPage() {
                 style={{ width: `${Math.max(String(settings.max_runs_per_day ?? "").length || 1, 1) + 1}ch` }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]">{`\u00a0]`}</span>
+              <span className="text-[#f0eee6]">{" ]"}</span>
             </span>
 
           </div>
