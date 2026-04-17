@@ -120,36 +120,6 @@ export default function AccountDetailPage() {
       </div>
 
       <form onSubmit={handleSaveSettings} className="space-y-6">
-        {/* Proxy */}
-        <div className="bg-gray-900 rounded-xl p-6 space-y-4">
-          <h2 className="font-medium">Proxy</h2>
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="proxy_enabled"
-              checked={account.proxy_enabled}
-              onChange={() => handleAccountField({ proxy_enabled: !account.proxy_enabled })}
-              className="w-4 h-4 accent-blue-500 cursor-pointer"
-            />
-            <label htmlFor="proxy_enabled" className="text-sm text-gray-300 cursor-pointer">
-              Enabled
-            </label>
-          </div>
-          <div className="max-w-xs">
-            <label className="block text-xs text-gray-400 mb-1">Type</label>
-            <input
-              type="text"
-              placeholder="e.g. none"
-              value={account.proxy_type ?? ""}
-              onChange={(e) =>
-                setAccount((a) => a && { ...a, proxy_type: e.target.value || null })
-              }
-              onBlur={() => handleAccountField({ proxy_type: account.proxy_type })}
-              className={inputCls}
-            />
-          </div>
-        </div>
-
         {/* Schedule */}
         <div className="bg-gray-900 rounded-xl p-6 space-y-4">
           <h2 className="font-medium">Schedule</h2>
