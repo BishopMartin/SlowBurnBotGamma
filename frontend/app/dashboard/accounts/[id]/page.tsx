@@ -12,6 +12,7 @@ import {
   AccountSettings,
   ActionBlock,
 } from "@/lib/api";
+import { Bracket } from "@/lib/bracket";
 
 const ACTION_LABELS = ["1st", "2nd", "3rd", "4th"] as const;
 
@@ -91,13 +92,11 @@ export default function AccountDetailPage() {
         <span className="text-[#f0eee6] font-semibold">{account.name}</span>
         <button
           onClick={() => handleAccountField({ enabled: !account.enabled })}
-          className={`transition-colors cursor-pointer ${
-            account.enabled
-              ? "text-green-400 hover:text-red-400"
-              : "text-[#73726c] hover:text-green-400"
-          }`}
+          className="group cursor-pointer transition-colors"
         >
-          {account.enabled ? "[on]" : "[off]"}
+          <Bracket className={account.enabled ? "text-green-400 group-hover:text-red-400" : "text-[#73726c] group-hover:text-green-400"}>
+            {account.enabled ? "on" : "off"}
+          </Bracket>
         </button>
         <div className="flex items-center gap-2 ml-auto">
           <span className="text-[#73726c]">grp:</span>
@@ -183,11 +182,11 @@ export default function AccountDetailPage() {
                 <button
                   type="button"
                   onClick={() => updateAction(i, { enabled: !action.enabled })}
-                  className={`text-left transition-colors cursor-pointer ${
-                    action.enabled ? "text-green-400 hover:text-red-400" : "text-[#73726c] hover:text-green-400"
-                  }`}
+                  className="group text-left cursor-pointer transition-colors"
                 >
-                  {action.enabled ? "[x]" : "[ ]"}
+                  <Bracket className={action.enabled ? "text-[#f0eee6] group-hover:text-red-400" : "text-[#73726c] group-hover:text-green-400"}>
+                    {action.enabled ? "x" : "\u00a0"}
+                  </Bracket>
                 </button>
                 <input type="text" placeholder="follow"
                   value={action.type}
@@ -257,9 +256,11 @@ export default function AccountDetailPage() {
           <button
             type="submit"
             disabled={saving}
-            className="text-[#d97757] hover:text-[#f0eee6] disabled:opacity-50 transition-colors"
+            className="group disabled:opacity-50 transition-colors"
           >
-            {saving ? "[saving…]" : "[save settings]"}
+            <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
+              {saving ? "saving…" : "save settings"}
+            </Bracket>
           </button>
           {msg && <span className="text-green-400">{msg}</span>}
         </div>

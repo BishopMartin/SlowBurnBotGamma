@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { adminListUsers, adminSyncSubscription, AdminUser } from "@/lib/api";
+import { Bracket } from "@/lib/bracket";
 
 export default function AdminPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -49,9 +50,9 @@ export default function AdminPage() {
                   <td className="px-4 py-2 text-[#f0eee6]">{u.email}</td>
                   <td className="px-4 py-2 text-[#bfbdb4]">{u.plan_tier}</td>
                   <td className="px-4 py-2">
-                    <span className={u.is_active ? "text-green-400" : "text-[#73726c]"}>
-                      {u.is_active ? "[active]" : "[inactive]"}
-                    </span>
+                    <Bracket className={u.is_active ? "text-green-400" : "text-[#73726c]"}>
+                      {u.is_active ? "active" : "inactive"}
+                    </Bracket>
                   </td>
                   <td className="px-4 py-2 text-[#73726c]">
                     {new Date(u.created_at).toLocaleDateString()}
@@ -60,9 +61,11 @@ export default function AdminPage() {
                     <button
                       onClick={() => handleSync(u.id)}
                       disabled={syncing === u.id}
-                      className="text-[#d97757] hover:text-[#f0eee6] disabled:opacity-50 transition-colors"
+                      className="group disabled:opacity-50 transition-colors"
                     >
-                      {syncing === u.id ? "[syncing…]" : "[sync stripe]"}
+                      <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
+                        {syncing === u.id ? "syncing…" : "sync stripe"}
+                      </Bracket>
                     </button>
                   </td>
                 </tr>

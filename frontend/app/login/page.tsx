@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { login } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { Bracket } from "@/lib/bracket";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -64,9 +65,11 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="text-[#d97757] hover:text-[#f0eee6] disabled:opacity-50 transition-colors"
+                className="group disabled:opacity-50 transition-colors"
               >
-                {loading ? "[signing in…]" : "[sign in]"}
+                <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
+                  {loading ? "signing in…" : "sign in"}
+                </Bracket>
               </button>
               <Link href="/register" className="text-[#73726c] hover:text-[#d97757] transition-colors">
                 register →

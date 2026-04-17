@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { register, login } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { Bracket } from "@/lib/bracket";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -66,9 +67,11 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="text-[#d97757] hover:text-[#f0eee6] disabled:opacity-50 transition-colors"
+                className="group disabled:opacity-50 transition-colors"
               >
-                {loading ? "[creating…]" : "[create account]"}
+                <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
+                  {loading ? "creating…" : "create account"}
+                </Bracket>
               </button>
               <Link href="/login" className="text-[#73726c] hover:text-[#d97757] transition-colors">
                 ← sign in

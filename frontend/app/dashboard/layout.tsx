@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { logout } from "@/lib/api";
+import { Bracket } from "@/lib/bracket";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -54,11 +55,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         <div className="flex items-center gap-4">
           <span className="text-[#73726c]">{user.email}</span>
-          <button
-            onClick={handleLogout}
-            className="text-[#73726c] hover:text-[#d97757] transition-colors"
-          >
-            [sign out]
+          <button onClick={handleLogout} className="group transition-colors">
+            <Bracket className="text-[#73726c] group-hover:text-[#d97757]">sign out</Bracket>
           </button>
         </div>
       </header>

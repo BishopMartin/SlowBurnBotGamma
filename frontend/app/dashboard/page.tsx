@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { getAccounts, getEntitlement, Account, Entitlement } from "@/lib/api";
+import { Bracket } from "@/lib/bracket";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -72,9 +73,9 @@ export default function DashboardPage() {
                     )}
                   </td>
                   <td className="px-4 py-2 text-right">
-                    <span className={account.enabled ? "text-green-400" : "text-[#73726c]"}>
-                      {account.enabled ? "[on]" : "[off]"}
-                    </span>
+                    <Bracket className={account.enabled ? "text-green-400" : "text-[#73726c]"}>
+                      {account.enabled ? "on" : "off"}
+                    </Bracket>
                   </td>
                 </tr>
               ))}
