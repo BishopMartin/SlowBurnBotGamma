@@ -3,10 +3,13 @@
  */
 export function formatTime(t: string | null | undefined): string {
   if (!t) return "?";
-  const [h, m] = t.split(":").map(Number);
+  const match = t.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return t;
+  const h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
   const period = h >= 12 ? "PM" : "AM";
   const hour12 = h % 12 || 12;
-  return `${String(hour12).padStart(2, "0")}:${String(m).padStart(2, "0")}${period}`;
+  return `${String(hour12).padStart(2, "0")}:${String(m).padStart(2, "0")} ${period}`;
 }
 
 /**

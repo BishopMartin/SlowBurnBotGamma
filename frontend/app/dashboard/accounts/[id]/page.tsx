@@ -14,6 +14,7 @@ import {
   ActionBlock,
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
+import { formatTime } from "@/lib/format";
 
 // ── dropdown data ─────────────────────────────────────────────────────────────
 
@@ -42,6 +43,20 @@ const DEFAULT_ACTION: ActionBlock = {
 function pad4(actions: ActionBlock[] | null | undefined): ActionBlock[] {
   const base = actions ?? [];
   return [0, 1, 2, 3].map((i) => base[i] ?? { ...DEFAULT_ACTION });
+}
+
+/** Convert "10:00 PM" / "10:00PM" → "22:00"; pass through 24h as-is */
+function parseTime(v: string): string | null {
+  if (!v.trim()) return null;
+  const m12 = v.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (m12) {
+    let h = parseInt(m12[1], 10);
+    const m = parseInt(m12[2], 10);
+    if (m12[3].toUpperCase() === "PM" && h !== 12) h += 12;
+    if (m12[3].toUpperCase() === "AM" && h === 12) h = 0;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  }
+  return v.slice(0, 5) || null;
 }
 
 /** Parse a numeric text field; empty → 0 */
@@ -190,10 +205,10 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
-                size={5}
-                value={(settings.schedule_start ?? "").slice(0, 5)}
-                onChange={(e) => setSettings((s) => ({ ...s, schedule_start: e.target.value || null }))}
-                placeholder="00:00"
+                size={8}
+                value={settings.schedule_start ? formatTime(settings.schedule_start) : ""}
+                onChange={(e) => setSettings((s) => ({ ...s, schedule_start: parseTime(e.target.value) }))}
+                placeholder="10:00 AM"
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]"> ]</span>
@@ -204,10 +219,10 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
-                size={5}
-                value={(settings.schedule_end ?? "").slice(0, 5)}
-                onChange={(e) => setSettings((s) => ({ ...s, schedule_end: e.target.value || null }))}
-                placeholder="00:00"
+                size={8}
+                value={settings.schedule_end ? formatTime(settings.schedule_end) : ""}
+                onChange={(e) => setSettings((s) => ({ ...s, schedule_end: parseTime(e.target.value) }))}
+                placeholder="10:00 PM"
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]"> ]</span>
