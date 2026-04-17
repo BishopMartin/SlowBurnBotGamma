@@ -88,6 +88,8 @@ export default function AccountDetailPage() {
   const [actions, setActions] = useState<ActionBlock[]>(pad4(null));
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const [editingStart, setEditingStart] = useState<string | null>(null);
+  const [editingEnd, setEditingEnd] = useState<string | null>(null);
 
   useEffect(() => {
     getAccounts().then((list) => {
@@ -206,8 +208,10 @@ export default function AccountDetailPage() {
               <input
                 type="text"
                 size={8}
-                value={settings.schedule_start ? formatTime(settings.schedule_start) : ""}
-                onChange={(e) => setSettings((s) => ({ ...s, schedule_start: parseTime(e.target.value) }))}
+                value={editingStart ?? (settings.schedule_start ? formatTime(settings.schedule_start) : "")}
+                onFocus={() => setEditingStart(settings.schedule_start ? formatTime(settings.schedule_start) : "")}
+                onChange={(e) => setEditingStart(e.target.value)}
+                onBlur={() => { setSettings((s) => ({ ...s, schedule_start: parseTime(editingStart ?? "") })); setEditingStart(null); }}
                 placeholder="10:00 AM"
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
@@ -220,8 +224,10 @@ export default function AccountDetailPage() {
               <input
                 type="text"
                 size={8}
-                value={settings.schedule_end ? formatTime(settings.schedule_end) : ""}
-                onChange={(e) => setSettings((s) => ({ ...s, schedule_end: parseTime(e.target.value) }))}
+                value={editingEnd ?? (settings.schedule_end ? formatTime(settings.schedule_end) : "")}
+                onFocus={() => setEditingEnd(settings.schedule_end ? formatTime(settings.schedule_end) : "")}
+                onChange={(e) => setEditingEnd(e.target.value)}
+                onBlur={() => { setSettings((s) => ({ ...s, schedule_end: parseTime(editingEnd ?? "") })); setEditingEnd(null); }}
                 placeholder="10:00 PM"
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
@@ -233,11 +239,11 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
-                size={Math.max(String(settings.delay_base_minutes ?? "60").length, 1)}
                 inputMode="numeric"
                 value={settings.delay_base_minutes != null ? String(settings.delay_base_minutes) : ""}
                 onChange={(e) => setSettings((s) => ({ ...s, delay_base_minutes: parseNum(e.target.value) }))}
                 placeholder="60"
+                style={{ width: `${Math.max(String(settings.delay_base_minutes ?? "").length || 2, 2) + 1}ch` }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]"> ]</span>
@@ -248,11 +254,11 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
-                size={Math.max(String(settings.delay_random_minutes ?? "0").length, 1)}
                 inputMode="numeric"
                 value={settings.delay_random_minutes != null ? String(settings.delay_random_minutes) : ""}
                 onChange={(e) => setSettings((s) => ({ ...s, delay_random_minutes: parseNum(e.target.value) }))}
                 placeholder="0"
+                style={{ width: `${Math.max(String(settings.delay_random_minutes ?? "").length || 2, 2) + 1}ch` }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]"> ]</span>
@@ -263,11 +269,11 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
-                size={Math.max(String(settings.max_runs_per_day ?? "1").length, 1)}
                 inputMode="numeric"
                 value={settings.max_runs_per_day != null ? String(settings.max_runs_per_day) : ""}
                 onChange={(e) => setSettings((s) => ({ ...s, max_runs_per_day: parseNum(e.target.value) || 1 }))}
                 placeholder="1"
+                style={{ width: `${Math.max(String(settings.max_runs_per_day ?? "").length || 1, 1) + 1}ch` }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]"> ]</span>
