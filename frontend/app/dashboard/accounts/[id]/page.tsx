@@ -15,6 +15,20 @@ import {
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
 
+// ── dropdown data ─────────────────────────────────────────────────────────────
+
+const ACTION_TYPES = ["follow", "unfollow", "like post"] as const;
+
+const ACTION_TARGETS: Record<string, string[]> = {
+  follow:    ["suggested users", "account list [followers]", "account list [following]"],
+  unfollow:  ["previous follows"],
+  "like post": ["posts [homepage]", "posts [topics]"],
+};
+
+const SCHEDULE_DAYS = ["daily", "weekdays", "weekends"];
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+
 const ACTION_LABELS = ["1st", "2nd", "3rd", "4th"] as const;
 
 const DEFAULT_ACTION: ActionBlock = {
@@ -30,10 +44,26 @@ function pad4(actions: ActionBlock[] | null | undefined): ActionBlock[] {
   return [0, 1, 2, 3].map((i) => base[i] ?? { ...DEFAULT_ACTION });
 }
 
+/** Parse a numeric text field; empty → 0 */
+function parseNum(v: string): number {
+  const n = parseInt(v.replace(/[^0-9]/g, ""), 10);
+  return isNaN(n) ? 0 : n;
+}
+
+// ── styles ────────────────────────────────────────────────────────────────────
+
 const inputCls =
-  "w-full bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-1 font-mono transition-colors";
+  "w-full bg-transparent border-b border-[#2a2a27] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-1 font-mono transition-colors";
+
+const numInputCls =
+  "w-full bg-transparent border-b border-[#2a2a27] text-[#f0eee6] outline-none focus:border-[#d97757] py-1 font-mono transition-colors";
+
+const selectCls =
+  "w-full bg-[#141413] border-b border-[#2a2a27] text-[#f0eee6] outline-none focus:border-[#d97757] py-1 font-mono transition-colors cursor-pointer appearance-none";
 
 const sectionCls = "border border-[#3d3d3a]";
+
+// ── component ─────────────────────────────────────────────────────────────────
 
 export default function AccountDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -51,10 +81,7 @@ export default function AccountDetailPage() {
       setAccount(found);
     });
     getAccountSettings(id)
-      .then((s) => {
-        setSettings(s);
-        setActions(pad4(s.actions));
-      })
+      .then((s) => { setSettings(s); setActions(pad4(s.actions)); })
       .catch(() => {});
   }, [id, router]);
 
@@ -73,7 +100,13 @@ export default function AccountDetailPage() {
   }
 
   function updateAction(index: number, patch: Partial<ActionBlock>) {
-    setActions((prev) => prev.map((a, i) => (i === index ? { ...a, ...patch } : a)));
+    setActions((prev) => prev.map((a, i) => {
+      if (i !== index) return a;
+      const updated = { ...a, ...patch };
+      // reset target when type changes
+      if (patch.type !== undefined && patch.type !== a.type) updated.target = "";
+      return updated;
+    }));
   }
 
   async function handleAccountField(patch: Partial<Account>) {
@@ -90,13 +123,12 @@ export default function AccountDetailPage() {
 
   if (!account) return null;
 
-  const groupDisplay = account.group_number != null
-    ? String(account.group_number).padStart(2, "0")
-    : "";
+  const groupDisplay = account.group_number != null ? String(account.group_number) : "";
 
   return (
     <div className="space-y-6 font-mono">
-      {/* Header: ← accounts  theburleybar  [on]  group [01] */}
+
+      {/* Header */}
       <div className="flex items-center gap-3 flex-wrap">
         <Link href="/dashboard/accounts" className="text-[#73726c] hover:text-[#f0eee6] transition-colors">
           ← accounts
@@ -116,7 +148,6 @@ export default function AccountDetailPage() {
           <input
             type="text"
             inputMode="numeric"
-            pattern="[0-9]*"
             maxLength={2}
             placeholder="--"
             value={groupDisplay}
@@ -125,105 +156,185 @@ export default function AccountDetailPage() {
               setAccount((a) => a && { ...a, group_number: val ? +val : null });
             }}
             onBlur={() => handleAccountField({ group_number: account.group_number })}
-            className="w-5 bg-transparent text-[#f0eee6] outline-none text-center font-mono placeholder-[#73726c] border-none"
+            className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
           />
           <span className="text-[#f0eee6]">]</span>
         </div>
       </div>
 
       <form onSubmit={handleSaveSettings} className="space-y-4">
+
         {/* Schedule */}
         <div className={sectionCls}>
           <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">schedule</div>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4 p-4">
-            <div>
-              <div className="text-[#73726c] mb-1">days</div>
-              <input type="text" placeholder="e.g. daily"
-                value={settings.schedule_days ?? ""}
-                onChange={(e) => setSettings((s) => ({ ...s, schedule_days: e.target.value }))}
-                className={inputCls} />
+          <div className="grid grid-cols-2 gap-x-8 gap-y-2 p-4">
+
+            <div className="flex items-center gap-3">
+              <span className="text-[#73726c] w-48 shrink-0">days</span>
+              <div className="w-28">
+                <select
+                  value={settings.schedule_days ?? ""}
+                  onChange={(e) => setSettings((s) => ({ ...s, schedule_days: e.target.value || null }))}
+                  className={selectCls}
+                >
+                  <option value="">— select —</option>
+                  {SCHEDULE_DAYS.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div>
-              <div className="text-[#73726c] mb-1">max runs / day</div>
-              <input type="number" min={1}
-                value={settings.max_runs_per_day ?? 1}
-                onChange={(e) => setSettings((s) => ({ ...s, max_runs_per_day: +e.target.value }))}
-                className={`${inputCls} [appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden`} />
+
+            <div className="flex items-center gap-3">
+              <span className="text-[#73726c] w-48 shrink-0">max runs / day</span>
+              <div className="w-16">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={settings.max_runs_per_day != null ? String(settings.max_runs_per_day) : ""}
+                  onChange={(e) => setSettings((s) => ({ ...s, max_runs_per_day: parseNum(e.target.value) || 1 }))}
+                  placeholder="1"
+                  className={numInputCls}
+                />
+              </div>
             </div>
-            <div>
-              <div className="text-[#73726c] mb-1">start time</div>
-              <input type="time"
-                value={settings.schedule_start ?? ""}
-                onChange={(e) => setSettings((s) => ({ ...s, schedule_start: e.target.value || null }))}
-                className={inputCls} />
+
+            <div className="flex items-center gap-3">
+              <span className="text-[#73726c] w-48 shrink-0">start time</span>
+              <div className="w-28">
+                <input
+                  type="time"
+                  value={settings.schedule_start ?? ""}
+                  onChange={(e) => setSettings((s) => ({ ...s, schedule_start: e.target.value || null }))}
+                  className={inputCls}
+                />
+              </div>
             </div>
-            <div>
-              <div className="text-[#73726c] mb-1">end time</div>
-              <input type="time"
-                value={settings.schedule_end ?? ""}
-                onChange={(e) => setSettings((s) => ({ ...s, schedule_end: e.target.value || null }))}
-                className={inputCls} />
+
+            <div className="flex items-center gap-3">
+              <span className="text-[#73726c] w-48 shrink-0">end time</span>
+              <div className="w-28">
+                <input
+                  type="time"
+                  value={settings.schedule_end ?? ""}
+                  onChange={(e) => setSettings((s) => ({ ...s, schedule_end: e.target.value || null }))}
+                  className={inputCls}
+                />
+              </div>
             </div>
-            <div>
-              <div className="text-[#73726c] mb-1">delay base (min)</div>
-              <input type="number" min={0}
-                value={settings.delay_base_minutes ?? 60}
-                onChange={(e) => setSettings((s) => ({ ...s, delay_base_minutes: +e.target.value }))}
-                className={`${inputCls} [appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden`} />
+
+            <div className="flex items-center gap-3">
+              <span className="text-[#73726c] w-48 shrink-0">delay base (min)</span>
+              <div className="w-16">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={settings.delay_base_minutes != null ? String(settings.delay_base_minutes) : ""}
+                  onChange={(e) => setSettings((s) => ({ ...s, delay_base_minutes: parseNum(e.target.value) }))}
+                  placeholder="60"
+                  className={numInputCls}
+                />
+              </div>
             </div>
-            <div>
-              <div className="text-[#73726c] mb-1">delay random (min)</div>
-              <input type="number" min={0}
-                value={settings.delay_random_minutes ?? 0}
-                onChange={(e) => setSettings((s) => ({ ...s, delay_random_minutes: +e.target.value }))}
-                className={`${inputCls} [appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden`} />
+
+            <div className="flex items-center gap-3">
+              <span className="text-[#73726c] w-48 shrink-0">delay random (min)</span>
+              <div className="w-16">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={settings.delay_random_minutes != null ? String(settings.delay_random_minutes) : ""}
+                  onChange={(e) => setSettings((s) => ({ ...s, delay_random_minutes: parseNum(e.target.value) }))}
+                  placeholder="0"
+                  className={numInputCls}
+                />
+              </div>
             </div>
+
           </div>
         </div>
 
         {/* Actions */}
         <div className={sectionCls}>
           <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">actions</div>
-          <div className="p-4 space-y-3">
-            <div className="grid grid-cols-[3rem_3rem_1fr_1fr_4rem_4rem] gap-2 text-[#73726c]">
-              <span></span>
-              <span>on</span>
-              <span>type</span>
-              <span>target</span>
-              <span className="text-center">#</span>
-              <span className="text-center">?</span>
-            </div>
-            {actions.map((action, i) => (
-              <div key={i} className="grid grid-cols-[3rem_3rem_1fr_1fr_4rem_4rem] gap-2 items-center">
-                <span className="text-[#73726c]">{ACTION_LABELS[i]}</span>
-                <button
-                  type="button"
-                  onClick={() => updateAction(i, { enabled: !action.enabled })}
-                  className="group text-left cursor-pointer transition-colors"
-                >
-                  <Bracket className={action.enabled ? "text-[#f0eee6] group-hover:text-red-400" : "text-[#73726c] group-hover:text-green-400"}>
-                    {action.enabled ? "x" : "\u00a0"}
-                  </Bracket>
-                </button>
-                <input type="text" placeholder="follow"
-                  value={action.type}
-                  onChange={(e) => updateAction(i, { type: e.target.value })}
-                  className={inputCls} />
-                <input type="text" placeholder="username / tag"
-                  value={action.target}
-                  onChange={(e) => updateAction(i, { target: e.target.value })}
-                  className={inputCls} />
-                <input type="number" min={0}
-                  value={action.fixed_count}
-                  onChange={(e) => updateAction(i, { fixed_count: +e.target.value })}
-                  className={`${inputCls} [appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden`} />
-                <input type="number" min={0}
-                  value={action.variable_count}
-                  onChange={(e) => updateAction(i, { variable_count: +e.target.value })}
-                  className={`${inputCls} [appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden`} />
-              </div>
-            ))}
-          </div>
+          <table className="w-full font-mono">
+            <thead>
+              <tr className="text-left text-[#73726c] border-b border-[#3d3d3a]">
+                <th className="px-4 py-2 font-normal w-10"></th>
+                <th className="px-4 py-2 font-normal w-10">on</th>
+                <th className="px-4 py-2 font-normal">type</th>
+                <th className="px-4 py-2 font-normal">target</th>
+                <th className="px-4 py-2 font-normal w-16">set</th>
+                <th className="px-4 py-2 font-normal w-16">random</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#3d3d3a]">
+              {actions.map((action, i) => {
+                const targets = action.type ? (ACTION_TARGETS[action.type] ?? []) : [];
+                return (
+                  <tr key={i}>
+                    <td className="px-4 py-2 text-[#73726c]">{ACTION_LABELS[i]}</td>
+                    <td className="px-4 py-2">
+                      <button
+                        type="button"
+                        onClick={() => updateAction(i, { enabled: !action.enabled })}
+                        className="group text-left cursor-pointer transition-colors"
+                      >
+                        <Bracket className={action.enabled ? "text-[#f0eee6] group-hover:text-red-400" : "text-[#73726c] group-hover:text-green-400"}>
+                          {action.enabled ? "x" : "\u00a0"}
+                        </Bracket>
+                      </button>
+                    </td>
+                    <td className="px-4 py-2">
+                      <select
+                        value={action.type}
+                        onChange={(e) => updateAction(i, { type: e.target.value })}
+                        className={selectCls}
+                      >
+                        <option value="">—</option>
+                        {ACTION_TYPES.map((t) => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-2">
+                      <select
+                        value={action.target}
+                        onChange={(e) => updateAction(i, { target: e.target.value })}
+                        disabled={targets.length === 0}
+                        className={`${selectCls} disabled:text-[#3d3d3a] disabled:cursor-default`}
+                      >
+                        <option value="">—</option>
+                        {targets.map((t) => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-2">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={action.fixed_count > 0 ? String(action.fixed_count) : ""}
+                        onChange={(e) => updateAction(i, { fixed_count: parseNum(e.target.value) })}
+                        placeholder="0"
+                        className={numInputCls}
+                      />
+                    </td>
+                    <td className="px-4 py-2">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={action.variable_count > 0 ? String(action.variable_count) : ""}
+                        onChange={(e) => updateAction(i, { variable_count: parseNum(e.target.value) })}
+                        placeholder="0"
+                        className={numInputCls}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
 
         {/* Follow Settings */}
@@ -232,10 +343,14 @@ export default function AccountDetailPage() {
           <div className="grid grid-cols-2 gap-x-6 gap-y-4 p-4">
             <div>
               <div className="text-[#73726c] mb-1">unfollow after (days)</div>
-              <input type="number" min={1}
-                value={settings.unfollow_days ?? 30}
-                onChange={(e) => setSettings((s) => ({ ...s, unfollow_days: +e.target.value }))}
-                className={`${inputCls} [appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden`} />
+              <input
+                type="text"
+                inputMode="numeric"
+                value={settings.unfollow_days != null ? String(settings.unfollow_days) : ""}
+                onChange={(e) => setSettings((s) => ({ ...s, unfollow_days: parseNum(e.target.value) || 30 }))}
+                placeholder="30"
+                className={numInputCls}
+              />
             </div>
             <div>
               <div className="text-[#73726c] mb-1">list tab name</div>
@@ -268,26 +383,19 @@ export default function AccountDetailPage() {
           </div>
         </div>
 
-        {/* Save */}
+        {/* Save / Delete */}
         <div className="flex items-center gap-6">
-          <button
-            type="submit"
-            disabled={saving}
-            className="group disabled:opacity-50 transition-colors"
-          >
+          <button type="submit" disabled={saving} className="group disabled:opacity-50 transition-colors">
             <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
               {saving ? "saving…" : "save settings"}
             </Bracket>
           </button>
           {msg && <span className="text-green-400">{msg}</span>}
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="group transition-colors ml-auto"
-          >
+          <button type="button" onClick={handleDelete} className="group transition-colors ml-auto">
             <Bracket className="text-[#73726c] group-hover:text-red-400">delete account</Bracket>
           </button>
         </div>
+
       </form>
     </div>
   );

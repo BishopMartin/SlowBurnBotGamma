@@ -15,3 +15,17 @@ body {
   color: var(--foreground);
   font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
 }
+
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #1a1918;
+  color: #f0eee6;
+}
+
+select option:checked {
+  background: linear-gradient(0deg, #5a2e1a 0%, #5a2e1a 100%);
+  color: #f0eee6;
+}

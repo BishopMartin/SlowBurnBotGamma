@@ -102,6 +102,16 @@ export async function adminSyncSubscription(userId: string) {
   return request(`/admin/users/${userId}/sync-subscription`, { method: "POST" });
 }
 
+export async function adminListAccounts() {
+  return request<AdminAccount[]>("/admin/accounts");
+}
+
+export async function adminGetFollowTargets(accountId: string, page: number, pageSize = 100) {
+  return request<{ total: number; page: number; page_size: number; items: FollowTarget[] }>(
+    `/admin/accounts/${accountId}/follow-targets?page=${page}&page_size=${pageSize}`
+  );
+}
+
 // Types
 export interface User {
   id: string;
@@ -163,4 +173,24 @@ export interface AdminUser {
   plan_tier: string;
   is_active: boolean;
   created_at: string;
+}
+
+export interface AdminAccount {
+  id: string;
+  user_id: string;
+  user_email: string;
+  name: string;
+  enabled: boolean;
+  group_number: number | null;
+  created_at: string;
+}
+
+export interface FollowTarget {
+  id: string;
+  target_handle: string;
+  source: string | null;
+  status: string;
+  follow_date: string | null;
+  unfollow_date: string | null;
+  follow_back: boolean | null;
 }

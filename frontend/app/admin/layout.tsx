@@ -13,5 +13,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [user, loading, router]);
 
   if (loading || !user?.is_superuser) return null;
-  return <>{children}</>;
+  return (
+    <div className="space-y-4">
+      <nav className="flex gap-4 font-mono text-sm border-b border-[#3d3d3a] pb-3">
+        <span className="text-[#73726c]">admin:</span>
+        <a href="/admin" className="text-[#bfbdb4] hover:text-[#f0eee6] transition-colors">[users]</a>
+        <a href="/admin/accounts" className="text-[#bfbdb4] hover:text-[#f0eee6] transition-colors">[accounts]</a>
+      </nav>
+      {children}
+    </div>
+  );
 }

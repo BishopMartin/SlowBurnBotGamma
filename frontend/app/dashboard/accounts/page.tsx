@@ -15,7 +15,7 @@ import { Bracket } from "@/lib/bracket";
 
 function fmtGroup(n: number | null | undefined): React.ReactNode {
   if (n == null) return <span className="text-[#73726c]">—</span>;
-  return <Bracket className="text-[#bfbdb4]">{String(n).padStart(2, "0")}</Bracket>;
+  return <span className="text-[#73726c]">[{String(n).padStart(2, "0")}]</span>;
 }
 
 export default function AccountsPage() {
@@ -48,7 +48,7 @@ export default function AccountsPage() {
     setAdding(true);
     setError("");
     try {
-      await createAccount({ name: newName.trim(), enabled: false });
+      await createAccount({ name: newName.trim(), enabled: false, group_number: 1 });
       setNewName("");
       await load();
     } catch (err: unknown) {
@@ -65,7 +65,9 @@ export default function AccountsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="font-semibold text-[#f0eee6]">Accounts</h1>
+      <h1 className="font-semibold text-[#f0eee6] font-mono">
+        Accounts <span className="text-[#73726c] font-normal">[{String(accounts.length).padStart(2, "0")}/10]</span>
+      </h1>
 
       <div className="border border-[#3d3d3a]">
         {accounts.length === 0 ? (
@@ -91,7 +93,7 @@ export default function AccountsPage() {
                       onClick={() => handleToggleEnabled(account)}
                       className="group cursor-pointer transition-colors"
                     >
-                      <Bracket className={account.enabled ? "text-[#f0eee6] group-hover:text-red-400" : "text-[#73726c] group-hover:text-green-400"}>
+                      <Bracket className={account.enabled ? "text-[#73726c] group-hover:text-red-400" : "text-[#73726c] group-hover:text-green-400"}>
                         {account.enabled ? "x" : "\u00a0"}
                       </Bracket>
                     </button>
@@ -100,14 +102,14 @@ export default function AccountsPage() {
                   <td className="px-4 py-2 text-[#73726c]">
                     {scheduleLabel(settingsMap[account.id])}
                   </td>
-                  <td className="px-4 py-2">
-                    <Bracket className={account.enabled ? "text-green-400" : "text-[#73726c]"}>
-                      {account.enabled ? "on" : "off"}
-                    </Bracket>
+                  <td className="px-4 py-2 font-mono">
+                    <span className="text-[#73726c]">[</span>
+                    <span className={account.enabled ? "text-green-400" : "text-red-400"}>{account.enabled ? "on" : "off"}</span>
+                    <span className="text-[#73726c]">]</span>
                   </td>
                   <td className="px-4 py-2 text-right">
-                    <Link href={`/dashboard/accounts/${account.id}`} className="group transition-colors">
-                      <Bracket className="text-[#bfbdb4] group-hover:text-[#d97757]">settings</Bracket>
+                    <Link href={`/dashboard/accounts/${account.id}`} className="group font-mono transition-colors">
+                      <Bracket className="text-[#73726c] group-hover:text-[#d97757]">settings</Bracket>
                     </Link>
                   </td>
                 </tr>
