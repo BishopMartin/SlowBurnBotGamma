@@ -11,7 +11,6 @@ export default function RegisterPage() {
   const { refresh } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,7 +19,7 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
     try {
-      await register(email, password, displayName || undefined);
+      await register(email, password);
       await login(email, password);
       await refresh();
       router.push("/dashboard");
@@ -34,50 +33,41 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-8 text-center">SlowBurnBot</h1>
-        <form onSubmit={handleSubmit} className="bg-gray-900 rounded-xl p-6 space-y-4">
-          <h2 className="text-lg font-semibold">Create account</h2>
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+        <h1 className="font-bold mb-8 text-center text-[#d97757]" style={{ fontSize: "1.25rem" }}>SlowBurnBot</h1>
+        <form onSubmit={handleSubmit} className="bg-[#1f1e1d] rounded-xl p-6 space-y-4 border border-[#3d3d3a]" style={{ boxShadow: "0 6px 16px -4px rgba(0,0,0,0.12)" }}>
+          <h2 className="font-semibold text-[#f0eee6]">Create account</h2>
+          {error && <p className="text-red-400">{error}</p>}
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Display name (optional)</label>
-            <input
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Email</label>
+            <label className="block text-[#bfbdb4] mb-1">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-[#262624] rounded-lg px-3 py-2 text-[#f0eee6] placeholder-[#73726c] outline-none border border-[#3d3d3a] focus:border-[#d97757] focus:ring-1 focus:ring-[#d97757] transition-colors"
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Password</label>
+            <label className="block text-[#bfbdb4] mb-1">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={8}
-              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-[#262624] rounded-lg px-3 py-2 text-[#f0eee6] placeholder-[#73726c] outline-none border border-[#3d3d3a] focus:border-[#d97757] focus:ring-1 focus:ring-[#d97757] transition-colors"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+            className="w-full bg-[#c6613f] hover:bg-[#d97757] disabled:opacity-50 rounded-lg px-4 py-2 font-medium text-[#f0eee6] transition-colors"
           >
             {loading ? "Creating account…" : "Create account"}
           </button>
-          <p className="text-center text-sm text-gray-400">
+          <p className="text-center text-[#73726c]">
             Already have an account?{" "}
-            <Link href="/login" className="text-blue-400 hover:underline">
+            <Link href="/login" className="text-[#d97757] hover:underline">
               Sign in
             </Link>
           </p>

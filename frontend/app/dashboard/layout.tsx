@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [user, loading, router]);
 
   if (loading || !user) {
-    return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading…</div>;
+    return <div className="min-h-screen flex items-center justify-center text-[#73726c]">Loading…</div>;
   }
 
   async function handleLogout() {
@@ -33,18 +33,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between">
+      <header className="bg-[#1f1e1d] border-b border-[#3d3d3a] px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <span className="font-bold text-white">SlowBurnBot</span>
+          <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
           <nav className="flex gap-4">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`text-sm transition-colors ${
+                className={`transition-colors ${
                   pathname === item.href
-                    ? "text-white"
-                    : "text-gray-400 hover:text-gray-200"
+                    ? "text-[#f0eee6]"
+                    : "text-[#73726c] hover:text-[#f0eee6]"
                 }`}
               >
                 {item.label}
@@ -53,10 +53,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </nav>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-400">{user.email}</span>
+          <span className="text-[#73726c]">{user.email}</span>
           <button
             onClick={handleLogout}
-            className="text-sm text-gray-400 hover:text-white transition-colors"
+            className="text-[#73726c] hover:text-[#f0eee6] transition-colors"
           >
             Sign out
           </button>

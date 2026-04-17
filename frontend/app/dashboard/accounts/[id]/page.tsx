@@ -29,7 +29,9 @@ function pad4(actions: ActionBlock[] | null | undefined): ActionBlock[] {
 }
 
 const inputCls =
-  "w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500";
+  "w-full bg-[#262624] rounded-lg px-3 py-2 text-[#f0eee6] placeholder-[#73726c] outline-none border border-[#3d3d3a] focus:border-[#d97757] focus:ring-1 focus:ring-[#d97757] transition-colors";
+
+const cardCls = "bg-[#1f1e1d] rounded-xl p-6 space-y-4 border border-[#3d3d3a]";
 
 export default function AccountDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -68,12 +70,6 @@ export default function AccountDetailPage() {
     }
   }
 
-  async function toggleEnabled() {
-    if (!account) return;
-    const updated = await updateAccount(id, { enabled: !account.enabled });
-    setAccount(updated);
-  }
-
   function updateAction(index: number, patch: Partial<ActionBlock>) {
     setActions((prev) => prev.map((a, i) => (i === index ? { ...a, ...patch } : a)));
   }
@@ -89,22 +85,22 @@ export default function AccountDetailPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3 flex-wrap">
-        <Link href="/dashboard/accounts" className="text-gray-400 hover:text-white text-sm">
+        <Link href="/dashboard/accounts" className="text-[#73726c] hover:text-[#f0eee6]">
           ← Accounts
         </Link>
-        <h1 className="text-xl font-semibold">{account.name}</h1>
+        <h1 className="font-semibold text-[#f0eee6]">{account.name}</h1>
         <button
-          onClick={toggleEnabled}
-          className={`text-xs px-2 py-0.5 rounded-full transition-colors cursor-pointer ${
+          onClick={() => handleAccountField({ enabled: !account.enabled })}
+          className={`px-2 py-0.5 rounded-full transition-colors cursor-pointer ${
             account.enabled
-              ? "bg-green-900 text-green-300 hover:bg-red-900 hover:text-red-300"
-              : "bg-gray-800 text-gray-400 hover:bg-green-900 hover:text-green-300"
+              ? "bg-[#1a2e1a] text-green-400 hover:bg-red-950 hover:text-red-400"
+              : "bg-[#262624] text-[#73726c] hover:bg-[#1a2e1a] hover:text-green-400"
           }`}
         >
           {account.enabled ? "Enabled" : "Disabled"}
         </button>
         <div className="flex items-center gap-2 ml-auto">
-          <label className="text-xs text-gray-400">Group</label>
+          <label className="text-[#73726c]">Group</label>
           <input
             type="number"
             min={1}
@@ -114,18 +110,18 @@ export default function AccountDetailPage() {
               setAccount((a) => a && { ...a, group_number: e.target.value ? +e.target.value : null })
             }
             onBlur={() => handleAccountField({ group_number: account.group_number })}
-            className="w-20 bg-gray-800 rounded-lg px-3 py-1 text-sm text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-20 bg-[#262624] rounded-lg px-3 py-1 text-[#f0eee6] placeholder-[#73726c] outline-none border border-[#3d3d3a] focus:border-[#d97757] focus:ring-1 focus:ring-[#d97757] transition-colors"
           />
         </div>
       </div>
 
       <form onSubmit={handleSaveSettings} className="space-y-6">
         {/* Schedule */}
-        <div className="bg-gray-900 rounded-xl p-6 space-y-4">
-          <h2 className="font-medium">Schedule</h2>
+        <div className={cardCls} style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.08)" }}>
+          <h2 className="font-medium text-[#f0eee6]">Schedule</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Days</label>
+              <label className="block text-[#73726c] mb-1">Days</label>
               <input
                 type="text"
                 placeholder="e.g. daily"
@@ -135,7 +131,7 @@ export default function AccountDetailPage() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Max runs / day</label>
+              <label className="block text-[#73726c] mb-1">Max runs / day</label>
               <input
                 type="number"
                 min={1}
@@ -145,7 +141,7 @@ export default function AccountDetailPage() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Start time</label>
+              <label className="block text-[#73726c] mb-1">Start time</label>
               <input
                 type="time"
                 value={settings.schedule_start ?? ""}
@@ -154,7 +150,7 @@ export default function AccountDetailPage() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">End time</label>
+              <label className="block text-[#73726c] mb-1">End time</label>
               <input
                 type="time"
                 value={settings.schedule_end ?? ""}
@@ -163,7 +159,7 @@ export default function AccountDetailPage() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Delay base (min)</label>
+              <label className="block text-[#73726c] mb-1">Delay base (min)</label>
               <input
                 type="number"
                 min={0}
@@ -173,7 +169,7 @@ export default function AccountDetailPage() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Delay random (min)</label>
+              <label className="block text-[#73726c] mb-1">Delay random (min)</label>
               <input
                 type="number"
                 min={0}
@@ -186,12 +182,11 @@ export default function AccountDetailPage() {
         </div>
 
         {/* Actions */}
-        <div className="bg-gray-900 rounded-xl p-6 space-y-3">
-          <h2 className="font-medium">Actions</h2>
-          {/* Column headers */}
-          <div className="grid grid-cols-[3rem_2.5rem_1fr_1fr_4rem_4rem] gap-2 text-xs text-gray-500 px-1">
+        <div className={cardCls} style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.08)" }}>
+          <h2 className="font-medium text-[#f0eee6]">Actions</h2>
+          <div className="grid grid-cols-[3rem_2.5rem_1fr_1fr_4rem_4rem] gap-2 text-[#73726c] px-1">
             <span></span>
-            <span>On</span>
+            <span className="text-center">On</span>
             <span>Type</span>
             <span>Target</span>
             <span className="text-center">#</span>
@@ -202,13 +197,13 @@ export default function AccountDetailPage() {
               key={i}
               className="grid grid-cols-[3rem_2.5rem_1fr_1fr_4rem_4rem] gap-2 items-center"
             >
-              <span className="text-xs text-gray-500">{ACTION_LABELS[i]}</span>
+              <span className="text-[#73726c]">{ACTION_LABELS[i]}</span>
               <div className="flex justify-center">
                 <input
                   type="checkbox"
                   checked={action.enabled}
                   onChange={(e) => updateAction(i, { enabled: e.target.checked })}
-                  className="w-4 h-4 accent-blue-500 cursor-pointer"
+                  className="w-4 h-4 accent-[#d97757] cursor-pointer"
                 />
               </div>
               <input
@@ -244,11 +239,11 @@ export default function AccountDetailPage() {
         </div>
 
         {/* Follow Settings */}
-        <div className="bg-gray-900 rounded-xl p-6 space-y-4">
-          <h2 className="font-medium">Follow Settings</h2>
+        <div className={cardCls} style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.08)" }}>
+          <h2 className="font-medium text-[#f0eee6]">Follow Settings</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Unfollow after (days)</label>
+              <label className="block text-[#73726c] mb-1">Unfollow after (days)</label>
               <input
                 type="number"
                 min={1}
@@ -258,7 +253,7 @@ export default function AccountDetailPage() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">List tab name</label>
+              <label className="block text-[#73726c] mb-1">List tab name</label>
               <input
                 type="text"
                 placeholder="e.g. list-MainLineBars"
@@ -268,7 +263,7 @@ export default function AccountDetailPage() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Account group (comma-separated)</label>
+              <label className="block text-[#73726c] mb-1">Account group (comma-separated)</label>
               <input
                 type="text"
                 placeholder="e.g. account1, account2"
@@ -278,7 +273,7 @@ export default function AccountDetailPage() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Account list tab</label>
+              <label className="block text-[#73726c] mb-1">Account list tab</label>
               <input
                 type="text"
                 placeholder="tab name"
@@ -288,7 +283,7 @@ export default function AccountDetailPage() {
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs text-gray-400 mb-1">Topics (comma-separated)</label>
+              <label className="block text-[#73726c] mb-1">Topics (comma-separated)</label>
               <input
                 type="text"
                 value={settings.topics ?? ""}
@@ -304,11 +299,11 @@ export default function AccountDetailPage() {
           <button
             type="submit"
             disabled={saving}
-            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+            className="bg-[#c6613f] hover:bg-[#d97757] disabled:opacity-50 rounded-lg px-4 py-2 font-medium text-[#f0eee6] transition-colors"
           >
             {saving ? "Saving…" : "Save settings"}
           </button>
-          {msg && <span className="text-sm text-green-400">{msg}</span>}
+          {msg && <span className="text-green-400">{msg}</span>}
         </div>
       </form>
     </div>

@@ -23,6 +23,9 @@ function scheduleLabel(s: AccountSettings | undefined): string {
   return parts.length ? parts.join("  ") : "—";
 }
 
+const inputCls =
+  "bg-[#262624] rounded-lg px-3 py-2 text-[#f0eee6] placeholder-[#73726c] outline-none border border-[#3d3d3a] focus:border-[#d97757] focus:ring-1 focus:ring-[#d97757] transition-colors";
+
 export default function AccountsPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [settingsMap, setSettingsMap] = useState<Record<string, AccountSettings>>({});
@@ -76,17 +79,17 @@ export default function AccountsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Accounts</h1>
+      <h1 className="font-semibold text-[#f0eee6]">Accounts</h1>
 
       {accounts.length === 0 ? (
-        <div className="bg-gray-900 rounded-xl p-8 text-center text-gray-400 text-sm">
+        <div className="bg-[#1f1e1d] rounded-xl p-8 text-center text-[#73726c] border border-[#3d3d3a]">
           No accounts yet. Add one below.
         </div>
       ) : (
-        <div className="bg-gray-900 rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-[#1f1e1d] rounded-xl overflow-hidden border border-[#3d3d3a]" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.08)" }}>
+          <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-800 text-xs text-gray-500 text-left">
+              <tr className="border-b border-[#3d3d3a] text-left text-[#73726c]">
                 <th className="px-4 py-3 font-medium">Account</th>
                 <th className="px-4 py-3 font-medium text-center">Active</th>
                 <th className="px-4 py-3 font-medium">Schedule</th>
@@ -94,13 +97,13 @@ export default function AccountsPage() {
                 <th className="px-4 py-3 font-medium text-right"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800">
+            <tbody className="divide-y divide-[#3d3d3a]">
               {accounts.map((account) => (
-                <tr key={account.id} className="hover:bg-gray-800/50 transition-colors">
+                <tr key={account.id} className="hover:bg-[#262624] transition-colors">
                   <td className="px-4 py-3">
-                    <span className="font-medium text-white">{account.name}</span>
+                    <span className="font-medium text-[#f0eee6]">{account.name}</span>
                     {account.group_number != null && (
-                      <span className="ml-2 text-xs text-gray-500">Grp {account.group_number}</span>
+                      <span className="ml-2 text-[#73726c]">Grp {account.group_number}</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-center">
@@ -108,18 +111,18 @@ export default function AccountsPage() {
                       type="checkbox"
                       checked={account.enabled}
                       onChange={() => handleToggleEnabled(account)}
-                      className="w-4 h-4 accent-blue-500 cursor-pointer"
+                      className="w-4 h-4 accent-[#d97757] cursor-pointer"
                     />
                   </td>
-                  <td className="px-4 py-3 text-gray-400 text-xs">
+                  <td className="px-4 py-3 text-[#73726c]">
                     {scheduleLabel(settingsMap[account.id])}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <span
-                      className={`text-xs px-2 py-0.5 rounded-full ${
+                      className={`px-2 py-0.5 rounded-full ${
                         account.enabled
-                          ? "bg-green-900 text-green-300"
-                          : "bg-gray-800 text-gray-400"
+                          ? "bg-[#1a2e1a] text-green-400"
+                          : "bg-[#262624] text-[#73726c]"
                       }`}
                     >
                       {account.enabled ? "Enabled" : "Disabled"}
@@ -129,13 +132,13 @@ export default function AccountsPage() {
                     <div className="flex items-center justify-end gap-4">
                       <Link
                         href={`/dashboard/accounts/${account.id}`}
-                        className="text-xs text-gray-400 hover:text-white transition-colors"
+                        className="text-[#bfbdb4] hover:text-[#f0eee6] transition-colors"
                       >
                         Settings
                       </Link>
                       <button
                         onClick={() => handleDelete(account.id, account.name)}
-                        className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                        className="text-red-400 hover:text-red-300 transition-colors"
                       >
                         Delete
                       </button>
@@ -154,17 +157,17 @@ export default function AccountsPage() {
           placeholder="Account name (Instagram handle)"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          className="flex-1 bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500"
+          className={`flex-1 ${inputCls}`}
         />
         <button
           type="submit"
           disabled={adding}
-          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+          className="bg-[#c6613f] hover:bg-[#d97757] disabled:opacity-50 rounded-lg px-4 py-2 font-medium text-[#f0eee6] transition-colors"
         >
           Add
         </button>
       </form>
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && <p className="text-red-400">{error}</p>}
     </div>
   );
 }
