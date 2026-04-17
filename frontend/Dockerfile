@@ -3,8 +3,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-ARG BACKEND_URL=http://localhost:8080
-ENV BACKEND_URL=$BACKEND_URL
 RUN npm run build
 
 FROM node:22-alpine AS runner
