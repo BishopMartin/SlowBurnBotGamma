@@ -169,7 +169,7 @@ export default function AccountDetailPage() {
           <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">schedule</div>
           <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
 
-            <span className="flex items-center gap-0">
+            <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c] mr-1">days</span>
               <span className="text-[#f0eee6]">[ </span>
               <select
@@ -185,7 +185,7 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]"> ]</span>
             </span>
 
-            <span className="flex items-center gap-0">
+            <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c] mr-1">start</span>
               <span className="text-[#f0eee6]">[ </span>
               <input
@@ -199,7 +199,7 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]"> ]</span>
             </span>
 
-            <span className="flex items-center gap-0">
+            <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c] mr-1">end</span>
               <span className="text-[#f0eee6]">[ </span>
               <input
@@ -213,7 +213,7 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]"> ]</span>
             </span>
 
-            <span className="flex items-center gap-0">
+            <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c] mr-1">delay fixed</span>
               <span className="text-[#f0eee6]">[ </span>
               <input
@@ -228,7 +228,7 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]"> ]</span>
             </span>
 
-            <span className="flex items-center gap-0">
+            <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c] mr-1">delay random</span>
               <span className="text-[#f0eee6]">[ </span>
               <input
@@ -243,7 +243,7 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]"> ]</span>
             </span>
 
-            <span className="flex items-center gap-0">
+            <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c] mr-1">runs/day</span>
               <span className="text-[#f0eee6]">[ </span>
               <input
