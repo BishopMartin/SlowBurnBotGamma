@@ -15,6 +15,7 @@ import {
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
 import { formatTime } from "@/lib/format";
+import { Dropdown } from "@/lib/dropdown";
 
 // ── dropdown data ─────────────────────────────────────────────────────────────
 
@@ -72,9 +73,6 @@ const inputCls =
 
 const numInputCls =
   "w-full bg-transparent border-b border-[#2a2a27] text-[#f0eee6] outline-none focus:border-[#d97757] py-1 font-mono transition-colors";
-
-const selectCls =
-  "w-full bg-[#141413] border-b border-[#2a2a27] text-[#f0eee6] outline-none focus:border-[#d97757] py-1 font-mono transition-colors cursor-pointer appearance-none";
 
 const sectionCls = "border border-[#3d3d3a]";
 
@@ -189,16 +187,15 @@ export default function AccountDetailPage() {
             <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c]">{"days: "}</span>
               <span className="text-[#f0eee6]">{`[\u00a0`}</span>
-              <select
+              <Dropdown
                 value={settings.schedule_days ?? ""}
-                onChange={(e) => setSettings((s) => ({ ...s, schedule_days: e.target.value || null }))}
-                className="bg-transparent text-[#f0eee6] outline-none font-mono cursor-pointer"
-              >
-                <option value="">——</option>
-                {SCHEDULE_DAYS.map((d) => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
+                onChange={(v) => setSettings((s) => ({ ...s, schedule_days: v || null }))}
+                placeholder="——"
+                options={[
+                  { value: "", label: "——" },
+                  ...SCHEDULE_DAYS.map((d) => ({ value: d, label: d })),
+                ]}
+              />
               <span className="text-[#f0eee6]">{" ]"}</span>
             </span>
 
@@ -314,29 +311,27 @@ export default function AccountDetailPage() {
                       </button>
                     </td>
                     <td className="px-4 py-2">
-                      <select
+                      <Dropdown
                         value={action.type}
-                        onChange={(e) => updateAction(i, { type: e.target.value })}
-                        className={selectCls}
-                      >
-                        <option value="">—</option>
-                        {ACTION_TYPES.map((t) => (
-                          <option key={t} value={t}>{t}</option>
-                        ))}
-                      </select>
+                        onChange={(v) => updateAction(i, { type: v })}
+                        placeholder="—"
+                        options={[
+                          { value: "", label: "—" },
+                          ...ACTION_TYPES.map((t) => ({ value: t, label: t })),
+                        ]}
+                      />
                     </td>
                     <td className="px-4 py-2">
-                      <select
+                      <Dropdown
                         value={action.target}
-                        onChange={(e) => updateAction(i, { target: e.target.value })}
+                        onChange={(v) => updateAction(i, { target: v })}
+                        placeholder="—"
                         disabled={targets.length === 0}
-                        className={`${selectCls} disabled:text-[#3d3d3a] disabled:cursor-default`}
-                      >
-                        <option value="">—</option>
-                        {targets.map((t) => (
-                          <option key={t} value={t}>{t}</option>
-                        ))}
-                      </select>
+                        options={[
+                          { value: "", label: "—" },
+                          ...targets.map((t) => ({ value: t, label: t })),
+                        ]}
+                      />
                     </td>
                     <td className="px-4 py-2">
                       <input
