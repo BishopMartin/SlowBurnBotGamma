@@ -171,7 +171,7 @@ export default function AccountDetailPage() {
 
             <span className="flex items-center gap-0.5">
               <span className="text-[#73726c] mr-1">days</span>
-              <span className="text-[#f0eee6]">[</span>
+              <span className="text-[#f0eee6]">[ </span>
               <select
                 value={settings.schedule_days ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, schedule_days: e.target.value || null }))}
@@ -182,36 +182,38 @@ export default function AccountDetailPage() {
                   <option key={d} value={d}>{d}</option>
                 ))}
               </select>
-              <span className="text-[#f0eee6]">]</span>
+              <span className="text-[#f0eee6]"> ]</span>
             </span>
 
             <span className="flex items-center gap-0.5">
               <span className="text-[#73726c] mr-1">start</span>
-              <span className="text-[#f0eee6]">[</span>
+              <span className="text-[#f0eee6]">[ </span>
               <input
-                type="time"
+                type="text"
                 value={settings.schedule_start ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, schedule_start: e.target.value || null }))}
-                className="bg-transparent text-[#f0eee6] outline-none font-mono w-24"
+                placeholder="00:00"
+                className="bg-transparent text-[#f0eee6] outline-none font-mono w-20"
               />
-              <span className="text-[#f0eee6]">]</span>
+              <span className="text-[#f0eee6]"> ]</span>
             </span>
 
             <span className="flex items-center gap-0.5">
               <span className="text-[#73726c] mr-1">end</span>
-              <span className="text-[#f0eee6]">[</span>
+              <span className="text-[#f0eee6]">[ </span>
               <input
-                type="time"
+                type="text"
                 value={settings.schedule_end ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, schedule_end: e.target.value || null }))}
-                className="bg-transparent text-[#f0eee6] outline-none font-mono w-24"
+                placeholder="00:00"
+                className="bg-transparent text-[#f0eee6] outline-none font-mono w-20"
               />
-              <span className="text-[#f0eee6]">]</span>
+              <span className="text-[#f0eee6]"> ]</span>
             </span>
 
             <span className="flex items-center gap-0.5">
               <span className="text-[#73726c] mr-1">delay fixed</span>
-              <span className="text-[#f0eee6]">[</span>
+              <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -220,12 +222,12 @@ export default function AccountDetailPage() {
                 placeholder="60"
                 className="bg-transparent text-[#f0eee6] outline-none font-mono w-10 text-center"
               />
-              <span className="text-[#f0eee6]">]</span>
+              <span className="text-[#f0eee6]"> ]</span>
             </span>
 
             <span className="flex items-center gap-0.5">
               <span className="text-[#73726c] mr-1">delay random</span>
-              <span className="text-[#f0eee6]">[</span>
+              <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -234,12 +236,12 @@ export default function AccountDetailPage() {
                 placeholder="0"
                 className="bg-transparent text-[#f0eee6] outline-none font-mono w-10 text-center"
               />
-              <span className="text-[#f0eee6]">]</span>
+              <span className="text-[#f0eee6]"> ]</span>
             </span>
 
             <span className="flex items-center gap-0.5">
               <span className="text-[#73726c] mr-1">runs/day</span>
-              <span className="text-[#f0eee6]">[</span>
+              <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -248,7 +250,7 @@ export default function AccountDetailPage() {
                 placeholder="1"
                 className="bg-transparent text-[#f0eee6] outline-none font-mono w-8 text-center"
               />
-              <span className="text-[#f0eee6]">]</span>
+              <span className="text-[#f0eee6]"> ]</span>
             </span>
 
           </div>
