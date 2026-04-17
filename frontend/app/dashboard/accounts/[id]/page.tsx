@@ -29,9 +29,9 @@ function pad4(actions: ActionBlock[] | null | undefined): ActionBlock[] {
 }
 
 const inputCls =
-  "w-full bg-[#262624] rounded-lg px-3 py-2 text-[#f0eee6] placeholder-[#73726c] outline-none border border-[#3d3d3a] focus:border-[#d97757] focus:ring-1 focus:ring-[#d97757] transition-colors";
+  "w-full bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-1 font-mono transition-colors";
 
-const cardCls = "bg-[#1f1e1d] rounded-xl p-6 space-y-4 border border-[#3d3d3a]";
+const sectionCls = "border border-[#3d3d3a]";
 
 export default function AccountDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -62,9 +62,9 @@ export default function AccountDetailPage() {
     setMsg("");
     try {
       await saveAccountSettings(id, { ...settings, actions });
-      setMsg("Saved.");
+      setMsg("saved.");
     } catch (err: unknown) {
-      setMsg(err instanceof Error ? err.message : "Save failed.");
+      setMsg(err instanceof Error ? err.message : "save failed.");
     } finally {
       setSaving(false);
     }
@@ -82,25 +82,25 @@ export default function AccountDetailPage() {
   if (!account) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-mono">
       {/* Header */}
       <div className="flex items-center gap-3 flex-wrap">
         <Link href="/dashboard/accounts" className="text-[#73726c] hover:text-[#f0eee6]">
-          ← Accounts
+          ← accounts
         </Link>
-        <h1 className="font-semibold text-[#f0eee6]">{account.name}</h1>
+        <span className="text-[#f0eee6] font-semibold">{account.name}</span>
         <button
           onClick={() => handleAccountField({ enabled: !account.enabled })}
-          className={`px-2 py-0.5 rounded-full transition-colors cursor-pointer ${
+          className={`transition-colors cursor-pointer ${
             account.enabled
-              ? "bg-[#1a2e1a] text-green-400 hover:bg-red-950 hover:text-red-400"
-              : "bg-[#262624] text-[#73726c] hover:bg-[#1a2e1a] hover:text-green-400"
+              ? "text-green-400 hover:text-red-400"
+              : "text-[#73726c] hover:text-green-400"
           }`}
         >
-          {account.enabled ? "Enabled" : "Disabled"}
+          {account.enabled ? "[on]" : "[off]"}
         </button>
         <div className="flex items-center gap-2 ml-auto">
-          <label className="text-[#73726c]">Group</label>
+          <span className="text-[#73726c]">grp:</span>
           <input
             type="number"
             min={1}
@@ -110,198 +110,156 @@ export default function AccountDetailPage() {
               setAccount((a) => a && { ...a, group_number: e.target.value ? +e.target.value : null })
             }
             onBlur={() => handleAccountField({ group_number: account.group_number })}
-            className="w-20 bg-[#262624] rounded-lg px-3 py-1 text-[#f0eee6] placeholder-[#73726c] outline-none border border-[#3d3d3a] focus:border-[#d97757] focus:ring-1 focus:ring-[#d97757] transition-colors"
+            className="w-16 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
           />
         </div>
       </div>
 
-      <form onSubmit={handleSaveSettings} className="space-y-6">
+      <form onSubmit={handleSaveSettings} className="space-y-4">
         {/* Schedule */}
-        <div className={cardCls} style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.08)" }}>
-          <h2 className="font-medium text-[#f0eee6]">Schedule</h2>
-          <div className="grid grid-cols-2 gap-4">
+        <div className={sectionCls}>
+          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">schedule</div>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4 p-4">
             <div>
-              <label className="block text-[#73726c] mb-1">Days</label>
-              <input
-                type="text"
-                placeholder="e.g. daily"
+              <div className="text-[#73726c] mb-1">days</div>
+              <input type="text" placeholder="e.g. daily"
                 value={settings.schedule_days ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, schedule_days: e.target.value }))}
-                className={inputCls}
-              />
+                className={inputCls} />
             </div>
             <div>
-              <label className="block text-[#73726c] mb-1">Max runs / day</label>
-              <input
-                type="number"
-                min={1}
+              <div className="text-[#73726c] mb-1">max runs / day</div>
+              <input type="number" min={1}
                 value={settings.max_runs_per_day ?? 1}
                 onChange={(e) => setSettings((s) => ({ ...s, max_runs_per_day: +e.target.value }))}
-                className={inputCls}
-              />
+                className={inputCls} />
             </div>
             <div>
-              <label className="block text-[#73726c] mb-1">Start time</label>
-              <input
-                type="time"
+              <div className="text-[#73726c] mb-1">start time</div>
+              <input type="time"
                 value={settings.schedule_start ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, schedule_start: e.target.value || null }))}
-                className={inputCls}
-              />
+                className={inputCls} />
             </div>
             <div>
-              <label className="block text-[#73726c] mb-1">End time</label>
-              <input
-                type="time"
+              <div className="text-[#73726c] mb-1">end time</div>
+              <input type="time"
                 value={settings.schedule_end ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, schedule_end: e.target.value || null }))}
-                className={inputCls}
-              />
+                className={inputCls} />
             </div>
             <div>
-              <label className="block text-[#73726c] mb-1">Delay base (min)</label>
-              <input
-                type="number"
-                min={0}
+              <div className="text-[#73726c] mb-1">delay base (min)</div>
+              <input type="number" min={0}
                 value={settings.delay_base_minutes ?? 60}
                 onChange={(e) => setSettings((s) => ({ ...s, delay_base_minutes: +e.target.value }))}
-                className={inputCls}
-              />
+                className={inputCls} />
             </div>
             <div>
-              <label className="block text-[#73726c] mb-1">Delay random (min)</label>
-              <input
-                type="number"
-                min={0}
+              <div className="text-[#73726c] mb-1">delay random (min)</div>
+              <input type="number" min={0}
                 value={settings.delay_random_minutes ?? 0}
                 onChange={(e) => setSettings((s) => ({ ...s, delay_random_minutes: +e.target.value }))}
-                className={inputCls}
-              />
+                className={inputCls} />
             </div>
           </div>
         </div>
 
         {/* Actions */}
-        <div className={cardCls} style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.08)" }}>
-          <h2 className="font-medium text-[#f0eee6]">Actions</h2>
-          <div className="grid grid-cols-[3rem_2.5rem_1fr_1fr_4rem_4rem] gap-2 text-[#73726c] px-1">
-            <span></span>
-            <span className="text-center">On</span>
-            <span>Type</span>
-            <span>Target</span>
-            <span className="text-center">#</span>
-            <span className="text-center">?</span>
-          </div>
-          {actions.map((action, i) => (
-            <div
-              key={i}
-              className="grid grid-cols-[3rem_2.5rem_1fr_1fr_4rem_4rem] gap-2 items-center"
-            >
-              <span className="text-[#73726c]">{ACTION_LABELS[i]}</span>
-              <div className="flex justify-center">
-                <input
-                  type="checkbox"
-                  checked={action.enabled}
-                  onChange={(e) => updateAction(i, { enabled: e.target.checked })}
-                  className="w-4 h-4 accent-[#d97757] cursor-pointer"
-                />
-              </div>
-              <input
-                type="text"
-                placeholder="e.g. follow"
-                value={action.type}
-                onChange={(e) => updateAction(i, { type: e.target.value })}
-                className={inputCls}
-              />
-              <input
-                type="text"
-                placeholder="username / tag"
-                value={action.target}
-                onChange={(e) => updateAction(i, { target: e.target.value })}
-                className={inputCls}
-              />
-              <input
-                type="number"
-                min={0}
-                value={action.fixed_count}
-                onChange={(e) => updateAction(i, { fixed_count: +e.target.value })}
-                className={inputCls}
-              />
-              <input
-                type="number"
-                min={0}
-                value={action.variable_count}
-                onChange={(e) => updateAction(i, { variable_count: +e.target.value })}
-                className={inputCls}
-              />
+        <div className={sectionCls}>
+          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">actions</div>
+          <div className="p-4 space-y-3">
+            <div className="grid grid-cols-[3rem_3rem_1fr_1fr_4rem_4rem] gap-2 text-[#73726c]">
+              <span></span>
+              <span>on</span>
+              <span>type</span>
+              <span>target</span>
+              <span className="text-center">#</span>
+              <span className="text-center">?</span>
             </div>
-          ))}
+            {actions.map((action, i) => (
+              <div key={i} className="grid grid-cols-[3rem_3rem_1fr_1fr_4rem_4rem] gap-2 items-center">
+                <span className="text-[#73726c]">{ACTION_LABELS[i]}</span>
+                <button
+                  type="button"
+                  onClick={() => updateAction(i, { enabled: !action.enabled })}
+                  className={`text-left transition-colors cursor-pointer ${
+                    action.enabled ? "text-green-400 hover:text-red-400" : "text-[#73726c] hover:text-green-400"
+                  }`}
+                >
+                  {action.enabled ? "[x]" : "[ ]"}
+                </button>
+                <input type="text" placeholder="follow"
+                  value={action.type}
+                  onChange={(e) => updateAction(i, { type: e.target.value })}
+                  className={inputCls} />
+                <input type="text" placeholder="username / tag"
+                  value={action.target}
+                  onChange={(e) => updateAction(i, { target: e.target.value })}
+                  className={inputCls} />
+                <input type="number" min={0}
+                  value={action.fixed_count}
+                  onChange={(e) => updateAction(i, { fixed_count: +e.target.value })}
+                  className={inputCls} />
+                <input type="number" min={0}
+                  value={action.variable_count}
+                  onChange={(e) => updateAction(i, { variable_count: +e.target.value })}
+                  className={inputCls} />
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Follow Settings */}
-        <div className={cardCls} style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.08)" }}>
-          <h2 className="font-medium text-[#f0eee6]">Follow Settings</h2>
-          <div className="grid grid-cols-2 gap-4">
+        <div className={sectionCls}>
+          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">follow settings</div>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4 p-4">
             <div>
-              <label className="block text-[#73726c] mb-1">Unfollow after (days)</label>
-              <input
-                type="number"
-                min={1}
+              <div className="text-[#73726c] mb-1">unfollow after (days)</div>
+              <input type="number" min={1}
                 value={settings.unfollow_days ?? 30}
                 onChange={(e) => setSettings((s) => ({ ...s, unfollow_days: +e.target.value }))}
-                className={inputCls}
-              />
+                className={inputCls} />
             </div>
             <div>
-              <label className="block text-[#73726c] mb-1">List tab name</label>
-              <input
-                type="text"
-                placeholder="e.g. list-MainLineBars"
+              <div className="text-[#73726c] mb-1">list tab name</div>
+              <input type="text" placeholder="e.g. list-MainLineBars"
                 value={settings.list_tab ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, list_tab: e.target.value || null }))}
-                className={inputCls}
-              />
+                className={inputCls} />
             </div>
             <div>
-              <label className="block text-[#73726c] mb-1">Account group (comma-separated)</label>
-              <input
-                type="text"
-                placeholder="e.g. account1, account2"
+              <div className="text-[#73726c] mb-1">account group</div>
+              <input type="text" placeholder="comma-separated"
                 value={settings.account_group ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, account_group: e.target.value || null }))}
-                className={inputCls}
-              />
+                className={inputCls} />
             </div>
             <div>
-              <label className="block text-[#73726c] mb-1">Account list tab</label>
-              <input
-                type="text"
-                placeholder="tab name"
+              <div className="text-[#73726c] mb-1">account list tab</div>
+              <input type="text" placeholder="tab name"
                 value={settings.account_list_tab ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, account_list_tab: e.target.value || null }))}
-                className={inputCls}
-              />
+                className={inputCls} />
             </div>
             <div className="col-span-2">
-              <label className="block text-[#73726c] mb-1">Topics (comma-separated)</label>
-              <input
-                type="text"
+              <div className="text-[#73726c] mb-1">topics</div>
+              <input type="text" placeholder="comma-separated"
                 value={settings.topics ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, topics: e.target.value || null }))}
-                className={inputCls}
-              />
+                className={inputCls} />
             </div>
           </div>
         </div>
 
         {/* Save */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <button
             type="submit"
             disabled={saving}
-            className="bg-[#c6613f] hover:bg-[#d97757] disabled:opacity-50 rounded-lg px-4 py-2 font-medium text-[#f0eee6] transition-colors"
+            className="text-[#d97757] hover:text-[#f0eee6] disabled:opacity-50 transition-colors"
           >
-            {saving ? "Saving…" : "Save settings"}
+            {saving ? "[saving…]" : "[save settings]"}
           </button>
           {msg && <span className="text-green-400">{msg}</span>}
         </div>

@@ -30,46 +30,50 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <h1 className="font-bold mb-8 text-center text-[#d97757]" style={{ fontSize: "1.25rem" }}>SlowBurnBot</h1>
-        <form onSubmit={handleSubmit} className="bg-[#1f1e1d] rounded-xl p-6 space-y-4 border border-[#3d3d3a]" style={{ boxShadow: "0 6px 16px -4px rgba(0,0,0,0.12)" }}>
-          <h2 className="font-semibold text-[#f0eee6]">Sign in</h2>
-          {error && <p className="text-red-400">{error}</p>}
-          <div>
-            <label className="block text-[#bfbdb4] mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full bg-[#262624] rounded-lg px-3 py-2 text-[#f0eee6] placeholder-[#73726c] outline-none border border-[#3d3d3a] focus:border-[#d97757] focus:ring-1 focus:ring-[#d97757] transition-colors"
-            />
-          </div>
-          <div>
-            <label className="block text-[#bfbdb4] mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full bg-[#262624] rounded-lg px-3 py-2 text-[#f0eee6] placeholder-[#73726c] outline-none border border-[#3d3d3a] focus:border-[#d97757] focus:ring-1 focus:ring-[#d97757] transition-colors"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#c6613f] hover:bg-[#d97757] disabled:opacity-50 rounded-lg px-4 py-2 font-medium text-[#f0eee6] transition-colors"
-          >
-            {loading ? "Signing in…" : "Sign in"}
-          </button>
-          <p className="text-center text-[#73726c]">
-            No account?{" "}
-            <Link href="/register" className="text-[#d97757] hover:underline">
-              Register
-            </Link>
-          </p>
-        </form>
+    <div className="min-h-screen flex items-center justify-center p-4 font-mono">
+      <div className="w-full max-w-sm space-y-6">
+        <div className="text-[#d97757] font-semibold text-center" style={{ fontSize: "1.1rem" }}>
+          SlowBurnBot
+        </div>
+
+        <div className="border border-[#3d3d3a]">
+          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">sign in</div>
+          <form onSubmit={handleSubmit} className="p-4 space-y-4">
+            {error && <div className="text-red-400">{error}</div>}
+            <div>
+              <div className="text-[#73726c] mb-1">email</div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-1 font-mono transition-colors"
+              />
+            </div>
+            <div>
+              <div className="text-[#73726c] mb-1">password</div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-1 font-mono transition-colors"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <button
+                type="submit"
+                disabled={loading}
+                className="text-[#d97757] hover:text-[#f0eee6] disabled:opacity-50 transition-colors"
+              >
+                {loading ? "[signing in…]" : "[sign in]"}
+              </button>
+              <Link href="/register" className="text-[#73726c] hover:text-[#d97757] transition-colors">
+                register →
+              </Link>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

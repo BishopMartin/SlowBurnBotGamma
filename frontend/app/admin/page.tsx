@@ -17,40 +17,58 @@ export default function AdminPage() {
     setMsg("");
     try {
       const res = await adminSyncSubscription(userId) as { status: string };
-      setMsg(`Synced — status: ${res.status}`);
+      setMsg(`synced — status: ${res.status}`);
     } catch (err: unknown) {
-      setMsg(err instanceof Error ? err.message : "Sync failed.");
+      setMsg(err instanceof Error ? err.message : "sync failed.");
     } finally {
       setSyncing(null);
     }
   }
 
   return (
-    <div className="space-y-6 p-6 max-w-5xl mx-auto">
-      <h1 className="font-semibold text-[#f0eee6]">Admin — Users</h1>
+    <div className="space-y-4 font-mono">
+      <h1 className="font-semibold text-[#f0eee6]">admin — users</h1>
       {msg && <p className="text-green-400">{msg}</p>}
-      <div className="bg-[#1f1e1d] rounded-xl divide-y divide-[#3d3d3a] border border-[#3d3d3a]" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.08)" }}>
-        {users.map((u) => (
-          <div key={u.id} className="px-4 py-3 flex items-center justify-between">
-            <div>
-              <p className="font-medium text-[#f0eee6]">{u.email}</p>
-              <p className="text-[#73726c]">
-                {u.display_name ?? "—"} · {u.plan_tier} ·{" "}
-                {u.is_active ? "active" : "inactive"} · joined{" "}
-                {new Date(u.created_at).toLocaleDateString()}
-              </p>
-            </div>
-            <button
-              onClick={() => handleSync(u.id)}
-              disabled={syncing === u.id}
-              className="bg-[#262624] hover:bg-[#3d3d3a] disabled:opacity-50 rounded-lg px-3 py-1.5 text-[#bfbdb4] transition-colors border border-[#3d3d3a]"
-            >
-              {syncing === u.id ? "Syncing…" : "Sync Stripe"}
-            </button>
-          </div>
-        ))}
-        {users.length === 0 && (
-          <p className="px-4 py-6 text-[#73726c] text-center">No users found.</p>
+      <div className="border border-[#3d3d3a]">
+        {users.length === 0 ? (
+          <p className="px-4 py-6 text-[#73726c]">no users found.</p>
+        ) : (
+          <table className="w-full">
+            <thead>
+              <tr className="text-left text-[#73726c] border-b border-[#3d3d3a]">
+                <th className="px-4 py-2 font-normal">email</th>
+                <th className="px-4 py-2 font-normal">plan</th>
+                <th className="px-4 py-2 font-normal">status</th>
+                <th className="px-4 py-2 font-normal">joined</th>
+                <th className="px-4 py-2 font-normal"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#3d3d3a]">
+              {users.map((u) => (
+                <tr key={u.id} className="hover:bg-[#1f1e1d] transition-colors">
+                  <td className="px-4 py-2 text-[#f0eee6]">{u.email}</td>
+                  <td className="px-4 py-2 text-[#bfbdb4]">{u.plan_tier}</td>
+                  <td className="px-4 py-2">
+                    <span className={u.is_active ? "text-green-400" : "text-[#73726c]"}>
+                      {u.is_active ? "[active]" : "[inactive]"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 text-[#73726c]">
+                    {new Date(u.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    <button
+                      onClick={() => handleSync(u.id)}
+                      disabled={syncing === u.id}
+                      className="text-[#d97757] hover:text-[#f0eee6] disabled:opacity-50 transition-colors"
+                    >
+                      {syncing === u.id ? "[syncing…]" : "[sync stripe]"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

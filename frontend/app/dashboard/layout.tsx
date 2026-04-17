@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [user, loading, router]);
 
   if (loading || !user) {
-    return <div className="min-h-screen flex items-center justify-center text-[#73726c]">Loading…</div>;
+    return <div className="min-h-screen flex items-center justify-center font-mono text-[#73726c]">loading…</div>;
   }
 
   async function handleLogout() {
@@ -25,15 +25,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   const navItems = [
-    { href: "/dashboard", label: "Overview" },
-    { href: "/dashboard/accounts", label: "Accounts" },
-    { href: "/dashboard/logs", label: "Logs" },
-    ...(user.is_superuser ? [{ href: "/admin", label: "Admin" }] : []),
+    { href: "/dashboard", label: "overview" },
+    { href: "/dashboard/accounts", label: "accounts" },
+    { href: "/dashboard/logs", label: "logs" },
+    ...(user.is_superuser ? [{ href: "/admin", label: "admin" }] : []),
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-[#1f1e1d] border-b border-[#3d3d3a] px-6 py-3 flex items-center justify-between">
+    <div className="min-h-screen flex flex-col font-mono">
+      <header className="border-b border-[#3d3d3a] px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
           <nav className="flex gap-4">
@@ -56,9 +56,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <span className="text-[#73726c]">{user.email}</span>
           <button
             onClick={handleLogout}
-            className="text-[#73726c] hover:text-[#f0eee6] transition-colors"
+            className="text-[#73726c] hover:text-[#d97757] transition-colors"
           >
-            Sign out
+            [sign out]
           </button>
         </div>
       </header>

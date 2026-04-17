@@ -18,68 +18,70 @@ export default function DashboardPage() {
   const enabledCount = accounts.filter((a) => a.enabled).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-mono">
       <h1 className="font-semibold text-[#f0eee6]">
-        Welcome back{user?.display_name ? `, ${user.display_name}` : ""}
+        welcome back{user?.display_name ? `, ${user.display_name}` : ""}
       </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-[#1f1e1d] rounded-xl p-4 border border-[#3d3d3a]" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.08)" }}>
-          <p className="text-[#73726c] mb-1">Plan</p>
-          <p className="font-semibold text-[#f0eee6] capitalize">
-            {entitlement?.plan_tier ?? user?.plan_tier ?? "free"}
-          </p>
-          <p className={`mt-1 ${entitlement?.active ? "text-green-400" : "text-yellow-400"}`}>
-            {entitlement?.active ? "Active" : "Inactive"}
-          </p>
-        </div>
-        <div className="bg-[#1f1e1d] rounded-xl p-4 border border-[#3d3d3a]" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.08)" }}>
-          <p className="text-[#73726c] mb-1">Total accounts</p>
-          <p className="font-semibold text-[#f0eee6]">{accounts.length}</p>
-        </div>
-        <div className="bg-[#1f1e1d] rounded-xl p-4 border border-[#3d3d3a]" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.08)" }}>
-          <p className="text-[#73726c] mb-1">Enabled accounts</p>
-          <p className="font-semibold text-[#f0eee6]">{enabledCount}</p>
-        </div>
+        {[
+          {
+            label: "plan",
+            value: entitlement?.plan_tier ?? user?.plan_tier ?? "free",
+            sub: entitlement?.active ? (
+              <span className="text-green-400">active</span>
+            ) : (
+              <span className="text-yellow-400">inactive</span>
+            ),
+          },
+          { label: "total accounts", value: String(accounts.length), sub: null },
+          { label: "enabled accounts", value: String(enabledCount), sub: null },
+        ].map(({ label, value, sub }) => (
+          <div key={label} className="border border-[#3d3d3a] px-4 py-3">
+            <div className="text-[#73726c]">{label}</div>
+            <div className="text-[#f0eee6] font-semibold mt-1 capitalize">{value}</div>
+            {sub && <div className="mt-0.5">{sub}</div>}
+          </div>
+        ))}
       </div>
 
       <div className="flex items-center justify-between">
-        <h2 className="font-medium text-[#f0eee6]">Accounts</h2>
-        <Link href="/dashboard/accounts" className="text-[#d97757] hover:underline">
-          Manage →
+        <span className="text-[#f0eee6]">accounts</span>
+        <Link href="/dashboard/accounts" className="text-[#d97757] hover:text-[#f0eee6] transition-colors">
+          manage →
         </Link>
       </div>
 
-      {accounts.length === 0 ? (
-        <div className="bg-[#1f1e1d] rounded-xl p-8 text-center text-[#73726c] border border-[#3d3d3a]">
-          No accounts yet.{" "}
-          <Link href="/dashboard/accounts" className="text-[#d97757] hover:underline">
-            Add one
-          </Link>
-        </div>
-      ) : (
-        <div className="bg-[#1f1e1d] rounded-xl divide-y divide-[#3d3d3a] border border-[#3d3d3a]" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.08)" }}>
-          {accounts.slice(0, 5).map((account) => (
-            <div key={account.id} className="px-4 py-3 flex items-center justify-between">
-              <div>
-                <p className="font-medium text-[#f0eee6]">{account.name}</p>
-                {account.group_number != null && (
-                  <p className="text-[#73726c]">Group {account.group_number}</p>
-                )}
-              </div>
-              <span
-                className={`px-2 py-0.5 rounded-full ${
-                  account.enabled
-                    ? "bg-[#1a2e1a] text-green-400"
-                    : "bg-[#262624] text-[#73726c]"
-                }`}
-              >
-                {account.enabled ? "Enabled" : "Disabled"}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="border border-[#3d3d3a]">
+        {accounts.length === 0 ? (
+          <div className="px-4 py-6 text-[#73726c]">
+            no accounts yet.{" "}
+            <Link href="/dashboard/accounts" className="text-[#d97757] hover:underline">
+              add one
+            </Link>
+          </div>
+        ) : (
+          <table className="w-full">
+            <tbody className="divide-y divide-[#3d3d3a]">
+              {accounts.slice(0, 5).map((account) => (
+                <tr key={account.id}>
+                  <td className="px-4 py-2 text-[#f0eee6]">
+                    {account.name}
+                    {account.group_number != null && (
+                      <span className="ml-2 text-[#73726c]">grp:{account.group_number}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    <span className={account.enabled ? "text-green-400" : "text-[#73726c]"}>
+                      {account.enabled ? "[on]" : "[off]"}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }

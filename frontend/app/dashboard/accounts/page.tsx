@@ -11,17 +11,7 @@ import {
   Account,
   AccountSettings,
 } from "@/lib/api";
-
-function scheduleLabel(s: AccountSettings | undefined): string {
-  if (!s) return "—";
-  const parts: string[] = [];
-  if (s.schedule_days) parts.push(s.schedule_days);
-  if (s.schedule_start || s.schedule_end) {
-    parts.push(`${s.schedule_start ?? "?"}-${s.schedule_end ?? "?"}`);
-  }
-  if (s.max_runs_per_day && s.max_runs_per_day > 1) parts.push(`x${s.max_runs_per_day}/day`);
-  return parts.length ? parts.join("  ") : "—";
-}
+import { scheduleLabel } from "@/lib/format";
 
 export default function AccountsPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -79,15 +69,12 @@ export default function AccountsPage() {
       <h1 className="font-semibold text-[#f0eee6]">Accounts</h1>
 
       <div className="border border-[#3d3d3a]">
-        {/* Header divider */}
-        <div className="border-b border-[#3d3d3a]" />
-
         {accounts.length === 0 ? (
           <p className="px-4 py-6 font-mono text-[#73726c]">No accounts yet.</p>
         ) : (
           <table className="w-full font-mono">
             <thead>
-              <tr className="text-left text-[#73726c]">
+              <tr className="text-left text-[#73726c] border-b border-[#3d3d3a]">
                 <th className="px-4 py-2 font-normal">Account</th>
                 <th className="px-4 py-2 font-normal">On</th>
                 <th className="px-4 py-2 font-normal">Schedule</th>
@@ -95,11 +82,7 @@ export default function AccountsPage() {
                 <th className="px-4 py-2 font-normal"></th>
               </tr>
             </thead>
-            {/* Divider between header and body */}
-            <tbody>
-              <tr>
-                <td colSpan={5} className="border-t border-[#3d3d3a] p-0" />
-              </tr>
+            <tbody className="divide-y divide-[#3d3d3a]">
               {accounts.map((account) => (
                 <tr key={account.id} className="hover:bg-[#1f1e1d] transition-colors">
                   <td className="px-4 py-2 text-[#f0eee6]">
@@ -128,7 +111,7 @@ export default function AccountsPage() {
                     <div className="flex items-center justify-end gap-4">
                       <Link
                         href={`/dashboard/accounts/${account.id}`}
-                        className="text-[#bfbdb4] hover:text-[#f0eee6] transition-colors"
+                        className="text-[#bfbdb4] hover:text-[#d97757] transition-colors"
                       >
                         Settings
                       </Link>
@@ -142,32 +125,29 @@ export default function AccountsPage() {
                   </td>
                 </tr>
               ))}
-              {/* Bottom divider */}
-              <tr>
-                <td colSpan={5} className="border-t border-[#3d3d3a] p-0" />
-              </tr>
             </tbody>
           </table>
         )}
 
-        {/* Add form */}
-        <form onSubmit={handleAdd} className="flex items-center gap-2 px-4 py-3">
-          <span className="font-mono text-[#73726c] shrink-0">Add:</span>
-          <input
-            type="text"
-            placeholder="Instagram handle"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
-          />
-          <button
-            type="submit"
-            disabled={adding}
-            className="font-mono text-[#d97757] hover:text-[#f0eee6] disabled:opacity-50 transition-colors shrink-0"
-          >
-            [Add]
-          </button>
-        </form>
+        <div className="border-t border-[#3d3d3a]">
+          <form onSubmit={handleAdd} className="flex items-center gap-2 px-4 py-3">
+            <span className="font-mono text-[#73726c] shrink-0">Add:</span>
+            <input
+              type="text"
+              placeholder="Instagram handle"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
+            />
+            <button
+              type="submit"
+              disabled={adding}
+              className="font-mono text-[#d97757] hover:text-[#f0eee6] disabled:opacity-50 transition-colors shrink-0"
+            >
+              [Add]
+            </button>
+          </form>
+        </div>
       </div>
 
       {error && <p className="font-mono text-red-400">{error}</p>}
