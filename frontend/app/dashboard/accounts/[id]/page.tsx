@@ -169,7 +169,7 @@ export default function AccountDetailPage() {
           <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">schedule</div>
           <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
 
-            <span className="flex items-center gap-0.5">
+            <span className="flex items-center gap-0">
               <span className="text-[#73726c] mr-1">days</span>
               <span className="text-[#f0eee6]">[ </span>
               <select
@@ -185,70 +185,75 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]"> ]</span>
             </span>
 
-            <span className="flex items-center gap-0.5">
+            <span className="flex items-center gap-0">
               <span className="text-[#73726c] mr-1">start</span>
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
+                size={7}
                 value={settings.schedule_start ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, schedule_start: e.target.value || null }))}
                 placeholder="00:00"
-                className="bg-transparent text-[#f0eee6] outline-none font-mono w-20"
+                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0"
               />
               <span className="text-[#f0eee6]"> ]</span>
             </span>
 
-            <span className="flex items-center gap-0.5">
+            <span className="flex items-center gap-0">
               <span className="text-[#73726c] mr-1">end</span>
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
+                size={7}
                 value={settings.schedule_end ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, schedule_end: e.target.value || null }))}
                 placeholder="00:00"
-                className="bg-transparent text-[#f0eee6] outline-none font-mono w-20"
+                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0"
               />
               <span className="text-[#f0eee6]"> ]</span>
             </span>
 
-            <span className="flex items-center gap-0.5">
+            <span className="flex items-center gap-0">
               <span className="text-[#73726c] mr-1">delay fixed</span>
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
+                size={4}
                 inputMode="numeric"
                 value={settings.delay_base_minutes != null ? String(settings.delay_base_minutes) : ""}
                 onChange={(e) => setSettings((s) => ({ ...s, delay_base_minutes: parseNum(e.target.value) }))}
                 placeholder="60"
-                className="bg-transparent text-[#f0eee6] outline-none font-mono w-10 text-center"
+                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0"
               />
               <span className="text-[#f0eee6]"> ]</span>
             </span>
 
-            <span className="flex items-center gap-0.5">
+            <span className="flex items-center gap-0">
               <span className="text-[#73726c] mr-1">delay random</span>
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
+                size={4}
                 inputMode="numeric"
                 value={settings.delay_random_minutes != null ? String(settings.delay_random_minutes) : ""}
                 onChange={(e) => setSettings((s) => ({ ...s, delay_random_minutes: parseNum(e.target.value) }))}
                 placeholder="0"
-                className="bg-transparent text-[#f0eee6] outline-none font-mono w-10 text-center"
+                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0"
               />
               <span className="text-[#f0eee6]"> ]</span>
             </span>
 
-            <span className="flex items-center gap-0.5">
+            <span className="flex items-center gap-0">
               <span className="text-[#73726c] mr-1">runs/day</span>
               <span className="text-[#f0eee6]">[ </span>
               <input
                 type="text"
+                size={3}
                 inputMode="numeric"
                 value={settings.max_runs_per_day != null ? String(settings.max_runs_per_day) : ""}
                 onChange={(e) => setSettings((s) => ({ ...s, max_runs_per_day: parseNum(e.target.value) || 1 }))}
                 placeholder="1"
-                className="bg-transparent text-[#f0eee6] outline-none font-mono w-8 text-center"
+                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0"
               />
               <span className="text-[#f0eee6]"> ]</span>
             </span>
