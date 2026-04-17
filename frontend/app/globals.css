@@ -21,11 +21,11 @@ select {
 }
 
 select option {
-  background-color: #1a1918;
+  background-color: #1f1e1d;
   color: #f0eee6;
 }
 
 select option:checked {
-  background: linear-gradient(0deg, #5a2e1a 0%, #5a2e1a 100%);
-  color: #f0eee6;
+  background: linear-gradient(0deg, #d97757 0%, #d97757 100%);
+  color: #141413;
 }
