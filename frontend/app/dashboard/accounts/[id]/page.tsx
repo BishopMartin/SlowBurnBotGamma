@@ -289,7 +289,7 @@ export default function AccountDetailPage() {
                 <th className="px-4 py-2 font-normal w-10">on</th>
                 <th className="px-4 py-2 font-normal">type</th>
                 <th className="px-4 py-2 font-normal">target</th>
-                <th className="px-4 py-2 font-normal w-16">set</th>
+                <th className="px-4 py-2 font-normal w-16">fixed</th>
                 <th className="px-4 py-2 font-normal w-16">random</th>
               </tr>
             </thead>
@@ -363,45 +363,37 @@ export default function AccountDetailPage() {
         {/* Follow Settings */}
         <div className={sectionCls}>
           <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">follow settings</div>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4 p-4">
-            <div>
-              <div className="text-[#73726c] mb-1">unfollow after (days)</div>
+          <div className="p-4 space-y-4">
+            <div className="flex items-center gap-3 text-sm font-mono">
+              <span className="text-[#73726c]">{"unfollow after: "}</span>
+              <span className="text-[#f0eee6]">{`[\u00a0`}</span>
               <input
                 type="text"
                 inputMode="numeric"
                 value={settings.unfollow_days != null ? String(settings.unfollow_days) : ""}
                 onChange={(e) => setSettings((s) => ({ ...s, unfollow_days: parseNum(e.target.value) || 30 }))}
                 placeholder="30"
-                className={numInputCls}
+                style={{ width: `${Math.max(String(settings.unfollow_days ?? "").length || 2, 2) + 1}ch` }}
+                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
+              <span className="text-[#f0eee6]">{" ]"}</span>
+              <span className="text-[#73726c]">days</span>
             </div>
-            <div>
-              <div className="text-[#73726c] mb-1">list tab name</div>
-              <input type="text" placeholder="e.g. list-MainLineBars"
-                value={settings.list_tab ?? ""}
-                onChange={(e) => setSettings((s) => ({ ...s, list_tab: e.target.value || null }))}
-                className={inputCls} />
-            </div>
-            <div>
-              <div className="text-[#73726c] mb-1">account group</div>
-              <input type="text" placeholder="comma-separated"
-                value={settings.account_group ?? ""}
-                onChange={(e) => setSettings((s) => ({ ...s, account_group: e.target.value || null }))}
-                className={inputCls} />
-            </div>
-            <div>
-              <div className="text-[#73726c] mb-1">account list tab</div>
-              <input type="text" placeholder="tab name"
-                value={settings.account_list_tab ?? ""}
-                onChange={(e) => setSettings((s) => ({ ...s, account_list_tab: e.target.value || null }))}
-                className={inputCls} />
-            </div>
-            <div className="col-span-2">
-              <div className="text-[#73726c] mb-1">topics</div>
-              <input type="text" placeholder="comma-separated"
-                value={settings.topics ?? ""}
-                onChange={(e) => setSettings((s) => ({ ...s, topics: e.target.value || null }))}
-                className={inputCls} />
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              <div>
+                <div className="text-[#73726c] mb-1">account group</div>
+                <input type="text" placeholder="comma-separated"
+                  value={settings.account_group ?? ""}
+                  onChange={(e) => setSettings((s) => ({ ...s, account_group: e.target.value || null }))}
+                  className={inputCls} />
+              </div>
+              <div>
+                <div className="text-[#73726c] mb-1">topics</div>
+                <input type="text" placeholder="comma-separated"
+                  value={settings.topics ?? ""}
+                  onChange={(e) => setSettings((s) => ({ ...s, topics: e.target.value || null }))}
+                  className={inputCls} />
+              </div>
             </div>
           </div>
         </div>
