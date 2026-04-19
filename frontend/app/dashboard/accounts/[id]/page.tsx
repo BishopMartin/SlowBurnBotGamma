@@ -235,8 +235,7 @@ export default function AccountDetailPage() {
                 onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, delay_base_minutes: n })); }}
                 placeholder="60"
                 maxLength={2}
-                style={{ width: "2ch", textAlign: "right" }}
-                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
+                className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
             </span>
@@ -251,8 +250,7 @@ export default function AccountDetailPage() {
                 onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, delay_random_minutes: n })); }}
                 placeholder="0"
                 maxLength={2}
-                style={{ width: "2ch", textAlign: "right" }}
-                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
+                className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
             </span>
@@ -267,8 +265,7 @@ export default function AccountDetailPage() {
                 onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, max_runs_per_day: n || 1 })); }}
                 placeholder="1"
                 maxLength={2}
-                style={{ width: "2ch", textAlign: "right" }}
-                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
+                className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
             </span>
@@ -340,8 +337,7 @@ export default function AccountDetailPage() {
                           onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) updateAction(i, { fixed_count: n }); }}
                           placeholder="0"
                           maxLength={2}
-                          style={{ width: "2ch", textAlign: "right" }}
-                          className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
+                          className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
                         />
                         <span className="text-[#f0eee6]">{"]"}</span>
                       </span>
@@ -356,8 +352,7 @@ export default function AccountDetailPage() {
                           onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) updateAction(i, { variable_count: n }); }}
                           placeholder="0"
                           maxLength={2}
-                          style={{ width: "2ch", textAlign: "right" }}
-                          className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
+                          className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
                         />
                         <span className="text-[#f0eee6]">{"]"}</span>
                       </span>
@@ -384,8 +379,7 @@ export default function AccountDetailPage() {
                 onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, unfollow_days: n || 30 })); }}
                 placeholder="30"
                 maxLength={2}
-                style={{ width: "2ch", textAlign: "right" }}
-                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
+                className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
               <span className="text-[#73726c]">{" days"}</span>
