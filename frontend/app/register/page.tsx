@@ -32,12 +32,11 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 font-mono">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="text-[#d97757] font-semibold text-center" style={{ fontSize: "1.1rem" }}>
-          SlowBurnBot
-        </div>
-
+    <div className="min-h-screen flex flex-col font-mono">
+      <header className="border-b border-[#3d3d3a] px-6 py-3">
+        <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
+      </header>
+      <main className="flex-1 p-6 max-w-5xl mx-auto w-full">
         <div className="border border-[#3d3d3a]">
           <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">create account</div>
           <form onSubmit={handleSubmit} className="p-4 space-y-4">
@@ -79,7 +78,7 @@ export default function RegisterPage() {
             </div>
           </form>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
