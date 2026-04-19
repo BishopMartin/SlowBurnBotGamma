@@ -105,7 +105,7 @@ export default function AccountLogPage() {
           <p className="px-4 py-6 text-[#73726c]">no log entries found.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="text-sm">
               <thead>
                 <tr className="text-left text-[#73726c] border-b border-[#3d3d3a]">
                   <SortTh label="date" field="date" />
