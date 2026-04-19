@@ -80,13 +80,13 @@ export default function AccountsPage() {
 
   function SortTh({ label, field, className = "" }: { label: string; field: SortKey; className?: string }) {
     const active = sortKey === field;
-    const arrow = active ? (sortDir === "asc" ? " ↑" : " ↓") : "";
+    const arrow = active ? (sortDir === "asc" ? "↑" : "↓") : "\u00a0";
     return (
       <th
         className={`px-4 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f0eee6] ${active ? "text-[#d97757]" : ""} ${className}`}
         onClick={() => toggleSort(field)}
       >
-        {label}{arrow}
+        <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>
       </th>
     );
   }
