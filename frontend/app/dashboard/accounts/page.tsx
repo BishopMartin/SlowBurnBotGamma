@@ -20,6 +20,11 @@ function fmtGroup(n: number | null | undefined): React.ReactNode {
   return <span className="text-[#73726c]">[{String(n).padStart(2, "0")}]</span>;
 }
 
+function fmtNum(v: number | null | undefined): string {
+  if (v == null) return "----";
+  return v.toLocaleString();
+}
+
 function fmtPct(v: number | null): string {
   if (v == null) return "----";
   return `${Math.round(v * 100)}%`;
@@ -165,10 +170,10 @@ export default function AccountsPage() {
                       </>
                     ) : (
                       <>
-                        <td className="px-4 py-2 text-[#73726c]">{stats?.pending ?? "----"}</td>
-                        <td className="px-4 py-2 text-[#73726c]">{stats?.complete ?? "----"}</td>
-                        <td className="px-4 py-2 text-[#73726c]">{stats?.total ?? "----"}</td>
-                        <td className="px-4 py-2 text-[#73726c]">{stats?.success ?? "----"}</td>
+                        <td className="px-4 py-2 text-[#73726c]">{fmtNum(stats?.pending)}</td>
+                        <td className="px-4 py-2 text-[#73726c]">{fmtNum(stats?.complete)}</td>
+                        <td className="px-4 py-2 text-[#73726c]">{fmtNum(stats?.total)}</td>
+                        <td className="px-4 py-2 text-[#73726c]">{fmtNum(stats?.success)}</td>
                         <td className="px-4 py-2 text-[#73726c]">{fmtPct(stats?.last_25 ?? null)}</td>
                         <td className="px-4 py-2 text-[#73726c]">{fmtPct(stats?.all_time ?? null)}</td>
                       </>
