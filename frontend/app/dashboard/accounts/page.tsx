@@ -187,7 +187,7 @@ export default function AccountsPage() {
                     <SortTh label="All" field="all_time" className="whitespace-nowrap" />
                   </>
                 )}
-                <th className="px-2 py-2 font-normal"></th>
+                <th className="px-2 py-2 font-normal w-full"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#3d3d3a]">
@@ -195,10 +195,10 @@ export default function AccountsPage() {
                 const stats = statsMap[account.id];
                 return (
                   <tr key={account.id} className="hover:bg-[#1f1e1d] transition-colors">
-                    <td className="px-2 py-2 text-[#f0eee6]">{account.name}</td>
+                    <td className="px-2 py-2 text-[#f0eee6] whitespace-nowrap">{account.name}</td>
                     {tab === "settings" ? (
                       <>
-                        <td className="px-2 py-2">
+                        <td className="px-2 py-2 whitespace-nowrap">
                           <button
                             onClick={() => handleToggleEnabled(account)}
                             className="group cursor-pointer transition-colors"
@@ -208,11 +208,11 @@ export default function AccountsPage() {
                             </Bracket>
                           </button>
                         </td>
-                        <td className="px-2 py-2">{fmtGroup(account.group_number)}</td>
-                        <td className="px-2 py-2 text-[#73726c]">
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtGroup(account.group_number)}</td>
+                        <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">
                           {scheduleLabel(settingsMap[account.id])}
                         </td>
-                        <td className="px-2 py-2 font-mono">
+                        <td className="px-2 py-2 font-mono whitespace-nowrap">
                           <span className="text-[#73726c]">[</span>
                           <span className={account.enabled ? "text-green-400" : "text-red-400"}>{account.enabled ? "on" : "off"}</span>
                           <span className="text-[#73726c]">]</span>
@@ -220,12 +220,12 @@ export default function AccountsPage() {
                       </>
                     ) : (
                       <>
-                        <td className="px-2 py-2 text-[#73726c]">{fmtNum(stats?.pending)}</td>
-                        <td className="px-2 py-2 text-[#73726c]">{fmtNum(stats?.complete)}</td>
-                        <td className="px-2 py-2 text-[#73726c]">{fmtNum(stats?.total)}</td>
-                        <td className="px-2 py-2 text-[#73726c]">{fmtNum(stats?.success)}</td>
-                        <td className="px-2 py-2 text-[#73726c]">{fmtPct(stats?.last_25 ?? null)}</td>
-                        <td className="px-2 py-2 text-[#73726c]">{fmtPct(stats?.all_time ?? null)}</td>
+                        <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(stats?.pending)}</td>
+                        <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(stats?.complete)}</td>
+                        <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(stats?.total)}</td>
+                        <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(stats?.success)}</td>
+                        <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtPct(stats?.last_25 ?? null)}</td>
+                        <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtPct(stats?.all_time ?? null)}</td>
                       </>
                     )}
                     <td className="px-2 py-2 text-right">
