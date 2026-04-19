@@ -272,9 +272,10 @@ export default function AccountDetailPage() {
                 type="text"
                 inputMode="numeric"
                 value={settings.max_runs_per_day != null ? String(settings.max_runs_per_day) : ""}
-                onChange={(e) => setSettings((s) => ({ ...s, max_runs_per_day: parseNum(e.target.value) || 1 }))}
+                onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, max_runs_per_day: n || 1 })); }}
                 placeholder="1"
-                style={{ width: `${Math.max(String(settings.max_runs_per_day ?? "").length || 1, 1) + 1}ch` }}
+                maxLength={2}
+                style={{ width: "3ch" }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]">{" ]"}</span>
