@@ -83,7 +83,7 @@ export default function AccountsPage() {
     const arrow = active ? (sortDir === "asc" ? "↑" : "↓") : "\u00a0";
     return (
       <th
-        className={`px-4 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f0eee6] ${active ? "text-[#d97757]" : ""} ${className}`}
+        className={`px-2 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f0eee6] ${active ? "text-[#d97757]" : ""} ${className}`}
         onClick={() => toggleSort(field)}
       >
         <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>
@@ -174,8 +174,8 @@ export default function AccountsPage() {
                   <>
                     <SortTh label="On" field="enabled" />
                     <SortTh label="Group" field="group" />
-                    <th className="px-4 py-2 font-normal">Schedule</th>
-                    <th className="px-4 py-2 font-normal">Status</th>
+                    <th className="px-2 py-2 font-normal">Schedule</th>
+                    <th className="px-2 py-2 font-normal">Status</th>
                   </>
                 ) : (
                   <>
@@ -187,7 +187,7 @@ export default function AccountsPage() {
                     <SortTh label="All" field="all_time" className="whitespace-nowrap" />
                   </>
                 )}
-                <th className="px-4 py-2 font-normal"></th>
+                <th className="px-2 py-2 font-normal"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#3d3d3a]">
@@ -195,10 +195,10 @@ export default function AccountsPage() {
                 const stats = statsMap[account.id];
                 return (
                   <tr key={account.id} className="hover:bg-[#1f1e1d] transition-colors">
-                    <td className="px-4 py-2 text-[#f0eee6]">{account.name}</td>
+                    <td className="px-2 py-2 text-[#f0eee6]">{account.name}</td>
                     {tab === "settings" ? (
                       <>
-                        <td className="px-4 py-2">
+                        <td className="px-2 py-2">
                           <button
                             onClick={() => handleToggleEnabled(account)}
                             className="group cursor-pointer transition-colors"
@@ -208,11 +208,11 @@ export default function AccountsPage() {
                             </Bracket>
                           </button>
                         </td>
-                        <td className="px-4 py-2">{fmtGroup(account.group_number)}</td>
-                        <td className="px-4 py-2 text-[#73726c]">
+                        <td className="px-2 py-2">{fmtGroup(account.group_number)}</td>
+                        <td className="px-2 py-2 text-[#73726c]">
                           {scheduleLabel(settingsMap[account.id])}
                         </td>
-                        <td className="px-4 py-2 font-mono">
+                        <td className="px-2 py-2 font-mono">
                           <span className="text-[#73726c]">[</span>
                           <span className={account.enabled ? "text-green-400" : "text-red-400"}>{account.enabled ? "on" : "off"}</span>
                           <span className="text-[#73726c]">]</span>
@@ -220,15 +220,15 @@ export default function AccountsPage() {
                       </>
                     ) : (
                       <>
-                        <td className="px-4 py-2 text-[#73726c]">{fmtNum(stats?.pending)}</td>
-                        <td className="px-4 py-2 text-[#73726c]">{fmtNum(stats?.complete)}</td>
-                        <td className="px-4 py-2 text-[#73726c]">{fmtNum(stats?.total)}</td>
-                        <td className="px-4 py-2 text-[#73726c]">{fmtNum(stats?.success)}</td>
-                        <td className="px-4 py-2 text-[#73726c]">{fmtPct(stats?.last_25 ?? null)}</td>
-                        <td className="px-4 py-2 text-[#73726c]">{fmtPct(stats?.all_time ?? null)}</td>
+                        <td className="px-2 py-2 text-[#73726c]">{fmtNum(stats?.pending)}</td>
+                        <td className="px-2 py-2 text-[#73726c]">{fmtNum(stats?.complete)}</td>
+                        <td className="px-2 py-2 text-[#73726c]">{fmtNum(stats?.total)}</td>
+                        <td className="px-2 py-2 text-[#73726c]">{fmtNum(stats?.success)}</td>
+                        <td className="px-2 py-2 text-[#73726c]">{fmtPct(stats?.last_25 ?? null)}</td>
+                        <td className="px-2 py-2 text-[#73726c]">{fmtPct(stats?.all_time ?? null)}</td>
                       </>
                     )}
-                    <td className="px-4 py-2 text-right">
+                    <td className="px-2 py-2 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link href={`/dashboard/accounts/${account.id}`} className="group font-mono transition-colors">
                           <Bracket className="text-[#73726c] group-hover:text-[#d97757]">settings</Bracket>
