@@ -188,7 +188,7 @@ export default function AccountDetailPage() {
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c]">{"days: "}</span>
-              <span className="text-[#f0eee6]">{`[\u00a0`}</span>
+              <span className="text-[#f0eee6]">{"["}</span>
               <Dropdown
                 value={settings.schedule_days ?? ""}
                 onChange={(v) => setSettings((s) => ({ ...s, schedule_days: v || null }))}
@@ -198,12 +198,12 @@ export default function AccountDetailPage() {
                   ...SCHEDULE_DAYS.map((d) => ({ value: d, label: d })),
                 ]}
               />
-              <span className="text-[#f0eee6]">{" ]"}</span>
+              <span className="text-[#f0eee6]">{"]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c]">{"start: "}</span>
-              <span className="text-[#f0eee6]">{`[\u00a0`}</span>
+              <span className="text-[#f0eee6]">{"["}</span>
               <input
                 type="text"
                 size={8}
@@ -214,12 +214,12 @@ export default function AccountDetailPage() {
                 placeholder="10:00 AM"
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]">{" ]"}</span>
+              <span className="text-[#f0eee6]">{"]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c]">{"end: "}</span>
-              <span className="text-[#f0eee6]">{`[\u00a0`}</span>
+              <span className="text-[#f0eee6]">{"["}</span>
               <input
                 type="text"
                 size={8}
@@ -230,12 +230,12 @@ export default function AccountDetailPage() {
                 placeholder="10:00 PM"
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]">{" ]"}</span>
+              <span className="text-[#f0eee6]">{"]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c]">{"delay fixed: "}</span>
-              <span className="text-[#f0eee6]">{`[\u00a0`}</span>
+              <span className="text-[#f0eee6]">{"["}</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -246,12 +246,12 @@ export default function AccountDetailPage() {
                 style={{ width: "3ch" }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]">{" ]"}</span>
+              <span className="text-[#f0eee6]">{"]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c]">{"delay random: "}</span>
-              <span className="text-[#f0eee6]">{`[\u00a0`}</span>
+              <span className="text-[#f0eee6]">{"["}</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -262,12 +262,12 @@ export default function AccountDetailPage() {
                 style={{ width: "3ch" }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]">{" ]"}</span>
+              <span className="text-[#f0eee6]">{"]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c]">{"sessions/day: "}</span>
-              <span className="text-[#f0eee6]">{`[\u00a0`}</span>
+              <span className="text-[#f0eee6]">{"["}</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -278,7 +278,7 @@ export default function AccountDetailPage() {
                 style={{ width: "3ch" }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]">{" ]"}</span>
+              <span className="text-[#f0eee6]">{"]"}</span>
             </span>
 
           </div>
@@ -340,7 +340,7 @@ export default function AccountDetailPage() {
                     </td>
                     <td className="px-4 py-2">
                       <span className="inline-flex items-center gap-0">
-                        <span className="text-[#f0eee6]">{`[\u00a0`}</span>
+                        <span className="text-[#f0eee6]">{"["}</span>
                         <input
                           type="text"
                           inputMode="numeric"
@@ -351,12 +351,12 @@ export default function AccountDetailPage() {
                           style={{ width: "3ch" }}
                           className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
                         />
-                        <span className="text-[#f0eee6]">{" ]"}</span>
+                        <span className="text-[#f0eee6]">{"]"}</span>
                       </span>
                     </td>
                     <td className="px-4 py-2">
                       <span className="inline-flex items-center gap-0">
-                        <span className="text-[#f0eee6]">{`[\u00a0`}</span>
+                        <span className="text-[#f0eee6]">{"["}</span>
                         <input
                           type="text"
                           inputMode="numeric"
@@ -367,7 +367,7 @@ export default function AccountDetailPage() {
                           style={{ width: "3ch" }}
                           className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
                         />
-                        <span className="text-[#f0eee6]">{" ]"}</span>
+                        <span className="text-[#f0eee6]">{"]"}</span>
                       </span>
                     </td>
                   </tr>
@@ -384,7 +384,7 @@ export default function AccountDetailPage() {
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c]">{"unfollow after: "}</span>
-              <span className="text-[#f0eee6]">{`[\u00a0`}</span>
+              <span className="text-[#f0eee6]">{"["}</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -395,7 +395,7 @@ export default function AccountDetailPage() {
                 style={{ width: "3ch" }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]">{" ]"}</span>
+              <span className="text-[#f0eee6]">{"]"}</span>
               <span className="text-[#73726c]">{" days"}</span>
             </span>
 
