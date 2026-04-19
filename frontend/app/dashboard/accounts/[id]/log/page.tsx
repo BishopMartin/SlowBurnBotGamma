@@ -9,7 +9,7 @@ import { Bracket } from "@/lib/bracket";
 const PAGE_SIZE = 100;
 
 type SortKey = "date" | "run" | "start" | "end" | "a1_type" | "a1_count" | "a2_type" | "a2_count" | "a3_type" | "a3_count" | "a4_type" | "a4_count" | "error";
-const COL_COUNT = 8;
+const COL_COUNT = 9;
 type SortDir = "asc" | "desc";
 
 function fmtTime(iso: string | null): string {
@@ -105,7 +105,7 @@ export default function AccountLogPage() {
           <p className="px-4 py-6 text-[#73726c]">no log entries found.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="text-sm">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[#73726c] border-b border-[#3d3d3a]">
                   <SortTh label="date" field="date" />
@@ -116,20 +116,22 @@ export default function AccountLogPage() {
                   <SortTh label="action 2" field="a2_type" />
                   <SortTh label="action 3" field="a3_type" />
                   <SortTh label="action 4" field="a4_type" />
+                  <th className="w-full"></th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((entry) => (
                   <>
                     <tr key={entry.id} className="hover:bg-[#1f1e1d] transition-colors border-t border-[#3d3d3a]">
-                      <td className="px-2 py-1.5 text-[#f0eee6]">{entry.run_date ?? "—"}</td>
-                      <td className="px-2 py-1.5 text-[#73726c]">{entry.run_sequence}</td>
-                      <td className="px-2 py-1.5 text-[#73726c]">{fmtTime(entry.start_time)}</td>
-                      <td className="px-2 py-1.5 text-[#73726c]">{fmtTime(entry.end_time)}</td>
-                      <td className="px-2 py-1.5 text-[#73726c]">{fmtAction(entry.action_1_type, entry.action_1_count)}</td>
-                      <td className="px-2 py-1.5 text-[#73726c]">{fmtAction(entry.action_2_type, entry.action_2_count)}</td>
-                      <td className="px-2 py-1.5 text-[#73726c]">{fmtAction(entry.action_3_type, entry.action_3_count)}</td>
-                      <td className="px-2 py-1.5 text-[#73726c]">{fmtAction(entry.action_4_type, entry.action_4_count)}</td>
+                      <td className="px-2 py-1.5 text-[#f0eee6] whitespace-nowrap">{entry.run_date ?? "—"}</td>
+                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{entry.run_sequence}</td>
+                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtTime(entry.start_time)}</td>
+                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtTime(entry.end_time)}</td>
+                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtAction(entry.action_1_type, entry.action_1_count)}</td>
+                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtAction(entry.action_2_type, entry.action_2_count)}</td>
+                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtAction(entry.action_3_type, entry.action_3_count)}</td>
+                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtAction(entry.action_4_type, entry.action_4_count)}</td>
+                      <td></td>
                     </tr>
                     {entry.error_message && (
                       <tr key={`${entry.id}-err`} className="bg-[#1f1e1d]">
