@@ -240,9 +240,10 @@ export default function AccountDetailPage() {
                 type="text"
                 inputMode="numeric"
                 value={settings.delay_base_minutes != null ? String(settings.delay_base_minutes) : ""}
-                onChange={(e) => setSettings((s) => ({ ...s, delay_base_minutes: parseNum(e.target.value) }))}
+                onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, delay_base_minutes: n })); }}
                 placeholder="60"
-                style={{ width: `${Math.max(String(settings.delay_base_minutes ?? "").length || 2, 2) + 1}ch` }}
+                maxLength={2}
+                style={{ width: "3ch" }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]">{" ]"}</span>
@@ -255,9 +256,10 @@ export default function AccountDetailPage() {
                 type="text"
                 inputMode="numeric"
                 value={settings.delay_random_minutes != null ? String(settings.delay_random_minutes) : ""}
-                onChange={(e) => setSettings((s) => ({ ...s, delay_random_minutes: parseNum(e.target.value) }))}
+                onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, delay_random_minutes: n })); }}
                 placeholder="0"
-                style={{ width: `${Math.max(String(settings.delay_random_minutes ?? "").length || 2, 2) + 1}ch` }}
+                maxLength={2}
+                style={{ width: "3ch" }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]">{" ]"}</span>
@@ -342,9 +344,10 @@ export default function AccountDetailPage() {
                           type="text"
                           inputMode="numeric"
                           value={action.fixed_count > 0 ? String(action.fixed_count) : ""}
-                          onChange={(e) => updateAction(i, { fixed_count: parseNum(e.target.value) })}
+                          onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) updateAction(i, { fixed_count: n }); }}
                           placeholder="0"
-                          style={{ width: `${Math.max(String(action.fixed_count || "").length || 2, 2) + 1}ch` }}
+                          maxLength={2}
+                          style={{ width: "3ch" }}
                           className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
                         />
                         <span className="text-[#f0eee6]">{" ]"}</span>
@@ -357,9 +360,10 @@ export default function AccountDetailPage() {
                           type="text"
                           inputMode="numeric"
                           value={action.variable_count > 0 ? String(action.variable_count) : ""}
-                          onChange={(e) => updateAction(i, { variable_count: parseNum(e.target.value) })}
+                          onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) updateAction(i, { variable_count: n }); }}
                           placeholder="0"
-                          style={{ width: `${Math.max(String(action.variable_count || "").length || 2, 2) + 1}ch` }}
+                          maxLength={2}
+                          style={{ width: "3ch" }}
                           className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
                         />
                         <span className="text-[#f0eee6]">{" ]"}</span>
@@ -384,9 +388,10 @@ export default function AccountDetailPage() {
                 type="text"
                 inputMode="numeric"
                 value={settings.unfollow_days != null ? String(settings.unfollow_days) : ""}
-                onChange={(e) => setSettings((s) => ({ ...s, unfollow_days: parseNum(e.target.value) || 30 }))}
+                onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, unfollow_days: n || 30 })); }}
                 placeholder="30"
-                style={{ width: `${Math.max(String(settings.unfollow_days ?? "").length || 2, 2) + 1}ch` }}
+                maxLength={2}
+                style={{ width: "3ch" }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]">{" ]"}</span>
