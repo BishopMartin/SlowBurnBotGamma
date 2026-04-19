@@ -123,12 +123,12 @@ export default function AccountsPage() {
                   </>
                 ) : (
                   <>
-                    <th className="px-4 py-2 font-normal">Pending</th>
+                    <th className="px-4 py-2 font-normal">Pend.</th>
                     <th className="px-4 py-2 font-normal">Complete</th>
                     <th className="px-4 py-2 font-normal">Total</th>
                     <th className="px-4 py-2 font-normal">Success</th>
-                    <th className="px-4 py-2 font-normal">Last 25</th>
-                    <th className="px-4 py-2 font-normal">All Time</th>
+                    <th className="px-4 py-2 font-normal whitespace-nowrap">Last 25</th>
+                    <th className="px-4 py-2 font-normal whitespace-nowrap">All Time</th>
                   </>
                 )}
                 <th className="px-4 py-2 font-normal"></th>
