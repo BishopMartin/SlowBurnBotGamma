@@ -29,7 +29,7 @@ BATCH_SIZE = 500
 # ── data mappings ─────────────────────────────────────────────────────────────
 
 ACTION_TYPE_MAP = {
-    "like": "like post",
+    "like": "like",
     "follow": "follow",
     "unfollow": "unfollow",
 }

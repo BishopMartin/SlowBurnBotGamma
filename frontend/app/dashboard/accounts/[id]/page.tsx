@@ -19,12 +19,12 @@ import { Dropdown } from "@/lib/dropdown";
 
 // ── dropdown data ─────────────────────────────────────────────────────────────
 
-const ACTION_TYPES = ["follow", "unfollow", "like post"] as const;
+const ACTION_TYPES = ["follow", "unfollow", "like"] as const;
 
 const ACTION_TARGETS: Record<string, string[]> = {
   follow:    ["suggested users", "account list [followers]", "account list [following]"],
   unfollow:  ["previous follows"],
-  "like post": ["posts [homepage]", "posts [topics]"],
+  like: ["posts [homepage]", "posts [topics]"],
 };
 
 const SCHEDULE_DAYS = ["daily", "weekdays", "weekends"];
