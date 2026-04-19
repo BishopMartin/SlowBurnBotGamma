@@ -145,69 +145,85 @@ export default function AccountDetailPage() {
           ← accounts
         </Link>
         <span className="text-[#f0eee6] font-semibold">{account.name}</span>
-        <button
-          onClick={() => handleAccountField({ enabled: !account.enabled })}
-          className="group cursor-pointer transition-colors"
-        >
-          <Bracket className={account.enabled ? "text-green-400 group-hover:text-red-400" : "text-[#73726c] group-hover:text-green-400"}>
-            {account.enabled ? "on" : "off"}
-          </Bracket>
-        </button>
-        <div className="flex items-center gap-1">
-          <span className="text-[#73726c]">group</span>
-          <span className="text-[#f0eee6]">[</span>
-          <input
-            type="text"
-            inputMode="numeric"
-            maxLength={2}
-            placeholder="--"
-            value={groupDisplay}
-            onChange={(e) => {
-              const val = e.target.value.replace(/\D/g, "").slice(0, 2);
-              setAccount((a) => a && { ...a, group_number: val ? +val : null });
-            }}
-            onBlur={() => handleAccountField({ group_number: account.group_number })}
-            className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
-          />
-          <span className="text-[#f0eee6]">]</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="text-[#73726c]">password</span>
-          {editingPw ? (
-            <>
-              <span className="text-[#f0eee6]">[</span>
-              <input
-                type="password"
-                autoFocus
-                value={pwValue}
-                onChange={(e) => setPwValue(e.target.value)}
-                onBlur={() => {
-                  if (pwValue) handleAccountField({ ig_password: pwValue } as Partial<Account>);
-                  setEditingPw(false);
-                  setPwValue("");
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") { e.preventDefault(); (e.target as HTMLInputElement).blur(); }
-                  if (e.key === "Escape") { setEditingPw(false); setPwValue(""); }
-                }}
-                className="w-24 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors"
-              />
-              <span className="text-[#f0eee6]">]</span>
-            </>
-          ) : (
-            <button
-              onClick={() => setEditingPw(true)}
-              className="group cursor-pointer transition-colors"
-            >
-              <Bracket className={account.has_password ? "text-green-400 group-hover:text-[#d97757]" : "text-[#73726c] group-hover:text-[#d97757]"}>
-                {account.has_password ? "set" : "----"}
-              </Bracket>
-            </button>
-          )}
-        </div>
       </div>
 
       <form onSubmit={handleSaveSettings} className="space-y-4">
+
+        {/* Configuration */}
+        <div className={sectionCls}>
+          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">configuration</div>
+          <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
+
+            <span className="inline-flex items-center gap-1">
+              <span className="text-[#73726c]">enabled:</span>
+              <button
+                type="button"
+                onClick={() => handleAccountField({ enabled: !account.enabled })}
+                className="group cursor-pointer transition-colors"
+              >
+                <Bracket className={account.enabled ? "text-green-400 group-hover:text-red-400" : "text-[#73726c] group-hover:text-green-400"}>
+                  {account.enabled ? "on" : "off"}
+                </Bracket>
+              </button>
+            </span>
+
+            <span className="inline-flex items-center gap-0">
+              <span className="text-[#73726c]">{"group: "}</span>
+              <span className="text-[#f0eee6]">{"["}</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={2}
+                placeholder="--"
+                value={groupDisplay}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "").slice(0, 2);
+                  setAccount((a) => a && { ...a, group_number: val ? +val : null });
+                }}
+                onBlur={() => handleAccountField({ group_number: account.group_number })}
+                className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
+              />
+              <span className="text-[#f0eee6]">{"]"}</span>
+            </span>
+
+            <span className="inline-flex items-center gap-1">
+              <span className="text-[#73726c]">password:</span>
+              {editingPw ? (
+                <span className="inline-flex items-center gap-0">
+                  <span className="text-[#f0eee6]">{"["}</span>
+                  <input
+                    type="password"
+                    autoFocus
+                    value={pwValue}
+                    onChange={(e) => setPwValue(e.target.value)}
+                    onBlur={() => {
+                      if (pwValue) handleAccountField({ ig_password: pwValue } as Partial<Account>);
+                      setEditingPw(false);
+                      setPwValue("");
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") { e.preventDefault(); (e.target as HTMLInputElement).blur(); }
+                      if (e.key === "Escape") { setEditingPw(false); setPwValue(""); }
+                    }}
+                    className="w-24 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors"
+                  />
+                  <span className="text-[#f0eee6]">{"]"}</span>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setEditingPw(true)}
+                  className="group cursor-pointer transition-colors"
+                >
+                  <Bracket className={account.has_password ? "text-green-400 group-hover:text-[#d97757]" : "text-[#73726c] group-hover:text-[#d97757]"}>
+                    {account.has_password ? "set" : "----"}
+                  </Bracket>
+                </button>
+              )}
+            </span>
+
+          </div>
+        </div>
 
         {/* Schedule */}
         <div className={sectionCls}>
