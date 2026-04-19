@@ -179,10 +179,10 @@ export default function AccountsPage() {
                   </>
                 ) : (
                   <>
-                    <SortTh label="Pend." field="pending" />
-                    <SortTh label="Compl." field="complete" />
-                    <SortTh label="Total" field="total" />
-                    <SortTh label="Success" field="success" />
+                    <SortTh label="Pend." field="pending" className="whitespace-nowrap" />
+                    <SortTh label="Compl." field="complete" className="whitespace-nowrap" />
+                    <SortTh label="Total" field="total" className="whitespace-nowrap" />
+                    <SortTh label="Success" field="success" className="whitespace-nowrap" />
                     <SortTh label="Last 25" field="last_25" className="whitespace-nowrap" />
                     <SortTh label="All Time" field="all_time" className="whitespace-nowrap" />
                   </>
