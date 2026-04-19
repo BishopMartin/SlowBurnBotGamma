@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { logout } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
+import { APP_VERSION } from "@/lib/version";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -54,6 +55,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </nav>
         </div>
         <div className="flex items-center gap-4">
+          <span className="text-[#3d3d3a]">v{APP_VERSION}</span>
           <span className="text-[#73726c]">{user.email}</span>
           <button onClick={handleLogout} className="group transition-colors">
             <Bracket className="text-[#73726c] group-hover:text-[#d97757]">sign out</Bracket>
