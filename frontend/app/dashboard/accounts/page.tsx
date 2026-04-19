@@ -195,7 +195,7 @@ export default function AccountsPage() {
                 const stats = statsMap[account.id];
                 return (
                   <tr key={account.id} className="hover:bg-[#1f1e1d] transition-colors">
-                    <td className="px-2 py-2 text-[#f0eee6] whitespace-nowrap">{account.name}</td>
+                    <td className="px-2 pr-6 py-2 text-[#f0eee6] whitespace-nowrap overflow-hidden text-ellipsis" style={{ maxWidth: "20ch" }}>{account.name}</td>
                     {tab === "settings" ? (
                       <>
                         <td className="px-2 py-2 whitespace-nowrap">
@@ -229,7 +229,7 @@ export default function AccountsPage() {
                       </>
                     )}
                     <td className="px-2 py-2 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-0">
                         <Link href={`/dashboard/accounts/${account.id}`} className="group font-mono transition-colors">
                           <Bracket className="text-[#73726c] group-hover:text-[#d97757]">settings</Bracket>
                         </Link>
