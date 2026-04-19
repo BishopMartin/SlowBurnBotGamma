@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -82,16 +82,6 @@ export default function AccountDetailPage() {
   const [msg, setMsg] = useState("");
   const [editingStart, setEditingStart] = useState<string | null>(null);
   const [editingEnd, setEditingEnd] = useState<string | null>(null);
-  const groupRef = useRef<HTMLTextAreaElement>(null);
-  const topicsRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      [groupRef.current, topicsRef.current].forEach((t) => {
-        if (t) { t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; }
-      });
-    });
-  }, [settings.account_group, settings.topics]);
 
   useEffect(() => {
     getAccounts().then((list) => {
@@ -405,22 +395,18 @@ export default function AccountDetailPage() {
           <div className="px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-4">
             <div>
               <div className="text-[#73726c] text-sm mb-1">account group</div>
-              <textarea placeholder="comma-separated" rows={1}
-                ref={groupRef}
+              <textarea placeholder="comma-separated" rows={5}
                 value={settings.account_group ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, account_group: e.target.value || null }))}
-                className="w-full bg-transparent border border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap overflow-hidden"
-                onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; }}
+                className="w-full bg-transparent border border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
               />
             </div>
             <div>
               <div className="text-[#73726c] text-sm mb-1">instagram topics</div>
-              <textarea placeholder="comma-separated" rows={1}
-                ref={topicsRef}
+              <textarea placeholder="comma-separated" rows={5}
                 value={settings.topics ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, topics: e.target.value || null }))}
-                className="w-full bg-transparent border border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap overflow-hidden"
-                onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; }}
+                className="w-full bg-transparent border border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
               />
             </div>
           </div>
