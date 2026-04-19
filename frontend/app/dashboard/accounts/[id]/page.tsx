@@ -184,9 +184,9 @@ export default function AccountDetailPage() {
               <Dropdown
                 value={settings.schedule_days ?? ""}
                 onChange={(v) => setSettings((s) => ({ ...s, schedule_days: v || null }))}
-                placeholder="——"
+                placeholder="----"
                 options={[
-                  { value: "", label: "——" },
+                  { value: "", label: "----" },
                   ...SCHEDULE_DAYS.map((d) => ({ value: d, label: d })),
                 ]}
               />
@@ -311,9 +311,9 @@ export default function AccountDetailPage() {
                       <Dropdown
                         value={action.type}
                         onChange={(v) => updateAction(i, { type: v })}
-                        placeholder="—"
+                        placeholder="----"
                         options={[
-                          { value: "", label: "—" },
+                          { value: "", label: "----" },
                           ...ACTION_TYPES.map((t) => ({ value: t, label: t })),
                         ]}
                       />
@@ -322,10 +322,10 @@ export default function AccountDetailPage() {
                       <Dropdown
                         value={action.target}
                         onChange={(v) => updateAction(i, { target: v })}
-                        placeholder="—"
+                        placeholder="----"
                         disabled={targets.length === 0}
                         options={[
-                          { value: "", label: "—" },
+                          { value: "", label: "----" },
                           ...targets.map((t) => ({ value: t, label: t })),
                         ]}
                       />
