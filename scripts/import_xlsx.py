@@ -301,6 +301,100 @@ async def main():
 
             print(f"  follow_targets: {total} rows inserted, {skipped} skipped.")
 
+        # ── Import runlog ────────────────────────────────────────────────────
+        print("\n-- importing runlog --")
+        if "runlog" not in wb.sheetnames:
+            print("  No 'runlog' sheet found — skipping.")
+        else:
+            runlog_ws = wb["runlog"]
+
+            # Build account name → id map (all accounts for user)
+            account_map = {}
+            all_accounts = await conn.fetch(
+                "SELECT id, name FROM accounts WHERE user_id = $1", user_id
+            )
+            for acct in all_accounts:
+                account_map[acct["name"]] = acct["id"]
+            print(f"  found {len(account_map)} accounts: {list(account_map.keys())}")
+
+            batch = []
+            total = 0
+            skipped = 0
+
+            for row in runlog_ws.iter_rows(min_row=3, values_only=True):
+                run_date = to_date(row[0])
+                if not run_date:
+                    continue
+
+                acct_name = str(row[4] or "").strip()
+                if acct_name not in account_map:
+                    skipped += 1
+                    continue
+                account_id = account_map[acct_name]
+
+                run_seq = int(row[1]) if row[1] is not None else 1
+                start_t = to_time(row[2])
+                end_t = to_time(row[3])
+
+                # Combine date + time into datetime
+                start_dt = datetime.datetime.combine(run_date, start_t) if start_t else None
+                end_dt = datetime.datetime.combine(run_date, end_t) if end_t else None
+
+                def safe_int(v):
+                    if v is None:
+                        return 0
+                    try:
+                        return int(float(v))
+                    except (ValueError, TypeError):
+                        return 0
+
+                a1_type = str(row[5]).strip() if row[5] else None
+                a1_count = safe_int(row[6])
+                a2_type = str(row[7]).strip() if row[7] else None
+                a2_count = safe_int(row[8])
+                a3_type = str(row[9]).strip() if row[9] else None
+                a3_count = safe_int(row[10])
+                a4_type = str(row[11]).strip() if row[11] else None
+                a4_count = safe_int(row[12])
+
+                error_msg = str(row[16]).strip() if row[16] else None
+
+                batch.append((
+                    uuid.uuid4(), user_id, account_id,
+                    run_date, run_seq, start_dt, end_dt,
+                    a1_type, a1_count, a2_type, a2_count,
+                    a3_type, a3_count, a4_type, a4_count,
+                    error_msg,
+                ))
+
+                if len(batch) >= BATCH_SIZE:
+                    await conn.executemany("""
+                        INSERT INTO session_logs
+                            (id, user_id, account_id,
+                             run_date, run_sequence, start_time, end_time,
+                             action_1_type, action_1_count, action_2_type, action_2_count,
+                             action_3_type, action_3_count, action_4_type, action_4_count,
+                             error_message)
+                        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+                    """, batch)
+                    total += len(batch)
+                    print(f"  …{total} rows inserted")
+                    batch = []
+
+            if batch:
+                await conn.executemany("""
+                    INSERT INTO session_logs
+                        (id, user_id, account_id,
+                         run_date, run_sequence, start_time, end_time,
+                         action_1_type, action_1_count, action_2_type, action_2_count,
+                         action_3_type, action_3_count, action_4_type, action_4_count,
+                         error_message)
+                    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+                """, batch)
+                total += len(batch)
+
+            print(f"  session_logs: {total} rows inserted, {skipped} skipped.")
+
         print("\nDone.")
 
     finally:
