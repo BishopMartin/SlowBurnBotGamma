@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -68,12 +68,6 @@ function parseNum(v: string): number {
 
 // ── styles ────────────────────────────────────────────────────────────────────
 
-const inputCls =
-  "w-full bg-transparent border-b border-[#2a2a27] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-1 font-mono transition-colors";
-
-const numInputCls =
-  "w-full bg-transparent border-b border-[#2a2a27] text-[#f0eee6] outline-none focus:border-[#d97757] py-1 font-mono transition-colors";
-
 const sectionCls = "border border-[#3d3d3a]";
 
 // ── component ─────────────────────────────────────────────────────────────────
@@ -88,6 +82,14 @@ export default function AccountDetailPage() {
   const [msg, setMsg] = useState("");
   const [editingStart, setEditingStart] = useState<string | null>(null);
   const [editingEnd, setEditingEnd] = useState<string | null>(null);
+  const groupRef = useRef<HTMLTextAreaElement>(null);
+  const topicsRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    [groupRef.current, topicsRef.current].forEach((t) => {
+      if (t) { t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; }
+    });
+  }, [settings.account_group, settings.topics]);
 
   useEffect(() => {
     getAccounts().then((list) => {
@@ -262,7 +264,7 @@ export default function AccountDetailPage() {
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">{"runs/day: "}</span>
+              <span className="text-[#73726c]">{"sessions/day: "}</span>
               <span className="text-[#f0eee6]">{`[\u00a0`}</span>
               <input
                 type="text"
@@ -281,7 +283,7 @@ export default function AccountDetailPage() {
 
         {/* Actions */}
         <div className={sectionCls}>
-          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">actions</div>
+          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">session actions</div>
           <table className="w-full font-mono">
             <thead>
               <tr className="text-left text-[#73726c] border-b border-[#3d3d3a]">
@@ -289,8 +291,8 @@ export default function AccountDetailPage() {
                 <th className="px-4 py-2 font-normal w-10">on</th>
                 <th className="px-4 py-2 font-normal">type</th>
                 <th className="px-4 py-2 font-normal">target</th>
-                <th className="px-4 py-2 font-normal w-16">fixed</th>
-                <th className="px-4 py-2 font-normal w-16">random</th>
+                <th className="px-4 py-2 font-normal w-28">fixed</th>
+                <th className="px-4 py-2 font-normal w-28">random</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#3d3d3a]">
@@ -334,24 +336,34 @@ export default function AccountDetailPage() {
                       />
                     </td>
                     <td className="px-4 py-2">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={action.fixed_count > 0 ? String(action.fixed_count) : ""}
-                        onChange={(e) => updateAction(i, { fixed_count: parseNum(e.target.value) })}
-                        placeholder="0"
-                        className={numInputCls}
-                      />
+                      <span className="inline-flex items-center gap-0">
+                        <span className="text-[#f0eee6]">{`[\u00a0`}</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={action.fixed_count > 0 ? String(action.fixed_count) : ""}
+                          onChange={(e) => updateAction(i, { fixed_count: parseNum(e.target.value) })}
+                          placeholder="0"
+                          style={{ width: `${Math.max(String(action.fixed_count || "").length || 2, 2) + 1}ch` }}
+                          className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
+                        />
+                        <span className="text-[#f0eee6]">{" ]"}</span>
+                      </span>
                     </td>
                     <td className="px-4 py-2">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={action.variable_count > 0 ? String(action.variable_count) : ""}
-                        onChange={(e) => updateAction(i, { variable_count: parseNum(e.target.value) })}
-                        placeholder="0"
-                        className={numInputCls}
-                      />
+                      <span className="inline-flex items-center gap-0">
+                        <span className="text-[#f0eee6]">{`[\u00a0`}</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={action.variable_count > 0 ? String(action.variable_count) : ""}
+                          onChange={(e) => updateAction(i, { variable_count: parseNum(e.target.value) })}
+                          placeholder="0"
+                          style={{ width: `${Math.max(String(action.variable_count || "").length || 2, 2) + 1}ch` }}
+                          className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
+                        />
+                        <span className="text-[#f0eee6]">{" ]"}</span>
+                      </span>
                     </td>
                   </tr>
                 );
@@ -363,8 +375,9 @@ export default function AccountDetailPage() {
         {/* Follow Settings */}
         <div className={sectionCls}>
           <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">follow settings</div>
-          <div className="p-4 space-y-4">
-            <div className="flex items-center gap-3 text-sm font-mono">
+          <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm border-b border-[#3d3d3a]">
+
+            <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c]">{"unfollow after: "}</span>
               <span className="text-[#f0eee6]">{`[\u00a0`}</span>
               <input
@@ -377,23 +390,30 @@ export default function AccountDetailPage() {
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]">{" ]"}</span>
-              <span className="text-[#73726c]">days</span>
+              <span className="text-[#73726c]">{" days"}</span>
+            </span>
+
+          </div>
+          <div className="px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-4">
+            <div>
+              <div className="text-[#73726c] text-sm mb-1">account group</div>
+              <textarea placeholder="comma-separated" rows={1}
+                ref={groupRef}
+                value={settings.account_group ?? ""}
+                onChange={(e) => setSettings((s) => ({ ...s, account_group: e.target.value || null }))}
+                className="w-full bg-transparent border border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
+                onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; }}
+              />
             </div>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-              <div>
-                <div className="text-[#73726c] mb-1">account group</div>
-                <input type="text" placeholder="comma-separated"
-                  value={settings.account_group ?? ""}
-                  onChange={(e) => setSettings((s) => ({ ...s, account_group: e.target.value || null }))}
-                  className={inputCls} />
-              </div>
-              <div>
-                <div className="text-[#73726c] mb-1">topics</div>
-                <input type="text" placeholder="comma-separated"
-                  value={settings.topics ?? ""}
-                  onChange={(e) => setSettings((s) => ({ ...s, topics: e.target.value || null }))}
-                  className={inputCls} />
-              </div>
+            <div>
+              <div className="text-[#73726c] text-sm mb-1">instagram topics</div>
+              <textarea placeholder="comma-separated" rows={1}
+                ref={topicsRef}
+                value={settings.topics ?? ""}
+                onChange={(e) => setSettings((s) => ({ ...s, topics: e.target.value || null }))}
+                className="w-full bg-transparent border border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
+                onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; }}
+              />
             </div>
           </div>
         </div>
