@@ -84,7 +84,7 @@ export default function AccountDatabasePage() {
                   <td className={`px-4 py-1.5 ${statusCls(t.status)}`}>{t.status}</td>
                   <td className="px-4 py-1.5 text-[#73726c]">{t.follow_date ?? "—"}</td>
                   <td className="px-4 py-1.5 text-[#73726c]">{t.unfollow_date ?? "—"}</td>
-                  <td className="px-4 py-1.5 text-[#73726c]">
+                  <td className={`px-4 py-1.5 ${t.follow_back === true ? "text-green-400" : t.follow_back === false ? "text-red-400" : "text-[#73726c]"}`}>
                     {t.follow_back === true ? "yes" : t.follow_back === false ? "no" : "—"}
                   </td>
                 </tr>
