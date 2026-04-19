@@ -245,7 +245,7 @@ export default function AccountDetailPage() {
                 onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, delay_base_minutes: n })); }}
                 placeholder="60"
                 maxLength={2}
-                style={{ width: "2ch" }}
+                style={{ width: "2ch", textAlign: "right" }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
@@ -261,7 +261,7 @@ export default function AccountDetailPage() {
                 onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, delay_random_minutes: n })); }}
                 placeholder="0"
                 maxLength={2}
-                style={{ width: "2ch" }}
+                style={{ width: "2ch", textAlign: "right" }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
@@ -277,7 +277,7 @@ export default function AccountDetailPage() {
                 onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, max_runs_per_day: n || 1 })); }}
                 placeholder="1"
                 maxLength={2}
-                style={{ width: "2ch" }}
+                style={{ width: "2ch", textAlign: "right" }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
@@ -350,7 +350,7 @@ export default function AccountDetailPage() {
                           onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) updateAction(i, { fixed_count: n }); }}
                           placeholder="0"
                           maxLength={2}
-                          style={{ width: "2ch" }}
+                          style={{ width: "2ch", textAlign: "right" }}
                           className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
                         />
                         <span className="text-[#f0eee6]">{"]"}</span>
@@ -366,7 +366,7 @@ export default function AccountDetailPage() {
                           onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) updateAction(i, { variable_count: n }); }}
                           placeholder="0"
                           maxLength={2}
-                          style={{ width: "2ch" }}
+                          style={{ width: "2ch", textAlign: "right" }}
                           className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
                         />
                         <span className="text-[#f0eee6]">{"]"}</span>
@@ -394,7 +394,7 @@ export default function AccountDetailPage() {
                 onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, unfollow_days: n || 30 })); }}
                 placeholder="30"
                 maxLength={2}
-                style={{ width: "2ch" }}
+                style={{ width: "2ch", textAlign: "right" }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
