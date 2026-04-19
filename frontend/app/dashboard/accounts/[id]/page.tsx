@@ -82,6 +82,8 @@ export default function AccountDetailPage() {
   const [msg, setMsg] = useState("");
   const [editingStart, setEditingStart] = useState<string | null>(null);
   const [editingEnd, setEditingEnd] = useState<string | null>(null);
+  const [editingPw, setEditingPw] = useState(false);
+  const [pwValue, setPwValue] = useState("");
 
   useEffect(() => {
     getAccounts().then((list) => {
@@ -168,6 +170,40 @@ export default function AccountDetailPage() {
             className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
           />
           <span className="text-[#f0eee6]">]</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="text-[#73726c]">pw</span>
+          {editingPw ? (
+            <>
+              <span className="text-[#f0eee6]">[</span>
+              <input
+                type="password"
+                autoFocus
+                value={pwValue}
+                onChange={(e) => setPwValue(e.target.value)}
+                onBlur={() => {
+                  if (pwValue) handleAccountField({ ig_password: pwValue } as Partial<Account>);
+                  setEditingPw(false);
+                  setPwValue("");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { e.preventDefault(); (e.target as HTMLInputElement).blur(); }
+                  if (e.key === "Escape") { setEditingPw(false); setPwValue(""); }
+                }}
+                className="w-24 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors"
+              />
+              <span className="text-[#f0eee6]">]</span>
+            </>
+          ) : (
+            <button
+              onClick={() => setEditingPw(true)}
+              className="group cursor-pointer transition-colors"
+            >
+              <Bracket className={account.has_password ? "text-green-400 group-hover:text-[#d97757]" : "text-[#73726c] group-hover:text-[#d97757]"}>
+                {account.has_password ? "set" : "----"}
+              </Bracket>
+            </button>
+          )}
         </div>
       </div>
 

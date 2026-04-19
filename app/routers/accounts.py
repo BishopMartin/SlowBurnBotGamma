@@ -6,6 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import current_active_user
+from app.crypto import encrypt
 from app.database import get_async_session
 from app.models.account import Account
 from app.models.account_settings import AccountSettings
@@ -31,13 +32,19 @@ async def _get_owned_account(
     return account
 
 
+def _account_read(account: Account) -> AccountRead:
+    return AccountRead.model_validate(account, from_attributes=True).model_copy(
+        update={"has_password": account.ig_password_enc is not None}
+    )
+
+
 @router.get("", response_model=list[AccountRead])
 async def list_accounts(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
     result = await session.execute(select(Account).where(Account.user_id == user.id))
-    return result.scalars().all()
+    return [_account_read(a) for a in result.scalars().all()]
 
 
 @router.post("", response_model=AccountRead, status_code=status.HTTP_201_CREATED)
@@ -46,11 +53,14 @@ async def create_account(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    account = Account(**body.model_dump(), user_id=user.id)
+    data = body.model_dump(exclude={"ig_password"})
+    if body.ig_password:
+        data["ig_password_enc"] = encrypt(body.ig_password)
+    account = Account(**data, user_id=user.id)
     session.add(account)
     await session.commit()
     await session.refresh(account)
-    return account
+    return _account_read(account)
 
 
 @router.get("/{account_id}", response_model=AccountRead)
@@ -59,7 +69,7 @@ async def get_account(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    return await _get_owned_account(account_id, user, session)
+    return _account_read(await _get_owned_account(account_id, user, session))
 
 
 @router.patch("/{account_id}", response_model=AccountRead)
@@ -70,11 +80,14 @@ async def update_account(
     session: AsyncSession = Depends(get_async_session),
 ):
     account = await _get_owned_account(account_id, user, session)
-    for field, value in body.model_dump(exclude_unset=True).items():
+    data = body.model_dump(exclude_unset=True, exclude={"ig_password"})
+    if "ig_password" in body.model_fields_set:
+        data["ig_password_enc"] = encrypt(body.ig_password) if body.ig_password else None
+    for field, value in data.items():
         setattr(account, field, value)
     await session.commit()
     await session.refresh(account)
-    return account
+    return _account_read(account)
 
 
 @router.delete("/{account_id}", status_code=status.HTTP_204_NO_CONTENT)

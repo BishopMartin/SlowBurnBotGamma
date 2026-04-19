@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -22,6 +22,7 @@ class Account(Base):
     name: Mapped[str] = mapped_column(String(150))  # Instagram handle / internal name
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     group_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    ig_password_enc: Mapped[str | None] = mapped_column(Text, nullable=True)
     proxy_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     proxy_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

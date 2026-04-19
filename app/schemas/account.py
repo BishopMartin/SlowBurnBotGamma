@@ -8,6 +8,7 @@ class AccountCreate(BaseModel):
     name: str
     enabled: bool = True
     group_number: int | None = None
+    ig_password: str | None = None
     proxy_enabled: bool = False
     proxy_type: str | None = None
 
@@ -16,6 +17,7 @@ class AccountUpdate(BaseModel):
     name: str | None = None
     enabled: bool | None = None
     group_number: int | None = None
+    ig_password: str | None = None
     proxy_enabled: bool | None = None
     proxy_type: str | None = None
 
@@ -28,6 +30,7 @@ class AccountRead(BaseModel):
     name: str
     enabled: bool
     group_number: int | None
+    has_password: bool = False
     proxy_enabled: bool
     proxy_type: str | None
     created_at: datetime

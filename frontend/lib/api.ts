@@ -147,6 +147,7 @@ export interface Account {
   name: string;
   enabled: boolean;
   group_number: number | null;
+  has_password: boolean;
   proxy_enabled: boolean;
   proxy_type: string | null;
   created_at: string;
