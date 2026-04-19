@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getAccounts, getAccountDatabase, Account, FollowTarget } from "@/lib/api";
 
 const PAGE_SIZE = 100;
+
+type SortKey = "handle" | "source" | "status" | "followed" | "unfollowed" | "fb";
+type SortDir = "asc" | "desc";
 
 function statusCls(status: string): string {
   if (status === "done") return "text-green-400";
@@ -21,6 +24,51 @@ export default function AccountDatabasePage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [sortKey, setSortKey] = useState<SortKey>("handle");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
+
+  const sortedItems = useMemo(() => {
+    const list = [...items];
+    const dir = sortDir === "asc" ? 1 : -1;
+    list.sort((a, b) => {
+      let av: string | number | null = null;
+      let bv: string | number | null = null;
+      switch (sortKey) {
+        case "handle": av = a.target_handle.toLowerCase(); bv = b.target_handle.toLowerCase(); break;
+        case "source": av = a.source?.toLowerCase() ?? ""; bv = b.source?.toLowerCase() ?? ""; break;
+        case "status": av = a.status.toLowerCase(); bv = b.status.toLowerCase(); break;
+        case "followed": av = a.follow_date ?? ""; bv = b.follow_date ?? ""; break;
+        case "unfollowed": av = a.unfollow_date ?? ""; bv = b.unfollow_date ?? ""; break;
+        case "fb": av = a.follow_back === true ? 1 : a.follow_back === false ? 0 : -1; bv = b.follow_back === true ? 1 : b.follow_back === false ? 0 : -1; break;
+      }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+    return list;
+  }, [items, sortKey, sortDir]);
+
+  function SortTh({ label, field, className = "" }: { label: string; field: SortKey; className?: string }) {
+    const active = sortKey === field;
+    const arrow = active ? (sortDir === "asc" ? "↑" : "↓") : "\u00a0";
+    return (
+      <th
+        className={`px-4 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f0eee6] ${active ? "text-[#d97757]" : ""} ${className}`}
+        onClick={() => toggleSort(field)}
+      >
+        <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>
+      </th>
+    );
+  }
 
   useEffect(() => {
     getAccounts()
@@ -68,16 +116,16 @@ export default function AccountDatabasePage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-[#73726c] border-b border-[#3d3d3a]">
-                <th className="px-4 py-2 font-normal">handle</th>
-                <th className="px-4 py-2 font-normal">source</th>
-                <th className="px-4 py-2 font-normal">status</th>
-                <th className="px-4 py-2 font-normal">followed</th>
-                <th className="px-4 py-2 font-normal">unfollowed</th>
-                <th className="px-4 py-2 font-normal">fb</th>
+                <SortTh label="handle" field="handle" />
+                <SortTh label="source" field="source" />
+                <SortTh label="status" field="status" />
+                <SortTh label="followed" field="followed" />
+                <SortTh label="unfollowed" field="unfollowed" />
+                <SortTh label="fb" field="fb" />
               </tr>
             </thead>
             <tbody className="divide-y divide-[#3d3d3a]">
-              {items.map((t) => (
+              {sortedItems.map((t) => (
                 <tr key={t.id} className="hover:bg-[#1f1e1d] transition-colors">
                   <td className="px-4 py-1.5 text-[#f0eee6]">{t.target_handle}</td>
                   <td className="px-4 py-1.5 text-[#73726c] text-xs">{t.source ?? "—"}</td>

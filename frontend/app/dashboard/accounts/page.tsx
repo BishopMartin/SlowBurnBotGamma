@@ -183,8 +183,8 @@ export default function AccountsPage() {
                     <SortTh label="Compl." field="complete" className="whitespace-nowrap" />
                     <SortTh label="Total" field="total" className="whitespace-nowrap" />
                     <SortTh label="Success" field="success" className="whitespace-nowrap" />
-                    <SortTh label="Last 25" field="last_25" className="whitespace-nowrap" />
-                    <SortTh label="All Time" field="all_time" className="whitespace-nowrap" />
+                    <SortTh label="Recent" field="last_25" className="whitespace-nowrap" />
+                    <SortTh label="All" field="all_time" className="whitespace-nowrap" />
                   </>
                 )}
                 <th className="px-4 py-2 font-normal"></th>
