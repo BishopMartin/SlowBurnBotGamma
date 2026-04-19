@@ -198,12 +198,12 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]">{"["}</span>
               <input
                 type="text"
-                size={8}
                 value={editingStart ?? (settings.schedule_start ? formatTime(settings.schedule_start) : "")}
                 onFocus={() => setEditingStart(settings.schedule_start ? formatTime(settings.schedule_start) : "")}
                 onChange={(e) => setEditingStart(e.target.value)}
                 onBlur={() => { setSettings((s) => ({ ...s, schedule_start: parseTime(editingStart ?? "") })); setEditingStart(null); }}
                 placeholder="10:00 AM"
+                style={{ width: "8ch" }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
@@ -214,12 +214,12 @@ export default function AccountDetailPage() {
               <span className="text-[#f0eee6]">{"["}</span>
               <input
                 type="text"
-                size={8}
                 value={editingEnd ?? (settings.schedule_end ? formatTime(settings.schedule_end) : "")}
                 onFocus={() => setEditingEnd(settings.schedule_end ? formatTime(settings.schedule_end) : "")}
                 onChange={(e) => setEditingEnd(e.target.value)}
                 onBlur={() => { setSettings((s) => ({ ...s, schedule_end: parseTime(editingEnd ?? "") })); setEditingEnd(null); }}
                 placeholder="10:00 PM"
+                style={{ width: "8ch" }}
                 className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
