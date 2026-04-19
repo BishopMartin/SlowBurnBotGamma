@@ -230,11 +230,14 @@ export default function AccountsPage() {
                     )}
                     <td className="px-4 py-2 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Link href={`/dashboard/accounts/${account.id}/database`} className="group font-mono transition-colors">
-                          <Bracket className="text-[#73726c] group-hover:text-[#d97757]">data</Bracket>
-                        </Link>
                         <Link href={`/dashboard/accounts/${account.id}`} className="group font-mono transition-colors">
                           <Bracket className="text-[#73726c] group-hover:text-[#d97757]">settings</Bracket>
+                        </Link>
+                        <Link href={`/dashboard/accounts/${account.id}/log`} className="group font-mono transition-colors">
+                          <Bracket className="text-[#73726c] group-hover:text-[#d97757]">log</Bracket>
+                        </Link>
+                        <Link href={`/dashboard/accounts/${account.id}/database`} className="group font-mono transition-colors">
+                          <Bracket className="text-[#73726c] group-hover:text-[#d97757]">data</Bracket>
                         </Link>
                       </div>
                     </td>

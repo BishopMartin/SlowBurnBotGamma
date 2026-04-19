@@ -108,6 +108,29 @@ export async function getAccountDatabase(id: string, page: number, pageSize = 10
   );
 }
 
+export async function getAccountLog(id: string, page: number, pageSize = 100, sort = "date", sortDir = "desc") {
+  return request<{ total: number; page: number; page_size: number; items: SessionLogEntry[] }>(
+    `/accounts/${id}/log?page=${page}&page_size=${pageSize}&sort=${sort}&sort_dir=${sortDir}`
+  );
+}
+
+export interface SessionLogEntry {
+  id: string;
+  run_date: string | null;
+  run_sequence: number;
+  start_time: string | null;
+  end_time: string | null;
+  action_1_type: string | null;
+  action_1_count: number;
+  action_2_type: string | null;
+  action_2_count: number;
+  action_3_type: string | null;
+  action_3_count: number;
+  action_4_type: string | null;
+  action_4_count: number;
+  error_message: string | null;
+}
+
 export interface AccountStats {
   pending: number;
   complete: number;

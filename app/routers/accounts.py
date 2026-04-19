@@ -11,6 +11,7 @@ from app.database import get_async_session
 from app.models.account import Account
 from app.models.account_settings import AccountSettings
 from app.models.follow_target import FollowTarget
+from app.models.session_log import SessionLog
 from app.models.user import User
 from app.schemas.account import AccountCreate, AccountRead, AccountUpdate
 from app.schemas.account_settings import AccountSettingsRead, AccountSettingsUpdate
@@ -252,4 +253,79 @@ async def get_account_stats(
         "success": success or 0,
         "last_25": round(last25_rate, 2) if last25_rate is not None else None,
         "all_time": round(all_time_rate, 2) if all_time_rate is not None else None,
+    }
+
+
+LOG_SORT_COLUMNS = {
+    "date": SessionLog.run_date,
+    "run": SessionLog.run_sequence,
+    "start": SessionLog.start_time,
+    "end": SessionLog.end_time,
+    "a1_type": SessionLog.action_1_type,
+    "a1_count": SessionLog.action_1_count,
+    "a2_type": SessionLog.action_2_type,
+    "a2_count": SessionLog.action_2_count,
+    "a3_type": SessionLog.action_3_type,
+    "a3_count": SessionLog.action_3_count,
+    "a4_type": SessionLog.action_4_type,
+    "a4_count": SessionLog.action_4_count,
+    "error": SessionLog.error_message,
+}
+
+
+@router.get("/{account_id}/log", response_model=dict)
+async def get_account_log(
+    account_id: uuid.UUID,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(100, ge=1, le=500),
+    sort: str = Query("date"),
+    sort_dir: str = Query("desc"),
+):
+    await _get_owned_account(account_id, user, session)
+    offset = (page - 1) * page_size
+
+    total = await session.scalar(
+        select(func.count()).where(SessionLog.account_id == account_id)
+    )
+
+    col = LOG_SORT_COLUMNS.get(sort, SessionLog.run_date)
+    order = col.desc().nullslast() if sort_dir == "desc" else col.asc().nullsfirst()
+
+    result = await session.execute(
+        select(SessionLog)
+        .where(SessionLog.account_id == account_id)
+        .order_by(order, SessionLog.run_date.desc(), SessionLog.run_sequence)
+        .offset(offset)
+        .limit(page_size)
+    )
+    logs = result.scalars().all()
+
+    def fmt_dt(dt):
+        return dt.isoformat() if dt else None
+
+    return {
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "items": [
+            {
+                "id": str(lg.id),
+                "run_date": lg.run_date.isoformat() if lg.run_date else None,
+                "run_sequence": lg.run_sequence,
+                "start_time": fmt_dt(lg.start_time),
+                "end_time": fmt_dt(lg.end_time),
+                "action_1_type": lg.action_1_type,
+                "action_1_count": lg.action_1_count,
+                "action_2_type": lg.action_2_type,
+                "action_2_count": lg.action_2_count,
+                "action_3_type": lg.action_3_type,
+                "action_3_count": lg.action_3_count,
+                "action_4_type": lg.action_4_type,
+                "action_4_count": lg.action_4_count,
+                "error_message": lg.error_message,
+            }
+            for lg in logs
+        ],
     }
