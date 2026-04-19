@@ -141,6 +141,15 @@ async def upsert_account_settings(
     return settings
 
 
+SORT_COLUMNS = {
+    "handle": FollowTarget.target_handle,
+    "source": FollowTarget.source,
+    "status": FollowTarget.status,
+    "followed": FollowTarget.follow_date,
+    "unfollowed": FollowTarget.unfollow_date,
+    "fb": FollowTarget.follow_back,
+}
+
 @router.get("/{account_id}/database", response_model=dict)
 async def get_account_database(
     account_id: uuid.UUID,
@@ -148,6 +157,8 @@ async def get_account_database(
     session: AsyncSession = Depends(get_async_session),
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=500),
+    sort: str = Query("followed"),
+    sort_dir: str = Query("desc"),
 ):
     await _get_owned_account(account_id, user, session)
     offset = (page - 1) * page_size
@@ -155,10 +166,14 @@ async def get_account_database(
     total = await session.scalar(
         select(func.count()).where(FollowTarget.account_id == account_id)
     )
+
+    col = SORT_COLUMNS.get(sort, FollowTarget.follow_date)
+    order = col.desc().nullslast() if sort_dir == "desc" else col.asc().nullsfirst()
+
     result = await session.execute(
         select(FollowTarget)
         .where(FollowTarget.account_id == account_id)
-        .order_by(FollowTarget.follow_date.desc().nullslast(), FollowTarget.target_handle)
+        .order_by(order, FollowTarget.target_handle)
         .offset(offset)
         .limit(page_size)
     )

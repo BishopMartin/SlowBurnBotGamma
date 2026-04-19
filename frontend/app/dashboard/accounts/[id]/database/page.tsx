@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getAccounts, getAccountDatabase, Account, FollowTarget } from "@/lib/api";
@@ -24,8 +24,8 @@ export default function AccountDatabasePage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [sortKey, setSortKey] = useState<SortKey>("handle");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [sortKey, setSortKey] = useState<SortKey>("followed");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -34,28 +34,8 @@ export default function AccountDatabasePage() {
       setSortKey(key);
       setSortDir("asc");
     }
+    setPage(1);
   }
-
-  const sortedItems = useMemo(() => {
-    const list = [...items];
-    const dir = sortDir === "asc" ? 1 : -1;
-    list.sort((a, b) => {
-      let av: string | number | null = null;
-      let bv: string | number | null = null;
-      switch (sortKey) {
-        case "handle": av = a.target_handle.toLowerCase(); bv = b.target_handle.toLowerCase(); break;
-        case "source": av = a.source?.toLowerCase() ?? ""; bv = b.source?.toLowerCase() ?? ""; break;
-        case "status": av = a.status.toLowerCase(); bv = b.status.toLowerCase(); break;
-        case "followed": av = a.follow_date ?? ""; bv = b.follow_date ?? ""; break;
-        case "unfollowed": av = a.unfollow_date ?? ""; bv = b.unfollow_date ?? ""; break;
-        case "fb": av = a.follow_back === true ? 1 : a.follow_back === false ? 0 : -1; bv = b.follow_back === true ? 1 : b.follow_back === false ? 0 : -1; break;
-      }
-      if (av < bv) return -1 * dir;
-      if (av > bv) return 1 * dir;
-      return 0;
-    });
-    return list;
-  }, [items, sortKey, sortDir]);
 
   function SortTh({ label, field, className = "" }: { label: string; field: SortKey; className?: string }) {
     const active = sortKey === field;
@@ -82,14 +62,14 @@ export default function AccountDatabasePage() {
 
   useEffect(() => {
     setLoading(true);
-    getAccountDatabase(id, page, PAGE_SIZE)
+    getAccountDatabase(id, page, PAGE_SIZE, sortKey, sortDir)
       .then((res) => {
         setItems(res.items);
         setTotal(res.total);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [id, page]);
+  }, [id, page, sortKey, sortDir]);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
@@ -125,7 +105,7 @@ export default function AccountDatabasePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#3d3d3a]">
-              {sortedItems.map((t) => (
+              {items.map((t) => (
                 <tr key={t.id} className="hover:bg-[#1f1e1d] transition-colors">
                   <td className="px-4 py-1.5 text-[#f0eee6]">{t.target_handle}</td>
                   <td className="px-4 py-1.5 text-[#73726c] text-xs">{t.source ?? "—"}</td>

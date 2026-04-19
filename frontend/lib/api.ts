@@ -102,9 +102,9 @@ export async function adminSyncSubscription(userId: string) {
   return request(`/admin/users/${userId}/sync-subscription`, { method: "POST" });
 }
 
-export async function getAccountDatabase(id: string, page: number, pageSize = 100) {
+export async function getAccountDatabase(id: string, page: number, pageSize = 100, sort = "followed", sortDir = "desc") {
   return request<{ total: number; page: number; page_size: number; items: FollowTarget[] }>(
-    `/accounts/${id}/database?page=${page}&page_size=${pageSize}`
+    `/accounts/${id}/database?page=${page}&page_size=${pageSize}&sort=${sort}&sort_dir=${sortDir}`
   );
 }
 
