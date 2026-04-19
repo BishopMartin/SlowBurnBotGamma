@@ -31,7 +31,7 @@ function fmtPct(v: number | null): string {
 }
 
 type Tab = "settings" | "stats";
-type SortKey = "name" | "enabled" | "group" | "pending" | "complete" | "total" | "success" | "last_25" | "all_time";
+type SortKey = "name" | "enabled" | "group" | "pending" | "complete" | "success" | "last_25" | "all_time";
 type SortDir = "asc" | "desc";
 
 export default function AccountsPage() {
@@ -66,7 +66,7 @@ export default function AccountsPage() {
         case "group": av = a.group_number ?? -1; bv = b.group_number ?? -1; break;
         case "pending": av = statsMap[a.id]?.pending ?? -1; bv = statsMap[b.id]?.pending ?? -1; break;
         case "complete": av = statsMap[a.id]?.complete ?? -1; bv = statsMap[b.id]?.complete ?? -1; break;
-        case "total": av = statsMap[a.id]?.total ?? -1; bv = statsMap[b.id]?.total ?? -1; break;
+
         case "success": av = statsMap[a.id]?.success ?? -1; bv = statsMap[b.id]?.success ?? -1; break;
         case "last_25": av = statsMap[a.id]?.last_25 ?? -1; bv = statsMap[b.id]?.last_25 ?? -1; break;
         case "all_time": av = statsMap[a.id]?.all_time ?? -1; bv = statsMap[b.id]?.all_time ?? -1; break;
@@ -149,15 +149,15 @@ export default function AccountsPage() {
         <div className="flex items-center gap-2 font-mono text-sm">
           <button
             onClick={() => setTab("settings")}
-            className={`transition-colors ${tab === "settings" ? "text-[#d97757]" : "text-[#73726c] hover:text-[#f0eee6]"}`}
+            className="group cursor-pointer transition-colors"
           >
-            [settings]
+            <Bracket className={tab === "settings" ? "text-[#d97757]" : "text-[#73726c] group-hover:text-[#f0eee6]"}>settings</Bracket>
           </button>
           <button
             onClick={() => setTab("stats")}
-            className={`transition-colors ${tab === "stats" ? "text-[#d97757]" : "text-[#73726c] hover:text-[#f0eee6]"}`}
+            className="group cursor-pointer transition-colors"
           >
-            [stats]
+            <Bracket className={tab === "stats" ? "text-[#d97757]" : "text-[#73726c] group-hover:text-[#f0eee6]"}>stats</Bracket>
           </button>
         </div>
       </div>
@@ -181,7 +181,7 @@ export default function AccountsPage() {
                   <>
                     <SortTh label="Pend." field="pending" className="whitespace-nowrap" />
                     <SortTh label="Compl." field="complete" className="whitespace-nowrap" />
-                    <SortTh label="Total" field="total" className="whitespace-nowrap" />
+
                     <SortTh label="Success" field="success" className="whitespace-nowrap" />
                     <SortTh label="Last 25" field="last_25" className="whitespace-nowrap" />
                     <SortTh label="All Time" field="all_time" className="whitespace-nowrap" />
@@ -222,7 +222,7 @@ export default function AccountsPage() {
                       <>
                         <td className="px-4 py-2 text-[#73726c]">{fmtNum(stats?.pending)}</td>
                         <td className="px-4 py-2 text-[#73726c]">{fmtNum(stats?.complete)}</td>
-                        <td className="px-4 py-2 text-[#73726c]">{fmtNum(stats?.total)}</td>
+
                         <td className="px-4 py-2 text-[#73726c]">{fmtNum(stats?.success)}</td>
                         <td className="px-4 py-2 text-[#73726c]">{fmtPct(stats?.last_25 ?? null)}</td>
                         <td className="px-4 py-2 text-[#73726c]">{fmtPct(stats?.all_time ?? null)}</td>
