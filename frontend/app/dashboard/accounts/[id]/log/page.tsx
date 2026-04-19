@@ -136,7 +136,7 @@ export default function AccountLogPage() {
                     {entry.error_message && (
                       <tr key={`${entry.id}-err`} className="bg-[#1f1e1d]">
                         <td colSpan={COL_COUNT} className="px-2 py-1 text-red-400 text-xs whitespace-pre-wrap">
-                          {entry.error_message}
+                          {entry.error_message.split("\n").map((line) => `- ${line}`).join("\n")}
                         </td>
                       </tr>
                     )}
