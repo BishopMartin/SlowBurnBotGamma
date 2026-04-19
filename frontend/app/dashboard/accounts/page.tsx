@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   getAccounts,
@@ -31,15 +31,65 @@ function fmtPct(v: number | null): string {
 }
 
 type Tab = "settings" | "stats";
+type SortKey = "name" | "enabled" | "group" | "pending" | "complete" | "total" | "success" | "last_25" | "all_time";
+type SortDir = "asc" | "desc";
 
 export default function AccountsPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [settingsMap, setSettingsMap] = useState<Record<string, AccountSettings>>({});
   const [statsMap, setStatsMap] = useState<Record<string, AccountStats>>({});
   const [tab, setTab] = useState<Tab>("settings");
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [newName, setNewName] = useState("");
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(false);
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
+
+  const sortedAccounts = useMemo(() => {
+    const list = [...accounts];
+    const dir = sortDir === "asc" ? 1 : -1;
+    list.sort((a, b) => {
+      let av: number | string | null = null;
+      let bv: number | string | null = null;
+      switch (sortKey) {
+        case "name": av = a.name.toLowerCase(); bv = b.name.toLowerCase(); break;
+        case "enabled": av = a.enabled ? 1 : 0; bv = b.enabled ? 1 : 0; break;
+        case "group": av = a.group_number ?? -1; bv = b.group_number ?? -1; break;
+        case "pending": av = statsMap[a.id]?.pending ?? -1; bv = statsMap[b.id]?.pending ?? -1; break;
+        case "complete": av = statsMap[a.id]?.complete ?? -1; bv = statsMap[b.id]?.complete ?? -1; break;
+        case "total": av = statsMap[a.id]?.total ?? -1; bv = statsMap[b.id]?.total ?? -1; break;
+        case "success": av = statsMap[a.id]?.success ?? -1; bv = statsMap[b.id]?.success ?? -1; break;
+        case "last_25": av = statsMap[a.id]?.last_25 ?? -1; bv = statsMap[b.id]?.last_25 ?? -1; break;
+        case "all_time": av = statsMap[a.id]?.all_time ?? -1; bv = statsMap[b.id]?.all_time ?? -1; break;
+      }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+    return list;
+  }, [accounts, statsMap, sortKey, sortDir]);
+
+  function SortTh({ label, field, className = "" }: { label: string; field: SortKey; className?: string }) {
+    const active = sortKey === field;
+    const arrow = active ? (sortDir === "asc" ? " ↑" : " ↓") : "";
+    return (
+      <th
+        className={`px-4 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f0eee6] ${active ? "text-[#d97757]" : ""} ${className}`}
+        onClick={() => toggleSort(field)}
+      >
+        {label}{arrow}
+      </th>
+    );
+  }
 
   async function load() {
     const data = await getAccounts().catch(() => []);
@@ -119,29 +169,29 @@ export default function AccountsPage() {
           <table className="w-full font-mono">
             <thead>
               <tr className="text-left text-[#73726c] border-b border-[#3d3d3a]">
-                <th className="px-4 py-2 font-normal">Account</th>
+                <SortTh label="Account" field="name" />
                 {tab === "settings" ? (
                   <>
-                    <th className="px-4 py-2 font-normal">On</th>
-                    <th className="px-4 py-2 font-normal">Group</th>
+                    <SortTh label="On" field="enabled" />
+                    <SortTh label="Group" field="group" />
                     <th className="px-4 py-2 font-normal">Schedule</th>
                     <th className="px-4 py-2 font-normal">Status</th>
                   </>
                 ) : (
                   <>
-                    <th className="px-4 py-2 font-normal">Pend.</th>
-                    <th className="px-4 py-2 font-normal">Complete</th>
-                    <th className="px-4 py-2 font-normal">Total</th>
-                    <th className="px-4 py-2 font-normal">Success</th>
-                    <th className="px-4 py-2 font-normal whitespace-nowrap">Last 25</th>
-                    <th className="px-4 py-2 font-normal whitespace-nowrap">All Time</th>
+                    <SortTh label="Pend." field="pending" />
+                    <SortTh label="Complete" field="complete" />
+                    <SortTh label="Total" field="total" />
+                    <SortTh label="Success" field="success" />
+                    <SortTh label="Last 25" field="last_25" className="whitespace-nowrap" />
+                    <SortTh label="All Time" field="all_time" className="whitespace-nowrap" />
                   </>
                 )}
                 <th className="px-4 py-2 font-normal"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#3d3d3a]">
-              {accounts.map((account) => {
+              {sortedAccounts.map((account) => {
                 const stats = statsMap[account.id];
                 return (
                   <tr key={account.id} className="hover:bg-[#1f1e1d] transition-colors">
