@@ -172,7 +172,7 @@ export default function AccountDetailPage() {
           <span className="text-[#f0eee6]">]</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="text-[#73726c]">pw</span>
+          <span className="text-[#73726c]">password</span>
           {editingPw ? (
             <>
               <span className="text-[#f0eee6]">[</span>
