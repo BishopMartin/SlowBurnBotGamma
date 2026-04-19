@@ -108,6 +108,19 @@ export async function getAccountDatabase(id: string, page: number, pageSize = 10
   );
 }
 
+export interface AccountStats {
+  pending: number;
+  complete: number;
+  total: number;
+  success: number;
+  last_25: number | null;
+  all_time: number | null;
+}
+
+export async function getAccountStats(id: string) {
+  return request<AccountStats>(`/accounts/${id}/stats`);
+}
+
 export async function adminListAccounts() {
   return request<AdminAccount[]>("/admin/accounts");
 }

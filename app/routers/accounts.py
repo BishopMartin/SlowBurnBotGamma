@@ -168,3 +168,60 @@ async def get_account_database(
             for t in targets
         ],
     }
+
+
+@router.get("/{account_id}/stats", response_model=dict)
+async def get_account_stats(
+    account_id: uuid.UUID,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    await _get_owned_account(account_id, user, session)
+    base = select(FollowTarget).where(FollowTarget.account_id == account_id)
+
+    total = await session.scalar(
+        select(func.count()).select_from(base.subquery())
+    )
+    pending = await session.scalar(
+        select(func.count()).where(
+            FollowTarget.account_id == account_id,
+            FollowTarget.status == "following",
+        )
+    )
+    complete = await session.scalar(
+        select(func.count()).where(
+            FollowTarget.account_id == account_id,
+            FollowTarget.follow_back.isnot(None),
+        )
+    )
+    success = await session.scalar(
+        select(func.count()).where(
+            FollowTarget.account_id == account_id,
+            FollowTarget.follow_back == True,
+        )
+    )
+
+    # Last 25 fb rate
+    last25_result = await session.execute(
+        select(FollowTarget.follow_back)
+        .where(
+            FollowTarget.account_id == account_id,
+            FollowTarget.follow_back.isnot(None),
+        )
+        .order_by(FollowTarget.follow_date.desc().nullslast())
+        .limit(25)
+    )
+    last25_rows = [r[0] for r in last25_result.all()]
+    last25_rate = sum(1 for x in last25_rows if x) / len(last25_rows) if last25_rows else None
+
+    # All time fb rate
+    all_time_rate = (success / complete) if complete else None
+
+    return {
+        "pending": pending or 0,
+        "complete": complete or 0,
+        "total": total or 0,
+        "success": success or 0,
+        "last_25": round(last25_rate, 2) if last25_rate is not None else None,
+        "all_time": round(all_time_rate, 2) if all_time_rate is not None else None,
+    }
