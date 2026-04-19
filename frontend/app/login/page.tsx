@@ -40,24 +40,26 @@ export default function LoginPage() {
           <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">sign in</div>
           <form onSubmit={handleSubmit} className="p-4 space-y-4">
             {error && <div className="text-red-400">{error}</div>}
-            <div>
-              <div className="text-[#73726c] mb-1">email</div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[#73726c] shrink-0">email</span>
               <input
                 type="email"
+                placeholder="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-1 font-mono transition-colors"
+                className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
               />
             </div>
-            <div>
-              <div className="text-[#73726c] mb-1">password</div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[#73726c] shrink-0">password</span>
               <input
                 type="password"
+                placeholder="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-1 font-mono transition-colors"
+                className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
               />
             </div>
             <div className="flex items-center justify-between pt-1">
