@@ -90,6 +90,7 @@ export default function AccountsPage() {
         <h1 className="font-semibold text-[#f0eee6] font-mono">
           Accounts <span className="text-[#73726c] font-normal">[{String(accounts.length).padStart(2, "0")}/10]</span>
         </h1>
+        <span className="text-[#73726c] font-mono">--</span>
         <div className="flex items-center gap-2 font-mono text-sm">
           <button
             onClick={() => setTab("settings")}
