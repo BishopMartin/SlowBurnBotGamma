@@ -42,61 +42,59 @@ export default function RegisterPage() {
         <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
       </header>
       <main className="flex-1 p-6 max-w-5xl mx-auto w-full">
-        <div className="border border-[#3d3d3a]">
-          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">create account</div>
-          <form onSubmit={handleSubmit} className="p-4 space-y-4">
-            {error && <div className="text-red-400">{error}</div>}
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-[#73726c] shrink-0">email</span>
-              <input
-                type="email"
-                placeholder="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-[#73726c] shrink-0">password</span>
-              <input
-                type="password"
-                placeholder="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={8}
-                className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-[#73726c] shrink-0">confirm</span>
-              <input
-                type="password"
-                placeholder="confirm password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                minLength={8}
-                className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
-              />
-            </div>
-            <div className="flex items-center justify-between pt-1">
-              <button
-                type="submit"
-                disabled={loading}
-                className="group disabled:opacity-50 transition-colors"
-              >
-                <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
-                  {loading ? "creating…" : "create account"}
-                </Bracket>
-              </button>
-              <Link href="/login" className="text-[#73726c] hover:text-[#d97757] transition-colors">
-                ← sign in
-              </Link>
-            </div>
-          </form>
-        </div>
+        <div className="text-[#73726c] mb-4">create account</div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <div className="text-red-400">{error}</div>}
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[#73726c] shrink-0">email</span>
+            <input
+              type="email"
+              placeholder="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[#73726c] shrink-0">password</span>
+            <input
+              type="password"
+              placeholder="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
+              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[#73726c] shrink-0">confirm</span>
+            <input
+              type="password"
+              placeholder="confirm password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              minLength={8}
+              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
+            />
+          </div>
+          <div className="flex items-center justify-between pt-1">
+            <button
+              type="submit"
+              disabled={loading}
+              className="group disabled:opacity-50 transition-colors"
+            >
+              <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
+                {loading ? "creating…" : "create account"}
+              </Bracket>
+            </button>
+            <Link href="/login" className="text-[#73726c] hover:text-[#d97757] transition-colors">
+              ← sign in
+            </Link>
+          </div>
+        </form>
       </main>
     </div>
   );
