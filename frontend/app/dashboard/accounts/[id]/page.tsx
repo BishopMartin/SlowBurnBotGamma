@@ -205,7 +205,8 @@ export default function AccountDetailPage() {
                       if (e.key === "Enter") { e.preventDefault(); (e.target as HTMLInputElement).blur(); }
                       if (e.key === "Escape") { setEditingPw(false); setPwValue(""); }
                     }}
-                    className="w-24 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors"
+                    style={{ width: "6ch" }}
+                    className="bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors"
                   />
                   <span className="text-[#f0eee6]">{"]"}</span>
                 </span>
@@ -216,7 +217,7 @@ export default function AccountDetailPage() {
                   className="group cursor-pointer transition-colors"
                 >
                   <Bracket className={account.has_password ? "text-green-400 group-hover:text-[#d97757]" : "text-[#73726c] group-hover:text-[#d97757]"}>
-                    {account.has_password ? "set" : "----"}
+                    {account.has_password ? "******" : "------"}
                   </Bracket>
                 </button>
               )}
