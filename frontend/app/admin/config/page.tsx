@@ -131,17 +131,17 @@ export default function AdminConfigPage() {
                 autoFocus
                 onBlur={() => { if (!smtpPassword) setEditingSmtpPassword(false); }}
                 style={{ width: "14ch" }}
-                className="bg-transparent text-[#f0eee6] placeholder-[#73726c] outline-none font-mono min-w-0 px-0"
+                className="bg-transparent text-[#f0eee6] placeholder-[#73726c] outline-none font-mono min-w-0 px-1"
               />
             ) : (
               <button
                 type="button"
                 onClick={() => setEditingSmtpPassword(true)}
                 style={{ width: "14ch" }}
-                className="bg-transparent text-left font-mono min-w-0 px-0 cursor-pointer"
+                className="bg-transparent text-left font-mono min-w-0 px-1 cursor-pointer inline-flex items-center leading-none"
               >
                 <span className={creds.smtp_password_set ? "text-[#f0eee6]" : "text-[#73726c]"}>
-                  {creds.smtp_password_set ? "*".repeat(14) : "----"}
+                  {creds.smtp_password_set ? "*".repeat(12) : "----"}
                 </span>
               </button>
             )}
@@ -165,17 +165,17 @@ export default function AdminConfigPage() {
                 autoFocus
                 onBlur={() => { if (!textbeltKey) setEditingTextbeltKey(false); }}
                 style={{ width: "20ch" }}
-                className="bg-transparent text-[#f0eee6] placeholder-[#73726c] outline-none font-mono min-w-0 px-0"
+                className="bg-transparent text-[#f0eee6] placeholder-[#73726c] outline-none font-mono min-w-0 px-1"
               />
             ) : (
               <button
                 type="button"
                 onClick={() => setEditingTextbeltKey(true)}
                 style={{ width: "20ch" }}
-                className="bg-transparent text-left font-mono min-w-0 px-0 cursor-pointer"
+                className="bg-transparent text-left font-mono min-w-0 px-1 cursor-pointer inline-flex items-center leading-none"
               >
                 <span className={creds.textbelt_key_set ? "text-[#f0eee6]" : "text-[#73726c]"}>
-                  {creds.textbelt_key_set ? "*".repeat(20) : "----"}
+                  {creds.textbelt_key_set ? "*".repeat(18) : "----"}
                 </span>
               </button>
             )}
