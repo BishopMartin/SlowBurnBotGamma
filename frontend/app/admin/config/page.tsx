@@ -141,7 +141,7 @@ export default function AdminConfigPage() {
                 className="bg-transparent text-left font-mono min-w-0 px-0 cursor-pointer"
               >
                 <span className={creds.smtp_password_set ? "text-[#f0eee6]" : "text-[#73726c]"}>
-                  {creds.smtp_password_set ? "****" : "----"}
+                  {creds.smtp_password_set ? "*".repeat(14) : "----"}
                 </span>
               </button>
             )}
@@ -175,7 +175,7 @@ export default function AdminConfigPage() {
                 className="bg-transparent text-left font-mono min-w-0 px-0 cursor-pointer"
               >
                 <span className={creds.textbelt_key_set ? "text-[#f0eee6]" : "text-[#73726c]"}>
-                  {creds.textbelt_key_set ? "****" : "----"}
+                  {creds.textbelt_key_set ? "*".repeat(20) : "----"}
                 </span>
               </button>
             )}
