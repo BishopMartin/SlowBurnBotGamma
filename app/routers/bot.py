@@ -67,13 +67,16 @@ async def get_bot_settings(
     _: Subscription = Depends(require_active_subscription),
 ):
     """Fetch account settings for the exe — requires active subscription."""
-    await _assert_account_owned(account_id, user, session)
+    account = await _assert_account_owned(account_id, user, session)
     result = await session.execute(
         select(AccountSettings).where(AccountSettings.account_id == account_id)
     )
     settings = result.scalar_one_or_none()
     if settings is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Settings not configured.")
+        settings = AccountSettings(account_id=account_id, user_id=user.id)
+        session.add(settings)
+        await session.commit()
+        await session.refresh(settings)
     return settings
 
 
