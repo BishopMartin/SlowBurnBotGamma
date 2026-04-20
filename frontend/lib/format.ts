@@ -27,6 +27,5 @@ export function scheduleLabel(s: {
   if (s.schedule_start || s.schedule_end) {
     parts.push(`${formatTime(s.schedule_start)}-${formatTime(s.schedule_end)}`);
   }
-  if (s.max_runs_per_day) parts.push(`${s.max_runs_per_day}/day`);
   return parts.length ? parts.join(" ") : "—";
 }

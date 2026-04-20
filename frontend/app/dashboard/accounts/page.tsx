@@ -175,6 +175,7 @@ export default function AccountsPage() {
                     <SortTh label="On" field="enabled" />
                     <SortTh label="Group" field="group" />
                     <th className="px-2 py-2 font-normal">Schedule</th>
+                    <th className="px-2 py-2 font-normal">Daily</th>
                     <th className="px-2 py-2 font-normal">Status</th>
                   </>
                 ) : (
@@ -212,6 +213,9 @@ export default function AccountsPage() {
                         <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">
                           {scheduleLabel(settingsMap[account.id])}
                         </td>
+                        <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">
+                          {settingsMap[account.id]?.max_runs_per_day ?? "—"}
+                        </td>
                         <td className="px-2 py-2 font-mono whitespace-nowrap">
                           <span className="text-[#73726c]">[</span>
                           <span className={account.enabled ? "text-green-400" : "text-red-400"}>{account.enabled ? "on" : "off"}</span>
@@ -229,7 +233,7 @@ export default function AccountsPage() {
                       </>
                     )}
                     <td className="px-2 py-2 text-right">
-                      <div className="flex items-center justify-end gap-0">
+                      <div className="flex items-center justify-end gap-1">
                         {tab === "settings" ? (
                           <Link href={`/dashboard/accounts/${account.id}`} className="group font-mono transition-colors">
                             <Bracket className="text-[#73726c] group-hover:text-[#d97757]">settings</Bracket>
@@ -255,10 +259,10 @@ export default function AccountsPage() {
 
         <div className="border-t border-[#3d3d3a]">
           <form onSubmit={handleAdd} className="flex items-center gap-2 px-4 py-3">
-            <span className="font-mono text-[#73726c] shrink-0">Add:</span>
+            <span className="font-mono text-[#73726c] shrink-0">Insert New Account:</span>
             <input
               type="text"
-              placeholder="Instagram handle"
+              placeholder="Account Name"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"

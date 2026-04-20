@@ -35,8 +35,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen flex flex-col font-mono">
-      <header className="border-b border-[#3d3d3a]">
-        <div className="max-w-5xl mx-auto w-full px-6 py-3 flex items-center justify-between">
+      <div className="flex-1 max-w-5xl mx-auto w-full border-x border-[#3d3d3a]">
+        <header className="px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
             <nav className="flex gap-4">
@@ -62,9 +62,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Bracket className="text-[#73726c] group-hover:text-[#d97757]">sign out</Bracket>
             </button>
           </div>
-        </div>
-      </header>
-      <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-6 border-x border-[#3d3d3a]">{children}</main>
+        </header>
+        <main className="px-6 py-6">{children}</main>
+      </div>
     </div>
   );
 }
