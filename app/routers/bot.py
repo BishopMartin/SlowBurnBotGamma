@@ -18,6 +18,7 @@ from app.models.ignore_handle import IgnoreHandle
 from app.models.session_log import SessionLog
 from app.models.subscription import Subscription
 from app.models.user import User
+from app.models.system_config import SystemConfig
 from app.models.user_config import UserConfig
 from app.schemas.bot import (
     ActivityLogCreate,
@@ -28,6 +29,7 @@ from app.schemas.bot import (
     FollowTargetRead,
     FollowTargetUpdate,
     IgnoreHandlesRead,
+    NotificationCredentialsForBot,
     RunCountRead,
     SessionLogCreate,
 )
@@ -77,6 +79,25 @@ async def get_bot_config(
         await session.commit()
         await session.refresh(config)
     return config
+
+
+@router.get("/notification-credentials", response_model=NotificationCredentialsForBot)
+async def get_bot_notification_credentials(
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Return decrypted SMTP/TextBelt credentials for the exe."""
+    result = await session.execute(select(SystemConfig))
+    config = result.scalar_one_or_none()
+    if config is None:
+        return NotificationCredentialsForBot(smtp_server="", smtp_port=587)
+    return NotificationCredentialsForBot(
+        smtp_server=config.smtp_server or "",
+        smtp_port=config.smtp_port or 587,
+        smtp_user=config.smtp_user,
+        smtp_password=decrypt(config.smtp_password_enc) if config.smtp_password_enc else None,
+        textbelt_key=decrypt(config.textbelt_key_enc) if config.textbelt_key_enc else None,
+    )
 
 
 @router.get("/settings/{account_id}")

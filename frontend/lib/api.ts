@@ -119,6 +119,23 @@ export async function adminDeactivateSubscription(userId: string) {
   return request<{ status: string; plan_tier: string }>(`/admin/users/${userId}/deactivate`, { method: "POST" });
 }
 
+export async function adminGetNotificationCredentials() {
+  return request<NotificationCredentials>("/admin/notification-credentials");
+}
+
+export async function adminUpdateNotificationCredentials(data: {
+  smtp_server?: string;
+  smtp_port?: number;
+  smtp_user?: string;
+  smtp_password?: string;
+  textbelt_key?: string;
+}) {
+  return request<NotificationCredentials>("/admin/notification-credentials", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
 export async function getAccountDatabase(id: string, page: number, pageSize = 100, sort = "followed", sortDir = "desc") {
   return request<{ total: number; page: number; page_size: number; items: FollowTarget[] }>(
     `/accounts/${id}/database?page=${page}&page_size=${pageSize}&sort=${sort}&sort_dir=${sortDir}`
@@ -233,6 +250,15 @@ export interface UserConfig {
   notices_session: boolean;
   notify_email: string | null;
   notify_phone: string | null;
+  updated_at: string;
+}
+
+export interface NotificationCredentials {
+  smtp_server: string;
+  smtp_port: number;
+  smtp_user: string | null;
+  smtp_password_set: boolean;
+  textbelt_key_set: boolean;
   updated_at: string;
 }
 

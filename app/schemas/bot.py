@@ -77,3 +77,11 @@ class BotUserConfigRead(BaseModel):
     notices_session: bool
     notify_email: str | None = None
     notify_phone: str | None = None
+
+
+class NotificationCredentialsForBot(BaseModel):
+    smtp_server: str
+    smtp_port: int
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    textbelt_key: str | None = None

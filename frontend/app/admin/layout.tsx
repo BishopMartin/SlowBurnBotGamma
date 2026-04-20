@@ -66,6 +66,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="text-[#73726c]">admin:</span>
             <a href="/admin" className="text-[#bfbdb4] hover:text-[#f0eee6] transition-colors">[users]</a>
             <a href="/admin/accounts" className="text-[#bfbdb4] hover:text-[#f0eee6] transition-colors">[accounts]</a>
+            <a href="/admin/notifications" className="text-[#bfbdb4] hover:text-[#f0eee6] transition-colors">[notifications]</a>
           </nav>
           {children}
         </main>

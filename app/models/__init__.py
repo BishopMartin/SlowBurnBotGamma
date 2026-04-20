@@ -7,6 +7,7 @@ from app.models.activity_log import ActivityLog
 from app.models.follow_target import FollowTarget
 from app.models.ignore_handle import IgnoreHandle
 from app.models.user_config import UserConfig
+from app.models.system_config import SystemConfig
 
 __all__ = [
     "User",
@@ -18,4 +19,5 @@ __all__ = [
     "FollowTarget",
     "IgnoreHandle",
     "UserConfig",
+    "SystemConfig",
 ]

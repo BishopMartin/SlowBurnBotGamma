@@ -6,11 +6,14 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import current_superuser
+from app.crypto import decrypt, encrypt
 from app.database import get_async_session
 from app.models.account import Account
 from app.models.follow_target import FollowTarget
 from app.models.subscription import Subscription
+from app.models.system_config import SystemConfig
 from app.models.user import User
+from app.schemas.admin import NotificationCredentialsRead, NotificationCredentialsUpdate
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -186,3 +189,65 @@ async def list_follow_targets(
             for t in targets
         ],
     }
+
+
+async def _get_system_config(session: AsyncSession) -> SystemConfig:
+    """Get the singleton SystemConfig row, creating it if missing."""
+    result = await session.execute(select(SystemConfig))
+    config = result.scalar_one_or_none()
+    if config is None:
+        config = SystemConfig()
+        session.add(config)
+        await session.commit()
+        await session.refresh(config)
+    return config
+
+
+@router.get("/notification-credentials", response_model=NotificationCredentialsRead)
+async def get_notification_credentials(
+    _: User = Depends(current_superuser),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Read SMTP/TextBelt config. Secrets are masked (set/not set)."""
+    config = await _get_system_config(session)
+    return NotificationCredentialsRead(
+        smtp_server=config.smtp_server or "",
+        smtp_port=config.smtp_port or 587,
+        smtp_user=config.smtp_user,
+        smtp_password_set=config.smtp_password_enc is not None,
+        textbelt_key_set=config.textbelt_key_enc is not None,
+        updated_at=config.updated_at,
+    )
+
+
+@router.put("/notification-credentials", response_model=NotificationCredentialsRead)
+async def update_notification_credentials(
+    body: NotificationCredentialsUpdate,
+    _: User = Depends(current_superuser),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Update SMTP/TextBelt config. Only provided fields are changed."""
+    config = await _get_system_config(session)
+
+    if body.smtp_server is not None:
+        config.smtp_server = body.smtp_server
+    if body.smtp_port is not None:
+        config.smtp_port = body.smtp_port
+    if body.smtp_user is not None:
+        config.smtp_user = body.smtp_user
+    if body.smtp_password is not None:
+        config.smtp_password_enc = encrypt(body.smtp_password) if body.smtp_password else None
+    if body.textbelt_key is not None:
+        config.textbelt_key_enc = encrypt(body.textbelt_key) if body.textbelt_key else None
+
+    await session.commit()
+    await session.refresh(config)
+
+    return NotificationCredentialsRead(
+        smtp_server=config.smtp_server or "",
+        smtp_port=config.smtp_port or 587,
+        smtp_user=config.smtp_user,
+        smtp_password_set=config.smtp_password_enc is not None,
+        textbelt_key_set=config.textbelt_key_enc is not None,
+        updated_at=config.updated_at,
+    )
