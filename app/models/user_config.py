@@ -21,7 +21,7 @@ class UserConfig(Base):
     )
 
     # Notification settings
-    notices_type: Mapped[str] = mapped_column(String(10), default="none")  # text/email/both/none
+    notices_type: Mapped[str] = mapped_column(String(10), default="email")  # text/email/both/none
     notices_session: Mapped[bool] = mapped_column(Boolean, default=True)
     notify_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     notify_phone: Mapped[str | None] = mapped_column(String(30), nullable=True)

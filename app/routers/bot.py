@@ -74,7 +74,7 @@ async def get_bot_config(
     )
     config = result.scalar_one_or_none()
     if config is None:
-        config = UserConfig(user_id=user.id)
+        config = UserConfig(user_id=user.id, notify_email=user.email)
         session.add(config)
         await session.commit()
         await session.refresh(config)
