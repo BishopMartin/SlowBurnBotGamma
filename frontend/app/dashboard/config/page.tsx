@@ -6,7 +6,6 @@ import { Bracket } from "@/lib/bracket";
 import { Dropdown } from "@/lib/dropdown";
 
 const NOTICES_OPTIONS = [
-  { value: "none", label: "none" },
   { value: "email", label: "email" },
   { value: "text", label: "text" },
   { value: "both", label: "both" },
@@ -31,7 +30,7 @@ export default function ConfigPage() {
   const [msg, setMsg] = useState("");
 
   // Form state
-  const [noticesType, setNoticesType] = useState("none");
+  const [noticesType, setNoticesType] = useState("email");
   const [noticesSession, setNoticesSession] = useState(true);
   const [notifyEmail, setNotifyEmail] = useState("");
   const [notifyPhone, setNotifyPhone] = useState("");
@@ -78,8 +77,7 @@ export default function ConfigPage() {
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">notifications</div>
 
-        {/* Row 1: session checkbox + type */}
-        <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm border-b border-[#3d3d3a]">
+        <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
           <span className="inline-flex items-center gap-1">
             <button
               type="button"
@@ -90,7 +88,7 @@ export default function ConfigPage() {
                 {noticesSession ? "x" : "\u00a0"}
               </Bracket>
             </button>
-            <span className="text-[#73726c]">Session Notification</span>
+            <span className="text-[#73726c]">Session Notifications</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
@@ -104,10 +102,7 @@ export default function ConfigPage() {
             />
             <span className="text-[#f0eee6]">{"]"}</span>
           </span>
-        </div>
 
-        {/* Row 2: email + phone */}
-        <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
           <span className="inline-flex items-center gap-0">
             <span className="text-[#73726c]">{"email: "}</span>
             <span className="text-[#f0eee6]">{"["}</span>
