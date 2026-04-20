@@ -10,7 +10,7 @@ import { Bracket } from "@/lib/bracket";
 
 const sectionCls = "border border-[#3d3d3a]";
 
-export default function AdminNotificationsPage() {
+export default function AdminConfigPage() {
   const [creds, setCreds] = useState<NotificationCredentials | null>(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
@@ -63,7 +63,7 @@ export default function AdminNotificationsPage() {
 
   return (
     <div className="space-y-6 font-mono">
-      <h1 className="font-semibold text-[#f0eee6]">admin — notification credentials</h1>
+      <h1 className="font-semibold text-[#f0eee6]">admin — config</h1>
 
       {/* SMTP */}
       <div className={sectionCls}>
