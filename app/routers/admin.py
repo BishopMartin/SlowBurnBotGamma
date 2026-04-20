@@ -20,7 +20,11 @@ async def list_users(
     _: User = Depends(current_superuser),
     session: AsyncSession = Depends(get_async_session),
 ):
-    result = await session.execute(select(User))
+    from sqlalchemy.orm import selectinload
+
+    result = await session.execute(
+        select(User).options(selectinload(User.subscription))
+    )
     users = result.scalars().all()
     return [
         {
@@ -29,6 +33,7 @@ async def list_users(
             "display_name": u.display_name,
             "plan_tier": u.plan_tier,
             "is_active": u.is_active,
+            "subscription_status": u.subscription.status if u.subscription else "none",
             "created_at": u.created_at.isoformat(),
         }
         for u in users
@@ -62,6 +67,57 @@ async def sync_subscription(
     sub.current_period_end = stripe_sub.current_period_end
     await session.commit()
     return {"status": sub.status}
+
+
+@router.post("/users/{user_id}/activate")
+async def activate_subscription(
+    user_id: uuid.UUID,
+    _: User = Depends(current_superuser),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Admin-activate a user's subscription (set status=active, plan_tier=pro)."""
+    result = await session.execute(
+        select(Subscription).where(Subscription.user_id == user_id)
+    )
+    sub = result.scalar_one_or_none()
+    if sub is None:
+        raise HTTPException(status_code=404, detail="No subscription record found.")
+    sub.status = "active"
+    sub.plan_tier = "pro"
+
+    # Also update the user's plan_tier field to stay in sync
+    user_result = await session.execute(select(User).where(User.id == user_id))
+    user = user_result.scalar_one_or_none()
+    if user:
+        user.plan_tier = "pro"
+
+    await session.commit()
+    return {"status": sub.status, "plan_tier": sub.plan_tier}
+
+
+@router.post("/users/{user_id}/deactivate")
+async def deactivate_subscription(
+    user_id: uuid.UUID,
+    _: User = Depends(current_superuser),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Admin-deactivate a user's subscription."""
+    result = await session.execute(
+        select(Subscription).where(Subscription.user_id == user_id)
+    )
+    sub = result.scalar_one_or_none()
+    if sub is None:
+        raise HTTPException(status_code=404, detail="No subscription record found.")
+    sub.status = "inactive"
+    sub.plan_tier = "free"
+
+    user_result = await session.execute(select(User).where(User.id == user_id))
+    user = user_result.scalar_one_or_none()
+    if user:
+        user.plan_tier = "free"
+
+    await session.commit()
+    return {"status": sub.status, "plan_tier": sub.plan_tier}
 
 
 @router.get("/accounts", response_model=list[dict])

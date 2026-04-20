@@ -102,6 +102,14 @@ export async function adminSyncSubscription(userId: string) {
   return request(`/admin/users/${userId}/sync-subscription`, { method: "POST" });
 }
 
+export async function adminActivateSubscription(userId: string) {
+  return request<{ status: string; plan_tier: string }>(`/admin/users/${userId}/activate`, { method: "POST" });
+}
+
+export async function adminDeactivateSubscription(userId: string) {
+  return request<{ status: string; plan_tier: string }>(`/admin/users/${userId}/deactivate`, { method: "POST" });
+}
+
 export async function getAccountDatabase(id: string, page: number, pageSize = 100, sort = "followed", sortDir = "desc") {
   return request<{ total: number; page: number; page_size: number; items: FollowTarget[] }>(
     `/accounts/${id}/database?page=${page}&page_size=${pageSize}&sort=${sort}&sort_dir=${sortDir}`
@@ -215,6 +223,7 @@ export interface AdminUser {
   display_name: string | null;
   plan_tier: string;
   is_active: boolean;
+  subscription_status: string;
   created_at: string;
 }
 

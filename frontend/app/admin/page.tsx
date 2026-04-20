@@ -1,28 +1,56 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { adminListUsers, adminSyncSubscription, AdminUser } from "@/lib/api";
+import {
+  adminListUsers,
+  adminSyncSubscription,
+  adminActivateSubscription,
+  adminDeactivateSubscription,
+  AdminUser,
+} from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
 
 export default function AdminPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
-  const [syncing, setSyncing] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
 
-  useEffect(() => {
+  async function loadUsers() {
     adminListUsers().then(setUsers).catch(() => {});
+  }
+
+  useEffect(() => {
+    loadUsers();
   }, []);
 
   async function handleSync(userId: string) {
-    setSyncing(userId);
+    setBusy(userId);
     setMsg("");
     try {
       const res = await adminSyncSubscription(userId) as { status: string };
       setMsg(`synced — status: ${res.status}`);
+      await loadUsers();
     } catch (err: unknown) {
       setMsg(err instanceof Error ? err.message : "sync failed.");
     } finally {
-      setSyncing(null);
+      setBusy(null);
+    }
+  }
+
+  async function handleToggleSubscription(user: AdminUser) {
+    setBusy(user.id);
+    setMsg("");
+    try {
+      const action = user.subscription_status === "active"
+        ? adminDeactivateSubscription
+        : adminActivateSubscription;
+      const res = await action(user.id);
+      setMsg(`${user.email} — ${res.status} / ${res.plan_tier}`);
+      await loadUsers();
+    } catch (err: unknown) {
+      setMsg(err instanceof Error ? err.message : "toggle failed.");
+    } finally {
+      setBusy(null);
     }
   }
 
@@ -39,7 +67,7 @@ export default function AdminPage() {
               <tr className="text-left text-[#73726c] border-b border-[#3d3d3a]">
                 <th className="px-4 py-2 font-normal">email</th>
                 <th className="px-4 py-2 font-normal">plan</th>
-                <th className="px-4 py-2 font-normal">status</th>
+                <th className="px-4 py-2 font-normal">subscription</th>
                 <th className="px-4 py-2 font-normal">joined</th>
                 <th className="px-4 py-2 font-normal"></th>
               </tr>
@@ -50,21 +78,30 @@ export default function AdminPage() {
                   <td className="px-4 py-2 text-[#f0eee6]">{u.email}</td>
                   <td className="px-4 py-2 text-[#bfbdb4]">{u.plan_tier}</td>
                   <td className="px-4 py-2">
-                    <Bracket className={u.is_active ? "text-green-400" : "text-[#73726c]"}>
-                      {u.is_active ? "active" : "inactive"}
+                    <Bracket className={u.subscription_status === "active" ? "text-green-400" : "text-[#73726c]"}>
+                      {u.subscription_status}
                     </Bracket>
                   </td>
                   <td className="px-4 py-2 text-[#73726c]">
                     {new Date(u.created_at).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-2 text-right">
+                  <td className="px-4 py-2 text-right space-x-2">
+                    <button
+                      onClick={() => handleToggleSubscription(u)}
+                      disabled={busy === u.id}
+                      className="group disabled:opacity-50 transition-colors"
+                    >
+                      <Bracket className={u.subscription_status === "active" ? "text-[#73726c] group-hover:text-[#f0eee6]" : "text-green-400 group-hover:text-[#f0eee6]"}>
+                        {busy === u.id ? "…" : u.subscription_status === "active" ? "deactivate" : "activate"}
+                      </Bracket>
+                    </button>
                     <button
                       onClick={() => handleSync(u.id)}
-                      disabled={syncing === u.id}
+                      disabled={busy === u.id}
                       className="group disabled:opacity-50 transition-colors"
                     >
                       <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
-                        {syncing === u.id ? "syncing…" : "sync stripe"}
+                        {busy === u.id ? "…" : "sync stripe"}
                       </Bracket>
                     </button>
                   </td>
