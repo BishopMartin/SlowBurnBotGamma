@@ -32,10 +32,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col font-mono">
-      <header className="border-b border-[#3d3d3a] px-6 py-3">
-        <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
+      <header className="border-b border-[#3d3d3a]">
+        <div className="max-w-5xl mx-auto w-full px-6 py-3">
+          <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
+        </div>
       </header>
-      <main className="flex-1 p-6 max-w-5xl mx-auto w-full">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-6 border-x border-[#3d3d3a]">
         <div className="text-[#73726c] mb-4">sign in</div>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <div className="text-red-400">{error}</div>}
