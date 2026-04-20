@@ -21,6 +21,8 @@ export default function AdminConfigPage() {
   const [smtpUser, setSmtpUser] = useState("");
   const [smtpPassword, setSmtpPassword] = useState("");
   const [textbeltKey, setTextbeltKey] = useState("");
+  const [editingSmtpPassword, setEditingSmtpPassword] = useState(false);
+  const [editingTextbeltKey, setEditingTextbeltKey] = useState(false);
 
   useEffect(() => {
     adminGetNotificationCredentials()
@@ -49,6 +51,8 @@ export default function AdminConfigPage() {
       setCreds(updated);
       setSmtpPassword("");
       setTextbeltKey("");
+      setEditingSmtpPassword(false);
+      setEditingTextbeltKey(false);
       setMsg("saved.");
     } catch (err: unknown) {
       setMsg(err instanceof Error ? err.message : "save failed.");
@@ -70,7 +74,7 @@ export default function AdminConfigPage() {
 
         {/* SMTP row */}
         <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm border-b border-[#3d3d3a]">
-          <span className="text-[#73726c]">smtp:</span>
+          <span className="text-[#73726c]" style={{ width: "8ch" }}>smtp:</span>
 
           <span className="inline-flex items-center gap-0">
             <span className="text-[#73726c]">{"server: "}</span>
@@ -79,7 +83,7 @@ export default function AdminConfigPage() {
               type="text"
               value={smtpServer}
               onChange={(e) => setSmtpServer(e.target.value)}
-              placeholder="smtp.gmail.com"
+              placeholder="----"
               style={{ width: "18ch" }}
               className="bg-transparent text-[#f0eee6] placeholder-[#73726c] outline-none font-mono min-w-0 px-0"
             />
@@ -94,7 +98,7 @@ export default function AdminConfigPage() {
               inputMode="numeric"
               value={smtpPort}
               onChange={(e) => setSmtpPort(e.target.value.replace(/\D/g, ""))}
-              placeholder="587"
+              placeholder="----"
               style={{ width: "4ch" }}
               className="bg-transparent text-[#f0eee6] placeholder-[#73726c] outline-none font-mono min-w-0 px-0 text-center"
             />
@@ -108,7 +112,7 @@ export default function AdminConfigPage() {
               type="text"
               value={smtpUser}
               onChange={(e) => setSmtpUser(e.target.value)}
-              placeholder="user@example.com"
+              placeholder="----"
               style={{ width: "20ch" }}
               className="bg-transparent text-[#f0eee6] placeholder-[#73726c] outline-none font-mono min-w-0 px-0"
             />
@@ -118,40 +122,64 @@ export default function AdminConfigPage() {
           <span className="inline-flex items-center gap-0">
             <span className="text-[#73726c]">{"password: "}</span>
             <span className="text-[#f0eee6]">{"["}</span>
-            <input
-              type="password"
-              value={smtpPassword}
-              onChange={(e) => setSmtpPassword(e.target.value)}
-              placeholder={creds.smtp_password_set ? "******" : "not set"}
-              style={{ width: "14ch" }}
-              className="bg-transparent text-[#f0eee6] placeholder-[#73726c] outline-none font-mono min-w-0 px-0"
-            />
-            <span className="text-[#f0eee6]">{"]"}</span>
-            {creds.smtp_password_set && (
-              <span className="text-green-400 ml-1 text-xs">set</span>
+            {editingSmtpPassword ? (
+              <input
+                type="text"
+                value={smtpPassword}
+                onChange={(e) => setSmtpPassword(e.target.value)}
+                placeholder="----"
+                autoFocus
+                onBlur={() => { if (!smtpPassword) setEditingSmtpPassword(false); }}
+                style={{ width: "14ch" }}
+                className="bg-transparent text-[#f0eee6] placeholder-[#73726c] outline-none font-mono min-w-0 px-0"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingSmtpPassword(true)}
+                style={{ width: "14ch" }}
+                className="bg-transparent text-left font-mono min-w-0 px-0 cursor-pointer"
+              >
+                <span className={creds.smtp_password_set ? "text-[#f0eee6]" : "text-[#73726c]"}>
+                  {creds.smtp_password_set ? "****" : "----"}
+                </span>
+              </button>
             )}
+            <span className="text-[#f0eee6]">{"]"}</span>
           </span>
         </div>
 
         {/* TextBelt row */}
         <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
-          <span className="text-[#73726c]">textbelt:</span>
+          <span className="text-[#73726c]" style={{ width: "8ch" }}>textbelt:</span>
 
           <span className="inline-flex items-center gap-0">
             <span className="text-[#73726c]">{"api key: "}</span>
             <span className="text-[#f0eee6]">{"["}</span>
-            <input
-              type="password"
-              value={textbeltKey}
-              onChange={(e) => setTextbeltKey(e.target.value)}
-              placeholder={creds.textbelt_key_set ? "******" : "not set"}
-              style={{ width: "20ch" }}
-              className="bg-transparent text-[#f0eee6] placeholder-[#73726c] outline-none font-mono min-w-0 px-0"
-            />
-            <span className="text-[#f0eee6]">{"]"}</span>
-            {creds.textbelt_key_set && (
-              <span className="text-green-400 ml-1 text-xs">set</span>
+            {editingTextbeltKey ? (
+              <input
+                type="text"
+                value={textbeltKey}
+                onChange={(e) => setTextbeltKey(e.target.value)}
+                placeholder="----"
+                autoFocus
+                onBlur={() => { if (!textbeltKey) setEditingTextbeltKey(false); }}
+                style={{ width: "20ch" }}
+                className="bg-transparent text-[#f0eee6] placeholder-[#73726c] outline-none font-mono min-w-0 px-0"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingTextbeltKey(true)}
+                style={{ width: "20ch" }}
+                className="bg-transparent text-left font-mono min-w-0 px-0 cursor-pointer"
+              >
+                <span className={creds.textbelt_key_set ? "text-[#f0eee6]" : "text-[#73726c]"}>
+                  {creds.textbelt_key_set ? "****" : "----"}
+                </span>
+              </button>
             )}
+            <span className="text-[#f0eee6]">{"]"}</span>
           </span>
         </div>
       </div>
