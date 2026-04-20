@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { logout } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
@@ -28,9 +27,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex-1 max-w-5xl mx-auto w-full border-x border-[#3d3d3a]">
         <header className="px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="font-semibold text-[#d97757]">SlowBurnBot</Link>
+            <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
             <span className="text-[#f0eee6]">admin</span>
-            <Link href="/dashboard/config" className="text-[#73726c] hover:text-[#f0eee6] transition-colors">config</Link>
           </div>
           <div className="flex items-center gap-4">
             <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#73726c] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>

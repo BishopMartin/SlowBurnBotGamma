@@ -65,11 +65,13 @@ export default function AdminConfigPage() {
     <div className="space-y-6 font-mono">
       <h1 className="font-semibold text-[#f0eee6]">admin — config</h1>
 
-      {/* SMTP */}
       <div className={sectionCls}>
-        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">smtp</div>
+        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">Notification Settings</div>
 
+        {/* SMTP row */}
         <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm border-b border-[#3d3d3a]">
+          <span className="text-[#73726c]">smtp:</span>
+
           <span className="inline-flex items-center gap-0">
             <span className="text-[#73726c]">{"server: "}</span>
             <span className="text-[#f0eee6]">{"["}</span>
@@ -98,9 +100,7 @@ export default function AdminConfigPage() {
             />
             <span className="text-[#f0eee6]">{"]"}</span>
           </span>
-        </div>
 
-        <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
           <span className="inline-flex items-center gap-0">
             <span className="text-[#73726c]">{"user: "}</span>
             <span className="text-[#f0eee6]">{"["}</span>
@@ -132,13 +132,11 @@ export default function AdminConfigPage() {
             )}
           </span>
         </div>
-      </div>
 
-      {/* TextBelt */}
-      <div className={sectionCls}>
-        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">textbelt</div>
-
+        {/* TextBelt row */}
         <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
+          <span className="text-[#73726c]">textbelt:</span>
+
           <span className="inline-flex items-center gap-0">
             <span className="text-[#73726c]">{"api key: "}</span>
             <span className="text-[#f0eee6]">{"["}</span>
