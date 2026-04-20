@@ -34,3 +34,39 @@ class EntitlementRead(BaseModel):
     active: bool
     plan_tier: str
     current_period_end: datetime | None = None
+
+
+class CredentialsRead(BaseModel):
+    ig_password: str | None = None
+
+
+class IgnoreHandlesRead(BaseModel):
+    handles: list[str]
+
+
+class FollowTargetCreate(BaseModel):
+    account_id: uuid.UUID
+    target_handle: str
+    source: str | None = None
+    status: str = "following"
+    follow_date: date | None = None
+
+
+class FollowTargetUpdate(BaseModel):
+    status: str | None = None
+    unfollow_date: date | None = None
+    follow_back: bool | None = None
+
+
+class FollowTargetRead(BaseModel):
+    id: uuid.UUID
+    target_handle: str
+    source: str | None
+    status: str
+    follow_date: date | None
+    unfollow_date: date | None
+    follow_back: bool | None
+
+
+class RunCountRead(BaseModel):
+    count: int

@@ -43,8 +43,12 @@ def _account_read(account: Account) -> AccountRead:
 async def list_accounts(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
+    group_number: int | None = Query(None),
 ):
-    result = await session.execute(select(Account).where(Account.user_id == user.id))
+    query = select(Account).where(Account.user_id == user.id)
+    if group_number is not None:
+        query = query.where(Account.group_number == group_number)
+    result = await session.execute(query)
     return [_account_read(a) for a in result.scalars().all()]
 
 
