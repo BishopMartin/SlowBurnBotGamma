@@ -18,8 +18,10 @@ from app.models.ignore_handle import IgnoreHandle
 from app.models.session_log import SessionLog
 from app.models.subscription import Subscription
 from app.models.user import User
+from app.models.user_config import UserConfig
 from app.schemas.bot import (
     ActivityLogCreate,
+    BotUserConfigRead,
     CredentialsRead,
     EntitlementRead,
     FollowTargetCreate,
@@ -57,6 +59,24 @@ async def check_entitlement(
         plan_tier=subscription.plan_tier,
         current_period_end=subscription.current_period_end,
     )
+
+
+@router.get("/config", response_model=BotUserConfigRead)
+async def get_bot_config(
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Fetch user-wide config (notification prefs) for the exe."""
+    result = await session.execute(
+        select(UserConfig).where(UserConfig.user_id == user.id)
+    )
+    config = result.scalar_one_or_none()
+    if config is None:
+        config = UserConfig(user_id=user.id)
+        session.add(config)
+        await session.commit()
+        await session.refresh(config)
+    return config
 
 
 @router.get("/settings/{account_id}")

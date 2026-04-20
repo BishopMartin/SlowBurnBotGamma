@@ -70,3 +70,10 @@ class FollowTargetRead(BaseModel):
 
 class RunCountRead(BaseModel):
     count: int
+
+
+class BotUserConfigRead(BaseModel):
+    notices_type: str
+    notices_session: bool
+    notify_email: str | None = None
+    notify_phone: str | None = None
