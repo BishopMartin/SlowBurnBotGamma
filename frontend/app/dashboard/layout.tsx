@@ -29,7 +29,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItems = [
     { href: "/dashboard", label: "overview" },
     { href: "/dashboard/accounts", label: "accounts" },
-    { href: "/dashboard/logs", label: "logs" },
+    { href: "/dashboard/config", label: "config" },
     ...(user.is_superuser ? [{ href: "/admin", label: "admin" }] : []),
   ];
 

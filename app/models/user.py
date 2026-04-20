@@ -19,3 +19,4 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
 
     accounts: Mapped[list["Account"]] = relationship(back_populates="user")
     subscription: Mapped["Subscription | None"] = relationship(back_populates="user")
+    config: Mapped["UserConfig | None"] = relationship(back_populates="user")

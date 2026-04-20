@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth import auth_backend, fastapi_users
-from app.routers import accounts, admin, auth_refresh, bot, webhooks
+from app.routers import accounts, admin, auth_refresh, bot, config, webhooks
 from app.schemas.user import UserCreate, UserRead, UserUpdate
 from app.settings import settings
 
@@ -48,6 +48,7 @@ app.include_router(
 app.include_router(auth_refresh.router)
 app.include_router(accounts.router)
 app.include_router(bot.router)
+app.include_router(config.router)
 app.include_router(admin.router)
 app.include_router(webhooks.router)
 

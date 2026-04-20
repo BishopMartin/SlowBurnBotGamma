@@ -6,6 +6,7 @@ from app.models.session_log import SessionLog
 from app.models.activity_log import ActivityLog
 from app.models.follow_target import FollowTarget
 from app.models.ignore_handle import IgnoreHandle
+from app.models.user_config import UserConfig
 
 __all__ = [
     "User",
@@ -16,4 +17,5 @@ __all__ = [
     "ActivityLog",
     "FollowTarget",
     "IgnoreHandle",
+    "UserConfig",
 ]

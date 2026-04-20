@@ -93,6 +93,15 @@ export async function getEntitlement() {
   return request<Entitlement>("/bot/entitlement");
 }
 
+// Config
+export async function getUserConfig() {
+  return request<UserConfig>("/config");
+}
+
+export async function updateUserConfig(data: Partial<UserConfig>) {
+  return request<UserConfig>("/config", { method: "PUT", body: JSON.stringify(data) });
+}
+
 // Admin
 export async function adminListUsers() {
   return request<AdminUser[]>("/admin/users");
@@ -215,6 +224,16 @@ export interface Entitlement {
   active: boolean;
   plan_tier: string;
   current_period_end: string | null;
+}
+
+export interface UserConfig {
+  id: string;
+  user_id: string;
+  notices_type: string;
+  notices_session: boolean;
+  notify_email: string | null;
+  notify_phone: string | null;
+  updated_at: string;
 }
 
 export interface AdminUser {
