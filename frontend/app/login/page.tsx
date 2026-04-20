@@ -21,8 +21,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      await refresh();
-      router.push("/dashboard");
+      const user = await refresh();
+      router.push(user?.is_superuser ? "/admin" : "/dashboard");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed.");
     } finally {
