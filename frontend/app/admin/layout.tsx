@@ -28,7 +28,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <header className="px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
-            <span className="text-[#f0eee6]">admin</span>
+            <a href="/admin" className="text-[#f0eee6] hover:text-[#f0eee6] transition-colors">admin</a>
+            <a href="/admin/config" className="text-[#73726c] hover:text-[#f0eee6] transition-colors">config</a>
           </div>
           <div className="flex items-center gap-4">
             <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#73726c] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
@@ -43,7 +44,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="text-[#73726c]">admin:</span>
             <a href="/admin" className="text-[#bfbdb4] hover:text-[#f0eee6] transition-colors">[users]</a>
             <a href="/admin/accounts" className="text-[#bfbdb4] hover:text-[#f0eee6] transition-colors">[accounts]</a>
-            <a href="/admin/config" className="text-[#bfbdb4] hover:text-[#f0eee6] transition-colors">[config]</a>
           </nav>
           {children}
         </main>
