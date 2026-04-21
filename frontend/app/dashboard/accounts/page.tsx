@@ -171,16 +171,10 @@ export default function AccountsPage() {
     if (updated) setAccounts((prev) => prev.map((a) => (a.id === account.id ? updated : a)));
   }
 
-  const activityPeriodOptions = [
+  const summaryPeriodOptions = [
     { value: "day", label: "today" },
     { value: "week", label: "last 7 days" },
     { value: "month", label: "last 30 days" },
-  ];
-
-  const statsPeriodOptions = [
-    { value: "day", label: "day" },
-    { value: "week", label: "week" },
-    { value: "month", label: "month" },
   ];
 
   const tabs: { key: Tab; label: string }[] = [
@@ -240,17 +234,19 @@ export default function AccountsPage() {
                     <SortTh label="Followed" field="followed" className="whitespace-nowrap" />
                     <SortTh label="Followed Back" field="followed_back" className="whitespace-nowrap" />
                     <SortTh label="FB Rate" field="fb_rate" className="whitespace-nowrap" />
-                    <th className="px-2 py-2 font-normal text-right whitespace-nowrap">
-                      <span className="inline-flex items-center gap-0">
-                        <span className="text-[#73726c]">{"period: "}</span>
-                        <span className="text-[#f0eee6]">{"["}</span>
-                        <Dropdown
-                          value={statsPeriod}
-                          onChange={(v) => setStatsPeriod(v as Period)}
-                          options={statsPeriodOptions}
-                        />
-                        <span className="text-[#f0eee6]">{"]"}</span>
-                      </span>
+                    <th className="px-2 py-2 font-normal whitespace-nowrap">
+                      <div className="flex w-full justify-end">
+                        <span className="inline-flex items-center gap-0">
+                          <span className="text-[#73726c]">{"results: "}</span>
+                          <span className="text-[#f0eee6]">{"["}</span>
+                          <Dropdown
+                            value={statsPeriod}
+                            onChange={(v) => setStatsPeriod(v as Period)}
+                            options={summaryPeriodOptions}
+                          />
+                          <span className="text-[#f0eee6]">{"]"}</span>
+                        </span>
+                      </div>
                     </th>
                   </>
                 )}
@@ -272,7 +268,7 @@ export default function AccountsPage() {
                       <Dropdown
                         value={activityPeriod}
                         onChange={(v) => setActivityPeriod(v as Period)}
-                        options={activityPeriodOptions}
+                        options={summaryPeriodOptions}
                       />
                       <span className="text-[#f0eee6]">{"]"}</span>
                     </span>

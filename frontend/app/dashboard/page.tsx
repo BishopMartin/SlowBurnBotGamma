@@ -62,10 +62,15 @@ export default function DashboardPage() {
           { label: "total accounts", value: String(accounts.length), sub: null },
           { label: "enabled accounts", value: String(enabledCount), sub: null },
         ].map(({ label, value, sub }) => (
-          <div key={label} className="border border-[#3d3d3a] px-4 py-3">
-            <div className="text-[#73726c]">{label}</div>
-            <div className="text-[#f0eee6] font-semibold mt-1 capitalize">{value}</div>
-            {sub && <div className="mt-0.5">{sub}</div>}
+          <div
+            key={label}
+            className="border border-[#3d3d3a] px-4 py-2.5 flex flex-row items-center justify-between gap-3 min-w-0"
+          >
+            <span className="text-[#73726c] shrink-0">{label}</span>
+            <div className="flex items-center gap-2 min-w-0 justify-end">
+              <span className="text-[#f0eee6] font-semibold capitalize truncate">{value}</span>
+              {sub}
+            </div>
           </div>
         ))}
       </div>
