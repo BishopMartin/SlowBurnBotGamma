@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,6 +19,12 @@ class UserConfig(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), unique=True
     )
+
+    # Session settings
+    like_suggested: Mapped[bool] = mapped_column(Boolean, default=False)
+    like_sponsored: Mapped[bool] = mapped_column(Boolean, default=False)
+    skip_login_check: Mapped[bool] = mapped_column(Boolean, default=False)
+    login_tries: Mapped[int] = mapped_column(Integer, default=3)
 
     # Notification settings
     notices_type: Mapped[str] = mapped_column(String(10), default="email")  # text/email/both/none

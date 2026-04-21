@@ -267,6 +267,10 @@ export interface Entitlement {
 export interface UserConfig {
   id: string;
   user_id: string;
+  like_suggested: boolean;
+  like_sponsored: boolean;
+  skip_login_check: boolean;
+  login_tries: number;
   notices_type: string;
   notices_session: boolean;
   notify_email: string | null;

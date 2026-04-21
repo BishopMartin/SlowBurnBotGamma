@@ -29,7 +29,13 @@ export default function ConfigPage() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
-  // Form state
+  // Session settings
+  const [likeSuggested, setLikeSuggested] = useState(false);
+  const [likeSponsored, setLikeSponsored] = useState(false);
+  const [skipLoginCheck, setSkipLoginCheck] = useState(false);
+  const [loginTries, setLoginTries] = useState(3);
+
+  // Notification settings
   const [noticesType, setNoticesType] = useState("email");
   const [noticesSession, setNoticesSession] = useState(true);
   const [notifyEmail, setNotifyEmail] = useState("");
@@ -39,6 +45,10 @@ export default function ConfigPage() {
     getUserConfig()
       .then((c) => {
         setConfig(c);
+        setLikeSuggested(c.like_suggested);
+        setLikeSponsored(c.like_sponsored);
+        setSkipLoginCheck(c.skip_login_check);
+        setLoginTries(c.login_tries);
         setNoticesType(c.notices_type);
         setNoticesSession(c.notices_session);
         setNotifyEmail(c.notify_email ?? "");
@@ -52,6 +62,10 @@ export default function ConfigPage() {
     setMsg("");
     try {
       const updated = await updateUserConfig({
+        like_suggested: likeSuggested,
+        like_sponsored: likeSponsored,
+        skip_login_check: skipLoginCheck,
+        login_tries: loginTries,
         notices_type: noticesType,
         notices_session: noticesSession,
         notify_email: notifyEmail || null,
@@ -73,6 +87,66 @@ export default function ConfigPage() {
   return (
     <div className="space-y-6 font-mono">
       <h1 className="font-semibold text-[#f0eee6]">config</h1>
+
+      <div className={sectionCls}>
+        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">session settings</div>
+
+        <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
+          <span className="inline-flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setLikeSuggested(!likeSuggested)}
+              className="group cursor-pointer transition-colors"
+            >
+              <Bracket className={likeSuggested ? "text-green-400 group-hover:text-red-400" : "text-[#73726c] group-hover:text-green-400"}>
+                {likeSuggested ? "x" : "\u00a0"}
+              </Bracket>
+            </button>
+            <span className="text-[#73726c]">Like Suggested</span>
+          </span>
+
+          <span className="inline-flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setLikeSponsored(!likeSponsored)}
+              className="group cursor-pointer transition-colors"
+            >
+              <Bracket className={likeSponsored ? "text-green-400 group-hover:text-red-400" : "text-[#73726c] group-hover:text-green-400"}>
+                {likeSponsored ? "x" : "\u00a0"}
+              </Bracket>
+            </button>
+            <span className="text-[#73726c]">Like Sponsored</span>
+          </span>
+
+          <span className="inline-flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setSkipLoginCheck(!skipLoginCheck)}
+              className="group cursor-pointer transition-colors"
+            >
+              <Bracket className={skipLoginCheck ? "text-green-400 group-hover:text-red-400" : "text-[#73726c] group-hover:text-green-400"}>
+                {skipLoginCheck ? "x" : "\u00a0"}
+              </Bracket>
+            </button>
+            <span className="text-[#73726c]">Skip Login Check</span>
+          </span>
+
+          <span className="inline-flex items-center gap-0">
+            <span className="text-[#73726c]">{"login tries: "}</span>
+            <span className="text-[#f0eee6]">{"["}</span>
+            <input
+              type="number"
+              min={1}
+              max={10}
+              value={loginTries}
+              onChange={(e) => setLoginTries(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+              style={{ width: "3ch" }}
+              className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0 text-center"
+            />
+            <span className="text-[#f0eee6]">{"]"}</span>
+          </span>
+        </div>
+      </div>
 
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">notifications</div>

@@ -5,6 +5,10 @@ from pydantic import BaseModel
 
 
 class UserConfigUpdate(BaseModel):
+    like_suggested: bool | None = None
+    like_sponsored: bool | None = None
+    skip_login_check: bool | None = None
+    login_tries: int | None = None
     notices_type: str = "none"
     notices_session: bool = True
     notify_email: str | None = None
@@ -16,6 +20,10 @@ class UserConfigRead(BaseModel):
 
     id: uuid.UUID
     user_id: uuid.UUID
+    like_suggested: bool
+    like_sponsored: bool
+    skip_login_check: bool
+    login_tries: int
     notices_type: str
     notices_session: bool
     notify_email: str | None

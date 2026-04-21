@@ -73,6 +73,10 @@ class RunCountRead(BaseModel):
 
 
 class BotUserConfigRead(BaseModel):
+    like_suggested: bool = False
+    like_sponsored: bool = False
+    skip_login_check: bool = False
+    login_tries: int = 3
     notices_type: str
     notices_session: bool
     notify_email: str | None = None
