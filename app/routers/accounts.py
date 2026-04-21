@@ -161,6 +161,49 @@ async def followback_summary(
     }
 
 
+@router.get("/recent-log", response_model=dict)
+async def get_recent_log_across_accounts(
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+    limit: int = Query(15, ge=1, le=100),
+):
+    """Most recent session log rows across all accounts owned by the user."""
+    result = await session.execute(
+        select(SessionLog, Account.name, Account.id)
+        .join(Account, Account.id == SessionLog.account_id)
+        .where(Account.user_id == user.id)
+        .order_by(SessionLog.created_at.desc())
+        .limit(limit)
+    )
+
+    def fmt_dt(dt):
+        return dt.isoformat() if dt else None
+
+    items = []
+    for lg, account_name, account_id in result.all():
+        items.append(
+            {
+                "id": str(lg.id),
+                "account_id": str(account_id),
+                "account_name": account_name,
+                "run_date": lg.run_date.isoformat() if lg.run_date else None,
+                "run_sequence": lg.run_sequence,
+                "start_time": fmt_dt(lg.start_time),
+                "end_time": fmt_dt(lg.end_time),
+                "action_1_type": lg.action_1_type,
+                "action_1_count": lg.action_1_count,
+                "action_2_type": lg.action_2_type,
+                "action_2_count": lg.action_2_count,
+                "action_3_type": lg.action_3_type,
+                "action_3_count": lg.action_3_count,
+                "action_4_type": lg.action_4_type,
+                "action_4_count": lg.action_4_count,
+                "error_message": lg.error_message,
+            }
+        )
+    return {"items": items}
+
+
 @router.get("/{account_id}", response_model=AccountRead)
 async def get_account(
     account_id: uuid.UUID,

@@ -3,17 +3,41 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { getAccounts, getEntitlement, Account, Entitlement } from "@/lib/api";
+import {
+  getAccounts,
+  getEntitlement,
+  getRecentSessionLog,
+  Account,
+  Entitlement,
+  RecentSessionLogEntry,
+} from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
+
+function fmtTime(iso: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  const h = d.getHours();
+  const m = d.getMinutes();
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 || 12;
+  return `${String(h12).padStart(2, "0")}:${String(m).padStart(2, "0")}${period}`;
+}
+
+function fmtAction(type: string | null, count: number): string {
+  if (!type) return "—";
+  return `${type} (${count})`;
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [entitlement, setEntitlement] = useState<Entitlement | null>(null);
+  const [recentLog, setRecentLog] = useState<RecentSessionLogEntry[]>([]);
 
   useEffect(() => {
     getAccounts().then(setAccounts).catch(() => {});
     getEntitlement().then(setEntitlement).catch(() => {});
+    getRecentSessionLog(15).then((r) => setRecentLog(r.items)).catch(() => {});
   }, []);
 
   const enabledCount = accounts.filter((a) => a.enabled).length;
@@ -80,6 +104,76 @@ export default function DashboardPage() {
               ))}
             </tbody>
           </table>
+        )}
+      </div>
+
+      <div className="border border-[#3d3d3a]">
+        <div className="flex items-center justify-between border-b border-[#3d3d3a] px-4 py-2">
+          <span className="text-[#f0eee6]">recent activity</span>
+          <Link href="/dashboard/accounts" className="text-[#d97757] hover:text-[#f0eee6] transition-colors">
+            by account →
+          </Link>
+        </div>
+        {recentLog.length === 0 ? (
+          <div className="px-4 py-6 text-[#73726c]">no session log entries yet.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[#73726c] border-b border-[#3d3d3a]">
+                  <th className="px-2 py-2 font-normal whitespace-nowrap">account</th>
+                  <th className="px-2 py-2 font-normal whitespace-nowrap">date</th>
+                  <th className="px-2 py-2 font-normal whitespace-nowrap">run</th>
+                  <th className="px-2 py-2 font-normal whitespace-nowrap">start</th>
+                  <th className="px-2 py-2 font-normal whitespace-nowrap">end</th>
+                  <th className="px-2 py-2 font-normal whitespace-nowrap">action 1</th>
+                  <th className="px-2 py-2 font-normal whitespace-nowrap">action 2</th>
+                  <th className="px-2 py-2 font-normal whitespace-nowrap">action 3</th>
+                  <th className="px-2 py-2 font-normal whitespace-nowrap">action 4</th>
+                  <th className="px-2 py-2 font-normal whitespace-nowrap">errors</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#3d3d3a]">
+                {recentLog.map((entry) => (
+                  <tr key={entry.id} className="hover:bg-[#1f1e1d] transition-colors">
+                    <td className="px-2 py-1.5 whitespace-nowrap">
+                      <Link
+                        href={`/dashboard/accounts/${entry.account_id}/log`}
+                        className="text-[#d97757] hover:text-[#f0eee6] transition-colors"
+                      >
+                        {entry.account_name}
+                      </Link>
+                    </td>
+                    <td className="px-2 py-1.5 text-[#f0eee6] whitespace-nowrap">{entry.run_date ?? "—"}</td>
+                    <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{entry.run_sequence}</td>
+                    <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtTime(entry.start_time)}</td>
+                    <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtTime(entry.end_time)}</td>
+                    <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">
+                      {fmtAction(entry.action_1_type, entry.action_1_count)}
+                    </td>
+                    <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">
+                      {fmtAction(entry.action_2_type, entry.action_2_count)}
+                    </td>
+                    <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">
+                      {fmtAction(entry.action_3_type, entry.action_3_count)}
+                    </td>
+                    <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">
+                      {fmtAction(entry.action_4_type, entry.action_4_count)}
+                    </td>
+                    <td className="px-2 py-1.5 whitespace-nowrap">
+                      {entry.error_message ? (
+                        <span className="text-red-400 text-xs" title={entry.error_message}>
+                          error
+                        </span>
+                      ) : (
+                        <span className="text-[#3d3d3a] text-xs">none</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

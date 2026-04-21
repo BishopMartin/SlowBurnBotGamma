@@ -148,6 +148,15 @@ export async function getAccountLog(id: string, page: number, pageSize = 100, so
   );
 }
 
+export interface RecentSessionLogEntry extends SessionLogEntry {
+  account_id: string;
+  account_name: string;
+}
+
+export async function getRecentSessionLog(limit = 15) {
+  return request<{ items: RecentSessionLogEntry[] }>(`/accounts/recent-log?limit=${limit}`);
+}
+
 export interface LogSummaryEntry {
   sessions: number;
   likes: number;
