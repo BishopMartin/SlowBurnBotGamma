@@ -49,7 +49,7 @@ export function Dropdown({
         {display}
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-50 border border-[#3d3d3a] bg-[#1f1e1d] min-w-max">
+        <div className="absolute left-0 top-full mt-1 z-50 border border-[#3d3d3a] bg-[#1f1e1d] min-w-max text-left">
           {options.map((opt) => (
             <div
               key={opt.value}
