@@ -120,9 +120,12 @@ export default function AccountLogPage() {
                 </tr>
               </thead>
               <tbody>
-                {items.map((entry) => (
+                {items.map((entry, idx) => {
+                  const prevDate = idx > 0 ? items[idx - 1].run_date : null;
+                  const isNewDay = idx > 0 && entry.run_date !== prevDate;
+                  return (
                   <>
-                    <tr key={entry.id} className="hover:bg-[#1f1e1d] transition-colors border-t border-[#3d3d3a]">
+                    <tr key={entry.id} className={`hover:bg-[#1f1e1d] transition-colors ${isNewDay ? "border-t-[3px] border-double border-[#73726c]" : "border-t border-[#3d3d3a]"}`}>
                       <td className="px-2 py-1.5 text-[#f0eee6] whitespace-nowrap">{entry.run_date ?? "—"}</td>
                       <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{entry.run_sequence}</td>
                       <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtTime(entry.start_time)}</td>
@@ -141,7 +144,8 @@ export default function AccountLogPage() {
                       </tr>
                     )}
                   </>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

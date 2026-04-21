@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { logout } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
@@ -10,6 +11,12 @@ import { APP_VERSION } from "@/lib/version";
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+
+  const navItems = [
+    { href: "/admin", label: "[users]" },
+    { href: "/admin/accounts", label: "[accounts]" },
+  ];
 
   useEffect(() => {
     if (!loading && (!user || !user.is_superuser)) router.push("/dashboard");
@@ -28,8 +35,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <header className="px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
-            <a href="/admin" className="text-[#f0eee6] hover:text-[#f0eee6] transition-colors">admin</a>
-            <a href="/admin/config" className="text-[#73726c] hover:text-[#f0eee6] transition-colors">config</a>
+            <Link href="/admin" className={`transition-colors ${pathname.startsWith("/admin") && pathname !== "/admin/config" ? "text-[#f0eee6]" : "text-[#73726c] hover:text-[#f0eee6]"}`}>admin</Link>
+            <Link href="/admin/config" className={`transition-colors ${pathname === "/admin/config" ? "text-[#f0eee6]" : "text-[#73726c] hover:text-[#f0eee6]"}`}>config</Link>
           </div>
           <div className="flex items-center gap-4">
             <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#73726c] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
@@ -42,8 +49,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <main className="px-6 py-6 space-y-4">
           <nav className="flex gap-4 text-sm border-b border-[#3d3d3a] pb-3">
             <span className="text-[#73726c]">admin:</span>
-            <a href="/admin" className="text-[#bfbdb4] hover:text-[#f0eee6] transition-colors">[users]</a>
-            <a href="/admin/accounts" className="text-[#bfbdb4] hover:text-[#f0eee6] transition-colors">[accounts]</a>
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`transition-colors ${
+                  pathname === item.href
+                    ? "text-[#f0eee6]"
+                    : "text-[#73726c] hover:text-[#f0eee6]"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
           {children}
         </main>
