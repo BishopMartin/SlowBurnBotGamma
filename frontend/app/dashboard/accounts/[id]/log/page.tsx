@@ -145,7 +145,7 @@ export default function AccountLogPage() {
                         {entry.error_message ? (
                           <button
                             onClick={() => toggleError(entry.id)}
-                            className="text-red-400 hover:text-red-300 cursor-pointer transition-colors text-xs"
+                            className="text-[#FF6600] hover:text-[#ff8833] cursor-pointer transition-colors text-xs"
                           >
                             {expandedErrors.has(entry.id) ? "▾ error" : "▸ error"}
                           </button>
@@ -157,7 +157,7 @@ export default function AccountLogPage() {
                     </tr>
                     {entry.error_message && expandedErrors.has(entry.id) && (
                       <tr key={`${entry.id}-err`} className="bg-[#1f1e1d]">
-                        <td colSpan={COL_COUNT} className="px-2 py-1 text-red-400 text-xs whitespace-pre-wrap">
+                        <td colSpan={COL_COUNT} className="px-2 py-1 text-[#FF6600] text-xs whitespace-pre-wrap">
                           {entry.error_message.split("\n").map((line) => `- ${line}`).join("\n")}
                         </td>
                       </tr>

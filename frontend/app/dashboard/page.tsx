@@ -50,9 +50,9 @@ export default function DashboardPage() {
             label: "plan",
             value: entitlement?.plan_tier ?? user?.plan_tier ?? "free",
             sub: entitlement?.active ? (
-              <span className="text-green-400">active</span>
+              <span className="text-[#CCCC00]">active</span>
             ) : (
-              <span className="text-yellow-400">inactive</span>
+              <span className="text-[#FF6600]">inactive</span>
             ),
           },
           { label: "total accounts", value: String(accounts.length), sub: null },
@@ -97,7 +97,7 @@ export default function DashboardPage() {
                     )}
                   </td>
                   <td className="px-4 py-2 text-right">
-                    <Bracket className={account.enabled ? "text-green-400" : "text-[#73726c]"}>
+                    <Bracket className={account.enabled ? "text-[#CCCC00]" : "text-[#73726c]"}>
                       {account.enabled ? "on" : "off"}
                     </Bracket>
                   </td>
@@ -163,7 +163,7 @@ export default function DashboardPage() {
                     </td>
                     <td className="px-2 py-1.5 whitespace-nowrap">
                       {entry.error_message ? (
-                        <span className="text-red-400 text-xs" title={entry.error_message}>
+                        <span className="text-[#FF6600] text-xs" title={entry.error_message}>
                           error
                         </span>
                       ) : (

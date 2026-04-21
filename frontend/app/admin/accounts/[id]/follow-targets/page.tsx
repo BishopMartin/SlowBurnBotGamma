@@ -8,7 +8,7 @@ import { adminListAccounts, adminGetFollowTargets, AdminAccount, FollowTarget } 
 const PAGE_SIZE = 100;
 
 function statusCls(status: string): string {
-  if (status === "done") return "text-green-400";
+  if (status === "done") return "text-[#CCCC00]";
   if (status === "skipped") return "text-[#73726c]";
   return "text-[#f0eee6]";
 }

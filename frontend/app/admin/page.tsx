@@ -57,7 +57,7 @@ export default function AdminPage() {
   return (
     <div className="space-y-4 font-mono">
       <h1 className="font-semibold text-[#f0eee6]">admin — users</h1>
-      {msg && <p className="text-green-400">{msg}</p>}
+      {msg && <p className="text-[#CCCC00]">{msg}</p>}
       <div className="border border-[#3d3d3a]">
         {users.length === 0 ? (
           <p className="px-4 py-6 text-[#73726c]">no users found.</p>
@@ -78,7 +78,7 @@ export default function AdminPage() {
                   <td className="px-4 py-2 text-[#f0eee6]">{u.email}</td>
                   <td className="px-4 py-2 text-[#bfbdb4]">{u.plan_tier}</td>
                   <td className="px-4 py-2">
-                    <Bracket className={u.subscription_status === "active" ? "text-green-400" : "text-[#73726c]"}>
+                    <Bracket className={u.subscription_status === "active" ? "text-[#CCCC00]" : "text-[#73726c]"}>
                       {u.subscription_status}
                     </Bracket>
                   </td>
@@ -91,7 +91,7 @@ export default function AdminPage() {
                       disabled={busy === u.id}
                       className="group disabled:opacity-50 transition-colors"
                     >
-                      <Bracket className={u.subscription_status === "active" ? "text-[#73726c] group-hover:text-[#f0eee6]" : "text-green-400 group-hover:text-[#f0eee6]"}>
+                      <Bracket className={u.subscription_status === "active" ? "text-[#73726c] group-hover:text-[#f0eee6]" : "text-[#CCCC00] group-hover:text-[#f0eee6]"}>
                         {busy === u.id ? "…" : u.subscription_status === "active" ? "deactivate" : "activate"}
                       </Bracket>
                     </button>

@@ -99,7 +99,7 @@ export default function ConfigPage() {
               onClick={() => setLikeSuggested(!likeSuggested)}
               className="group cursor-pointer transition-colors"
             >
-              <Bracket className={likeSuggested ? "text-green-400 group-hover:text-red-400" : "text-[#73726c] group-hover:text-green-400"}>
+              <Bracket className={likeSuggested ? "text-[#CCCC00] group-hover:text-[#FF6600]" : "text-[#73726c] group-hover:text-[#CCCC00]"}>
                 {likeSuggested ? "x" : "\u00a0"}
               </Bracket>
             </button>
@@ -112,7 +112,7 @@ export default function ConfigPage() {
               onClick={() => setLikeSponsored(!likeSponsored)}
               className="group cursor-pointer transition-colors"
             >
-              <Bracket className={likeSponsored ? "text-green-400 group-hover:text-red-400" : "text-[#73726c] group-hover:text-green-400"}>
+              <Bracket className={likeSponsored ? "text-[#CCCC00] group-hover:text-[#FF6600]" : "text-[#73726c] group-hover:text-[#CCCC00]"}>
                 {likeSponsored ? "x" : "\u00a0"}
               </Bracket>
             </button>
@@ -125,7 +125,7 @@ export default function ConfigPage() {
               onClick={() => setSkipLoginCheck(!skipLoginCheck)}
               className="group cursor-pointer transition-colors"
             >
-              <Bracket className={skipLoginCheck ? "text-green-400 group-hover:text-red-400" : "text-[#73726c] group-hover:text-green-400"}>
+              <Bracket className={skipLoginCheck ? "text-[#CCCC00] group-hover:text-[#FF6600]" : "text-[#73726c] group-hover:text-[#CCCC00]"}>
                 {skipLoginCheck ? "x" : "\u00a0"}
               </Bracket>
             </button>
@@ -157,7 +157,7 @@ export default function ConfigPage() {
               onClick={() => setNoticesSession(!noticesSession)}
               className="group cursor-pointer transition-colors"
             >
-              <Bracket className={noticesSession ? "text-green-400 group-hover:text-red-400" : "text-[#73726c] group-hover:text-green-400"}>
+              <Bracket className={noticesSession ? "text-[#CCCC00] group-hover:text-[#FF6600]" : "text-[#73726c] group-hover:text-[#CCCC00]"}>
                 {noticesSession ? "x" : "\u00a0"}
               </Bracket>
             </button>
@@ -216,7 +216,7 @@ export default function ConfigPage() {
             {saving ? "saving…" : "save"}
           </Bracket>
         </button>
-        {msg && <span className="text-green-400">{msg}</span>}
+        {msg && <span className="text-[#CCCC00]">{msg}</span>}
       </div>
     </div>
   );
