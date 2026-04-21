@@ -3,7 +3,7 @@
 :root {
   --background: #141413;
   --foreground: #f0eee6;
-  /* Positive / “green” + main nav selected (same token) */
+  /* Positive / “green” (nav selection uses #eab308 in layouts, not this token) */
   --status-ok: #adcc00;
   --status-bad: #cf3b0a;
   --status-bad-hover: #e87755;

@@ -50,7 +50,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link
               href="/admin"
               className={`transition-colors ${
-                headerAdminActive ? "text-status-ok" : "text-[#73726c] hover:text-white"
+                headerAdminActive ? "text-[#eab308]" : "text-[#73726c] hover:text-white"
               }`}
             >
               admin
@@ -58,7 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link
               href="/admin/config"
               className={`transition-colors ${
-                headerConfigActive ? "text-status-ok" : "text-[#73726c] hover:text-white"
+                headerConfigActive ? "text-[#eab308]" : "text-[#73726c] hover:text-white"
               }`}
             >
               config
@@ -85,7 +85,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   key={item.href}
                   href={item.href}
                   className={`transition-colors ${
-                    active ? "text-status-ok" : "text-[#73726c] hover:text-white"
+                    active ? "text-[#eab308]" : "text-[#73726c] hover:text-white"
                   }`}
                 >
                   {item.label}
