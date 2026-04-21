@@ -194,7 +194,7 @@ export default function AdminConfigPage() {
             {saving ? "saving…" : "save"}
           </Bracket>
         </button>
-        {msg && <span className="text-[#CCCC00]">{msg}</span>}
+        {msg && <span className="text-status-ok">{msg}</span>}
       </div>
     </div>
   );

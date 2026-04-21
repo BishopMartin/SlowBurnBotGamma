@@ -11,7 +11,7 @@ type SortKey = "handle" | "source" | "status" | "followed" | "unfollowed" | "fb"
 type SortDir = "asc" | "desc";
 
 function statusCls(status: string): string {
-  if (status === "done") return "text-[#CCCC00]";
+  if (status === "done") return "text-status-ok";
   if (status === "skipped") return "text-[#73726c]";
   return "text-[#f0eee6]";
 }
@@ -112,7 +112,7 @@ export default function AccountDatabasePage() {
                   <td className={`px-4 py-1.5 ${statusCls(t.status)}`}>{t.status}</td>
                   <td className="px-4 py-1.5 text-[#73726c]">{t.follow_date ?? "—"}</td>
                   <td className="px-4 py-1.5 text-[#73726c]">{t.unfollow_date ?? "—"}</td>
-                  <td className={`px-4 py-1.5 ${t.follow_back === true ? "text-[#CCCC00]" : t.follow_back === false ? "text-[#FF6600]" : "text-[#73726c]"}`}>
+                  <td className={`px-4 py-1.5 ${t.follow_back === true ? "text-status-ok" : t.follow_back === false ? "text-status-bad" : "text-[#73726c]"}`}>
                     {t.follow_back === true ? "yes" : t.follow_back === false ? "no" : "—"}
                   </td>
                 </tr>

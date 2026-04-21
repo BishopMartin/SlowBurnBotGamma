@@ -39,7 +39,7 @@ export default function LoginPage() {
         <main className="px-6 py-6">
         <div className="text-[#73726c] mb-4">sign in</div>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && <div className="text-[#FF6600]">{error}</div>}
+          {error && <div className="text-status-bad">{error}</div>}
           <div className="flex items-center gap-2">
             <span className="font-mono text-[#73726c] shrink-0">email</span>
             <input

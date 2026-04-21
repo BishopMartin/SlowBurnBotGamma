@@ -42,7 +42,7 @@ export default function AdminAccountsPage() {
                   <td className="px-4 py-2 text-[#f0eee6]">{a.name}</td>
                   <td className="px-4 py-2">
                     <span className="text-[#73726c]">[</span>
-                    <span className={a.enabled ? "text-[#CCCC00]" : "text-[#FF6600]"}>
+                    <span className={a.enabled ? "text-status-ok" : "text-status-bad"}>
                       {a.enabled ? "x" : "\u00a0"}
                     </span>
                     <span className="text-[#73726c]">]</span>

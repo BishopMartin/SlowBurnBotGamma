@@ -289,7 +289,7 @@ export default function AccountsPage() {
                             onClick={() => handleToggleEnabled(account)}
                             className="group cursor-pointer transition-colors"
                           >
-                            <Bracket className={account.enabled ? "text-[#73726c] group-hover:text-[#FF6600]" : "text-[#73726c] group-hover:text-[#CCCC00]"}>
+                            <Bracket className={account.enabled ? "text-[#73726c] group-hover:text-status-bad" : "text-[#73726c] group-hover:text-status-ok"}>
                               {account.enabled ? "x" : "\u00a0"}
                             </Bracket>
                           </button>
@@ -303,7 +303,7 @@ export default function AccountsPage() {
                         </td>
                         <td className="px-2 py-2 font-mono whitespace-nowrap">
                           <span className="text-[#73726c]">[</span>
-                          <span className={account.enabled ? "text-[#CCCC00]" : "text-[#FF6600]"}>{account.enabled ? "on" : "off"}</span>
+                          <span className={account.enabled ? "text-status-ok" : "text-status-bad"}>{account.enabled ? "on" : "off"}</span>
                           <span className="text-[#73726c]">]</span>
                         </td>
                       </>
@@ -385,7 +385,7 @@ export default function AccountsPage() {
         </div>
       </div>
 
-      {error && <p className="font-mono text-[#FF6600]">{error}</p>}
+      {error && <p className="font-mono text-status-bad">{error}</p>}
     </div>
   );
 }

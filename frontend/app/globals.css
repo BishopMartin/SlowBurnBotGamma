@@ -3,6 +3,16 @@
 :root {
   --background: #141413;
   --foreground: #f0eee6;
+  /* Semantic status (central palette) */
+  --status-ok: #adcc00;
+  --status-bad: #cf3b0a;
+  --status-bad-hover: #e87755;
+}
+
+@theme {
+  --color-status-ok: var(--status-ok);
+  --color-status-bad: var(--status-bad);
+  --color-status-bad-hover: var(--status-bad-hover);
 }
 
 html {

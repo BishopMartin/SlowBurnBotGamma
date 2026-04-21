@@ -156,7 +156,7 @@ export default function AccountDetailPage() {
                 onClick={() => handleAccountField({ enabled: !account.enabled })}
                 className="group cursor-pointer transition-colors"
               >
-                <Bracket className={account.enabled ? "text-[#CCCC00] group-hover:text-[#FF6600]" : "text-[#FF6600] group-hover:text-[#CCCC00]"}>
+                <Bracket className={account.enabled ? "text-status-ok group-hover:text-status-bad" : "text-status-bad group-hover:text-status-ok"}>
                   {account.enabled ? "on" : "off"}
                 </Bracket>
               </button>
@@ -211,7 +211,7 @@ export default function AccountDetailPage() {
                   onClick={() => setEditingPw(true)}
                   className="group cursor-pointer transition-colors"
                 >
-                  <Bracket className={account.has_password ? "text-[#CCCC00] group-hover:text-[#d97757]" : "text-[#73726c] group-hover:text-[#d97757]"}>
+                  <Bracket className={account.has_password ? "text-status-ok group-hover:text-[#d97757]" : "text-[#73726c] group-hover:text-[#d97757]"}>
                     {account.has_password ? "******" : "------"}
                   </Bracket>
                 </button>
@@ -335,7 +335,7 @@ export default function AccountDetailPage() {
                         onClick={() => updateAction(i, { enabled: !action.enabled })}
                         className="group text-left cursor-pointer transition-colors"
                       >
-                        <Bracket className={action.enabled ? "text-[#CCCC00] group-hover:text-[#FF6600]" : "text-[#73726c] group-hover:text-[#CCCC00]"}>
+                        <Bracket className={action.enabled ? "text-status-ok group-hover:text-status-bad" : "text-[#73726c] group-hover:text-status-ok"}>
                           {action.enabled ? "x" : "\u00a0"}
                         </Bracket>
                       </button>
@@ -437,9 +437,9 @@ export default function AccountDetailPage() {
               {saving ? "saving…" : "save settings"}
             </Bracket>
           </button>
-          {msg && <span className="text-[#CCCC00]">{msg}</span>}
+          {msg && <span className="text-status-ok">{msg}</span>}
           <button type="button" onClick={handleDelete} className="group transition-colors ml-auto">
-            <Bracket className="text-[#73726c] group-hover:text-[#FF6600]">delete account</Bracket>
+            <Bracket className="text-[#73726c] group-hover:text-status-bad">delete account</Bracket>
           </button>
         </div>
 
