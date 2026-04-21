@@ -234,20 +234,6 @@ export default function AccountsPage() {
                     <SortTh label="Followed" field="followed" className="whitespace-nowrap" />
                     <SortTh label="Followed Back" field="followed_back" className="whitespace-nowrap" />
                     <SortTh label="FB Rate" field="fb_rate" className="whitespace-nowrap" />
-                    <th className="px-2 py-2 font-normal whitespace-nowrap">
-                      <div className="flex w-full justify-end">
-                        <span className="inline-flex items-center gap-0">
-                          <span className="text-[#73726c]">{"results: "}</span>
-                          <span className="text-[#f0eee6]">{"["}</span>
-                          <Dropdown
-                            value={statsPeriod}
-                            onChange={(v) => setStatsPeriod(v as Period)}
-                            options={summaryPeriodOptions}
-                          />
-                          <span className="text-[#f0eee6]">{"]"}</span>
-                        </span>
-                      </div>
-                    </th>
                   </>
                 )}
                 {tab === "database" && (
@@ -268,6 +254,18 @@ export default function AccountsPage() {
                       <Dropdown
                         value={activityPeriod}
                         onChange={(v) => setActivityPeriod(v as Period)}
+                        options={summaryPeriodOptions}
+                      />
+                      <span className="text-[#f0eee6]">{"]"}</span>
+                    </span>
+                  )}
+                  {tab === "stats" && (
+                    <span className="inline-flex items-center gap-0">
+                      <span className="text-[#73726c]">{"results: "}</span>
+                      <span className="text-[#f0eee6]">{"["}</span>
+                      <Dropdown
+                        value={statsPeriod}
+                        onChange={(v) => setStatsPeriod(v as Period)}
                         options={summaryPeriodOptions}
                       />
                       <span className="text-[#f0eee6]">{"]"}</span>
@@ -323,7 +321,6 @@ export default function AccountsPage() {
                         <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(fb?.followed)}</td>
                         <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(fb?.followed_back)}</td>
                         <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtPct(fb?.rate ?? null)}</td>
-                        <td></td>
                       </>
                     )}
                     {tab === "database" && (
