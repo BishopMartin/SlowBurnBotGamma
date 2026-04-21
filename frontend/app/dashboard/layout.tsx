@@ -51,7 +51,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   href={item.href}
                   className={`transition-colors ${
                     isNavActive(item.href)
-                      ? "text-[#eab308]"
+                      ? "text-status-ok"
                       : "text-[#73726c] hover:text-white"
                   }`}
                 >

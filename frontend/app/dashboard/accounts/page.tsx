@@ -198,7 +198,7 @@ export default function AccountsPage() {
               onClick={() => setTab(t.key)}
               className="group cursor-pointer transition-colors"
             >
-              <Bracket className={tab === t.key ? "text-[#eab308]" : "text-[#73726c] group-hover:text-white"}>{t.label}</Bracket>
+              <Bracket className={tab === t.key ? "text-status-ok" : "text-[#73726c] group-hover:text-white"}>{t.label}</Bracket>
             </button>
           ))}
         </div>

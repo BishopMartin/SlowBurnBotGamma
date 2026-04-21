@@ -1,0 +1,28 @@
+#!/bin/sh
+# Bump frontend app version on each push (SKIP_VERSION_BUMP=1 to skip).
+# One-time: git config core.hooksPath githooks
+
+if [ "${SKIP_VERSION_BUMP}" = "1" ]; then
+  exit 0
+fi
+
+ROOT="$(git rev-parse --show-toplevel)" || exit 1
+cd "$ROOT" || exit 1
+
+if ! git diff --quiet -- frontend/lib/version.ts 2>/dev/null; then
+  echo "pre-push: frontend/lib/version.ts has unstaged changes — commit or stash first." >&2
+  exit 1
+fi
+if ! git diff --cached --quiet -- frontend/lib/version.ts 2>/dev/null; then
+  echo "pre-push: frontend/lib/version.ts has staged changes — commit them first." >&2
+  exit 1
+fi
+
+node scripts/bump-frontend-version.mjs || exit 1
+
+if git diff --quiet -- frontend/lib/version.ts 2>/dev/null; then
+  exit 0
+fi
+
+git add frontend/lib/version.ts
+git commit -m "chore: bump app version" --no-verify || exit 1
