@@ -18,6 +18,7 @@ import {
 } from "@/lib/api";
 import { scheduleLabel } from "@/lib/format";
 import { Bracket } from "@/lib/bracket";
+import { Dropdown } from "@/lib/dropdown";
 
 function fmtGroup(n: number | null | undefined): React.ReactNode {
   if (n == null) return <span className="text-[#73726c]">—</span>;
@@ -170,22 +171,17 @@ export default function AccountsPage() {
     if (updated) setAccounts((prev) => prev.map((a) => (a.id === account.id ? updated : a)));
   }
 
-  function PeriodSelect({ value, onChange, options }: { value: Period; onChange: (p: Period) => void; options?: { value: Period; label: string }[] }) {
-    const opts = options ?? [
-      { value: "day", label: "day" },
-      { value: "week", label: "week" },
-      { value: "month", label: "month" },
-    ];
-    return (
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value as Period)}
-        className="bg-transparent text-[#73726c] border border-[#3d3d3a] text-xs px-1 py-0.5 cursor-pointer outline-none focus:border-[#d97757] transition-colors"
-      >
-        {opts.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
-    );
-  }
+  const activityPeriodOptions = [
+    { value: "day", label: "today" },
+    { value: "week", label: "last 7 days" },
+    { value: "month", label: "last 30 days" },
+  ];
+
+  const statsPeriodOptions = [
+    { value: "day", label: "day" },
+    { value: "week", label: "week" },
+    { value: "month", label: "month" },
+  ];
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "settings", label: "settings" },
@@ -244,8 +240,17 @@ export default function AccountsPage() {
                     <SortTh label="Followed" field="followed" className="whitespace-nowrap" />
                     <SortTh label="Followed Back" field="followed_back" className="whitespace-nowrap" />
                     <SortTh label="FB Rate" field="fb_rate" className="whitespace-nowrap" />
-                    <th className="px-2 py-2 font-normal text-right">
-                      <PeriodSelect value={statsPeriod} onChange={setStatsPeriod} />
+                    <th className="px-2 py-2 font-normal text-right whitespace-nowrap">
+                      <span className="inline-flex items-center gap-0">
+                        <span className="text-[#73726c]">{"period: "}</span>
+                        <span className="text-[#f0eee6]">{"["}</span>
+                        <Dropdown
+                          value={statsPeriod}
+                          onChange={(v) => setStatsPeriod(v as Period)}
+                          options={statsPeriodOptions}
+                        />
+                        <span className="text-[#f0eee6]">{"]"}</span>
+                      </span>
                     </th>
                   </>
                 )}
@@ -261,17 +266,15 @@ export default function AccountsPage() {
                 )}
                 <th className="px-2 py-2 font-normal w-full text-right whitespace-nowrap">
                   {tab === "activity" && (
-                    <span className="inline-flex items-center gap-1">
-                      <span className="text-[#73726c]">activity:</span>
-                      <PeriodSelect
+                    <span className="inline-flex items-center gap-0">
+                      <span className="text-[#73726c]">{"activity: "}</span>
+                      <span className="text-[#f0eee6]">{"["}</span>
+                      <Dropdown
                         value={activityPeriod}
-                        onChange={setActivityPeriod}
-                        options={[
-                          { value: "day", label: "today" },
-                          { value: "week", label: "last 7 days" },
-                          { value: "month", label: "last 30 days" },
-                        ]}
+                        onChange={(v) => setActivityPeriod(v as Period)}
+                        options={activityPeriodOptions}
                       />
+                      <span className="text-[#f0eee6]">{"]"}</span>
                     </span>
                   )}
                 </th>
