@@ -16,6 +16,7 @@ import {
 import { Bracket } from "@/lib/bracket";
 import { formatTime } from "@/lib/format";
 import { Dropdown } from "@/lib/dropdown";
+import { NumberInput } from "@/lib/number-input";
 
 // ── dropdown data ─────────────────────────────────────────────────────────────
 
@@ -58,12 +59,6 @@ function parseTime(v: string): string | null {
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
   }
   return v.slice(0, 5) || null;
-}
-
-/** Parse a numeric text field; empty → 0 */
-function parseNum(v: string): number {
-  const n = parseInt(v.replace(/[^0-9]/g, ""), 10);
-  return isNaN(n) ? 0 : n;
 }
 
 // ── styles ────────────────────────────────────────────────────────────────────
@@ -281,14 +276,10 @@ export default function AccountDetailPage() {
             <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c]">{"delay fixed: "}</span>
               <span className="text-[#f0eee6]">{"["}</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={settings.delay_base_minutes != null ? String(settings.delay_base_minutes) : ""}
-                onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, delay_base_minutes: n })); }}
+              <NumberInput
+                value={settings.delay_base_minutes}
+                onChange={(n) => setSettings((s) => ({ ...s, delay_base_minutes: n }))}
                 placeholder="60"
-                maxLength={2}
-                className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
             </span>
@@ -296,14 +287,10 @@ export default function AccountDetailPage() {
             <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c]">{"delay random: "}</span>
               <span className="text-[#f0eee6]">{"["}</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={settings.delay_random_minutes != null ? String(settings.delay_random_minutes) : ""}
-                onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, delay_random_minutes: n })); }}
+              <NumberInput
+                value={settings.delay_random_minutes}
+                onChange={(n) => setSettings((s) => ({ ...s, delay_random_minutes: n }))}
                 placeholder="0"
-                maxLength={2}
-                className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
             </span>
@@ -311,14 +298,10 @@ export default function AccountDetailPage() {
             <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c]">{"sessions/day: "}</span>
               <span className="text-[#f0eee6]">{"["}</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={settings.max_runs_per_day != null ? String(settings.max_runs_per_day) : ""}
-                onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, max_runs_per_day: n || 1 })); }}
+              <NumberInput
+                value={settings.max_runs_per_day}
+                onChange={(n) => setSettings((s) => ({ ...s, max_runs_per_day: n || 1 }))}
                 placeholder="1"
-                maxLength={2}
-                className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
             </span>
@@ -383,14 +366,10 @@ export default function AccountDetailPage() {
                     <td className="px-4 py-2">
                       <span className="inline-flex items-center gap-0">
                         <span className="text-[#f0eee6]">{"["}</span>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={action.fixed_count > 0 ? String(action.fixed_count) : ""}
-                          onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) updateAction(i, { fixed_count: n }); }}
+                        <NumberInput
+                          value={action.fixed_count}
+                          onChange={(n) => updateAction(i, { fixed_count: n })}
                           placeholder="0"
-                          maxLength={2}
-                          className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
                         />
                         <span className="text-[#f0eee6]">{"]"}</span>
                       </span>
@@ -398,14 +377,10 @@ export default function AccountDetailPage() {
                     <td className="px-4 py-2">
                       <span className="inline-flex items-center gap-0">
                         <span className="text-[#f0eee6]">{"["}</span>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={action.variable_count > 0 ? String(action.variable_count) : ""}
-                          onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) updateAction(i, { variable_count: n }); }}
+                        <NumberInput
+                          value={action.variable_count}
+                          onChange={(n) => updateAction(i, { variable_count: n })}
                           placeholder="0"
-                          maxLength={2}
-                          className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
                         />
                         <span className="text-[#f0eee6]">{"]"}</span>
                       </span>
@@ -425,14 +400,10 @@ export default function AccountDetailPage() {
             <span className="inline-flex items-center gap-0">
               <span className="text-[#73726c]">{"unfollow after: "}</span>
               <span className="text-[#f0eee6]">{"["}</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={settings.unfollow_days != null ? String(settings.unfollow_days) : ""}
-                onChange={(e) => { const n = parseNum(e.target.value); if (n <= 99) setSettings((s) => ({ ...s, unfollow_days: n || 30 })); }}
+              <NumberInput
+                value={settings.unfollow_days}
+                onChange={(n) => setSettings((s) => ({ ...s, unfollow_days: n || 30 }))}
                 placeholder="30"
-                maxLength={2}
-                className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
               <span className="text-[#73726c]">{" days"}</span>

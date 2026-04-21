@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getUserConfig, updateUserConfig, UserConfig } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
 import { Dropdown } from "@/lib/dropdown";
+import { NumberInput } from "@/lib/number-input";
 
 const NOTICES_OPTIONS = [
   { value: "email", label: "email" },
@@ -134,14 +135,12 @@ export default function ConfigPage() {
           <span className="inline-flex items-center gap-0">
             <span className="text-[#73726c]">{"login tries: "}</span>
             <span className="text-[#f0eee6]">{"["}</span>
-            <input
-              type="number"
-              min={1}
-              max={10}
+            <NumberInput
               value={loginTries}
-              onChange={(e) => setLoginTries(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
-              style={{ width: "3ch" }}
-              className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0 text-center"
+              onChange={(n) => setLoginTries(n || 1)}
+              placeholder="3"
+              max={10}
+              maxLength={2}
             />
             <span className="text-[#f0eee6]">{"]"}</span>
           </span>
