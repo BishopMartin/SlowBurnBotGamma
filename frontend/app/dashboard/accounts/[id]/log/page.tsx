@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getAccounts, getAccountLog, Account, SessionLogEntry } from "@/lib/api";
@@ -9,7 +9,7 @@ import { Bracket } from "@/lib/bracket";
 const PAGE_SIZE = 100;
 
 type SortKey = "date" | "run" | "start" | "end" | "a1_type" | "a1_count" | "a2_type" | "a2_count" | "a3_type" | "a3_count" | "a4_type" | "a4_count" | "error";
-const COL_COUNT = 9;
+const COL_COUNT = 10;
 type SortDir = "asc" | "desc";
 
 function fmtTime(iso: string | null): string {
@@ -37,6 +37,16 @@ export default function AccountLogPage() {
   const [loading, setLoading] = useState(true);
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [expandedErrors, setExpandedErrors] = useState<Set<string>>(new Set());
+
+  const toggleError = useCallback((id: string) => {
+    setExpandedErrors((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -116,6 +126,7 @@ export default function AccountLogPage() {
                   <SortTh label="action 2" field="a2_type" />
                   <SortTh label="action 3" field="a3_type" />
                   <SortTh label="action 4" field="a4_type" />
+                  <th className="px-2 py-2 font-normal">errors</th>
                   <th className="w-full"></th>
                 </tr>
               </thead>
@@ -134,9 +145,21 @@ export default function AccountLogPage() {
                       <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtAction(entry.action_2_type, entry.action_2_count)}</td>
                       <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtAction(entry.action_3_type, entry.action_3_count)}</td>
                       <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtAction(entry.action_4_type, entry.action_4_count)}</td>
+                      <td className="px-2 py-1.5 whitespace-nowrap">
+                        {entry.error_message ? (
+                          <button
+                            onClick={() => toggleError(entry.id)}
+                            className="text-red-400 hover:text-red-300 cursor-pointer transition-colors text-xs"
+                          >
+                            {expandedErrors.has(entry.id) ? "▾ error" : "▸ error"}
+                          </button>
+                        ) : (
+                          <span className="text-[#3d3d3a] text-xs">none</span>
+                        )}
+                      </td>
                       <td></td>
                     </tr>
-                    {entry.error_message && (
+                    {entry.error_message && expandedErrors.has(entry.id) && (
                       <tr key={`${entry.id}-err`} className="bg-[#1f1e1d]">
                         <td colSpan={COL_COUNT} className="px-2 py-1 text-red-400 text-xs whitespace-pre-wrap">
                           {entry.error_message.split("\n").map((line) => `- ${line}`).join("\n")}

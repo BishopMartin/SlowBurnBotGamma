@@ -34,7 +34,7 @@ function fmtPct(v: number | null): string {
   return `${Math.round(v * 100)}%`;
 }
 
-type Tab = "settings" | "log" | "stats" | "database";
+type Tab = "settings" | "activity" | "stats" | "database";
 type SortKey = "name" | "enabled" | "group" | "pending" | "complete" | "total" | "success" | "last_25" | "all_time" | "sessions" | "likes" | "follows" | "unfollows" | "fb_rate" | "followed" | "followed_back";
 type SortDir = "asc" | "desc";
 type Period = "day" | "week" | "month";
@@ -46,7 +46,7 @@ export default function AccountsPage() {
   const [logMap, setLogMap] = useState<Record<string, LogSummaryEntry>>({});
   const [fbMap, setFbMap] = useState<Record<string, FollowbackSummaryEntry>>({});
   const [tab, setTab] = useState<Tab>("settings");
-  const [logPeriod, setLogPeriod] = useState<Period>("day");
+  const [activityPeriod, setActivityPeriod] = useState<Period>("day");
   const [statsPeriod, setStatsPeriod] = useState<Period>("day");
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
@@ -138,10 +138,10 @@ export default function AccountsPage() {
   useEffect(() => { load(); }, []);
 
   useEffect(() => {
-    if (tab === "log") {
-      getLogSummary(logPeriod).then(setLogMap).catch(() => {});
+    if (tab === "activity") {
+      getLogSummary(activityPeriod).then(setLogMap).catch(() => {});
     }
-  }, [tab, logPeriod]);
+  }, [tab, activityPeriod]);
 
   useEffect(() => {
     if (tab === "stats") {
@@ -170,23 +170,26 @@ export default function AccountsPage() {
     if (updated) setAccounts((prev) => prev.map((a) => (a.id === account.id ? updated : a)));
   }
 
-  function PeriodSelect({ value, onChange }: { value: Period; onChange: (p: Period) => void }) {
+  function PeriodSelect({ value, onChange, options }: { value: Period; onChange: (p: Period) => void; options?: { value: Period; label: string }[] }) {
+    const opts = options ?? [
+      { value: "day", label: "day" },
+      { value: "week", label: "week" },
+      { value: "month", label: "month" },
+    ];
     return (
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as Period)}
         className="bg-transparent text-[#73726c] border border-[#3d3d3a] text-xs px-1 py-0.5 cursor-pointer outline-none focus:border-[#d97757] transition-colors"
       >
-        <option value="day">day</option>
-        <option value="week">week</option>
-        <option value="month">month</option>
+        {opts.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     );
   }
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "settings", label: "settings" },
-    { key: "log", label: "log" },
+    { key: "activity", label: "activity" },
     { key: "stats", label: "stats" },
     { key: "database", label: "database" },
   ];
@@ -224,19 +227,16 @@ export default function AccountsPage() {
                     <SortTh label="On" field="enabled" />
                     <SortTh label="Group" field="group" />
                     <th className="px-2 py-2 font-normal">Schedule</th>
-                    <th className="px-2 py-2 font-normal">Daily</th>
+                    <th className="px-2 py-2 font-normal">Runs/Day</th>
                     <th className="px-2 py-2 font-normal">Status</th>
                   </>
                 )}
-                {tab === "log" && (
+                {tab === "activity" && (
                   <>
                     <SortTh label="Sessions" field="sessions" className="whitespace-nowrap" />
                     <SortTh label="Likes" field="likes" className="whitespace-nowrap" />
                     <SortTh label="Follows" field="follows" className="whitespace-nowrap" />
                     <SortTh label="Unfollows" field="unfollows" className="whitespace-nowrap" />
-                    <th className="px-2 py-2 font-normal text-right">
-                      <PeriodSelect value={logPeriod} onChange={setLogPeriod} />
-                    </th>
                   </>
                 )}
                 {tab === "stats" && (
@@ -259,7 +259,22 @@ export default function AccountsPage() {
                     <SortTh label="All" field="all_time" className="whitespace-nowrap" />
                   </>
                 )}
-                <th className="px-2 py-2 font-normal w-full"></th>
+                <th className="px-2 py-2 font-normal w-full text-right whitespace-nowrap">
+                  {tab === "activity" && (
+                    <span className="inline-flex items-center gap-1">
+                      <span className="text-[#73726c]">activity:</span>
+                      <PeriodSelect
+                        value={activityPeriod}
+                        onChange={setActivityPeriod}
+                        options={[
+                          { value: "day", label: "today" },
+                          { value: "week", label: "last 7 days" },
+                          { value: "month", label: "last 30 days" },
+                        ]}
+                      />
+                    </span>
+                  )}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#3d3d3a]">
@@ -296,13 +311,12 @@ export default function AccountsPage() {
                         </td>
                       </>
                     )}
-                    {tab === "log" && (
+                    {tab === "activity" && (
                       <>
                         <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(log?.sessions)}</td>
                         <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(log?.likes)}</td>
                         <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(log?.follows)}</td>
                         <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(log?.unfollows)}</td>
-                        <td></td>
                       </>
                     )}
                     {tab === "stats" && (
@@ -330,7 +344,7 @@ export default function AccountsPage() {
                             <Bracket className="text-[#73726c] group-hover:text-[#d97757]">settings</Bracket>
                           </Link>
                         )}
-                        {tab === "log" && (
+                        {tab === "activity" && (
                           <Link href={`/dashboard/accounts/${account.id}/log`} className="group font-mono transition-colors">
                             <Bracket className="text-[#73726c] group-hover:text-[#d97757]">log</Bracket>
                           </Link>
