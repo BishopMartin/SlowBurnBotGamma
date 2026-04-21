@@ -148,6 +148,27 @@ export async function getAccountLog(id: string, page: number, pageSize = 100, so
   );
 }
 
+export interface LogSummaryEntry {
+  sessions: number;
+  likes: number;
+  follows: number;
+  unfollows: number;
+}
+
+export async function getLogSummary(period: string = "day") {
+  return request<Record<string, LogSummaryEntry>>(`/accounts/log-summary?period=${period}`);
+}
+
+export interface FollowbackSummaryEntry {
+  followed: number;
+  followed_back: number;
+  rate: number | null;
+}
+
+export async function getFollowbackSummary(period: string = "day") {
+  return request<Record<string, FollowbackSummaryEntry>>(`/accounts/followback-summary?period=${period}`);
+}
+
 export interface SessionLogEntry {
   id: string;
   run_date: string | null;

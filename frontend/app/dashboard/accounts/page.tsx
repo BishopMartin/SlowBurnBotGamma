@@ -6,11 +6,15 @@ import {
   getAccounts,
   getAccountSettings,
   getAccountStats,
+  getLogSummary,
+  getFollowbackSummary,
   createAccount,
   updateAccount,
   Account,
   AccountSettings,
   AccountStats,
+  LogSummaryEntry,
+  FollowbackSummaryEntry,
 } from "@/lib/api";
 import { scheduleLabel } from "@/lib/format";
 import { Bracket } from "@/lib/bracket";
@@ -30,15 +34,20 @@ function fmtPct(v: number | null): string {
   return `${Math.round(v * 100)}%`;
 }
 
-type Tab = "settings" | "stats";
-type SortKey = "name" | "enabled" | "group" | "pending" | "complete" | "total" | "success" | "last_25" | "all_time";
+type Tab = "settings" | "log" | "stats" | "database";
+type SortKey = "name" | "enabled" | "group" | "pending" | "complete" | "total" | "success" | "last_25" | "all_time" | "sessions" | "likes" | "follows" | "unfollows" | "fb_rate" | "followed" | "followed_back";
 type SortDir = "asc" | "desc";
+type Period = "day" | "week" | "month";
 
 export default function AccountsPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [settingsMap, setSettingsMap] = useState<Record<string, AccountSettings>>({});
   const [statsMap, setStatsMap] = useState<Record<string, AccountStats>>({});
+  const [logMap, setLogMap] = useState<Record<string, LogSummaryEntry>>({});
+  const [fbMap, setFbMap] = useState<Record<string, FollowbackSummaryEntry>>({});
   const [tab, setTab] = useState<Tab>("settings");
+  const [logPeriod, setLogPeriod] = useState<Period>("day");
+  const [statsPeriod, setStatsPeriod] = useState<Period>("day");
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [newName, setNewName] = useState("");
@@ -54,29 +63,39 @@ export default function AccountsPage() {
     }
   }
 
+  function getVal(account: Account, key: SortKey): number | string {
+    switch (key) {
+      case "name": return account.name.toLowerCase();
+      case "enabled": return account.enabled ? 1 : 0;
+      case "group": return account.group_number ?? -1;
+      case "pending": return statsMap[account.id]?.pending ?? -1;
+      case "complete": return statsMap[account.id]?.complete ?? -1;
+      case "total": return statsMap[account.id]?.total ?? -1;
+      case "success": return statsMap[account.id]?.success ?? -1;
+      case "last_25": return statsMap[account.id]?.last_25 ?? -1;
+      case "all_time": return statsMap[account.id]?.all_time ?? -1;
+      case "sessions": return logMap[account.id]?.sessions ?? -1;
+      case "likes": return logMap[account.id]?.likes ?? -1;
+      case "follows": return logMap[account.id]?.follows ?? -1;
+      case "unfollows": return logMap[account.id]?.unfollows ?? -1;
+      case "fb_rate": return fbMap[account.id]?.rate ?? -1;
+      case "followed": return fbMap[account.id]?.followed ?? -1;
+      case "followed_back": return fbMap[account.id]?.followed_back ?? -1;
+    }
+  }
+
   const sortedAccounts = useMemo(() => {
     const list = [...accounts];
     const dir = sortDir === "asc" ? 1 : -1;
     list.sort((a, b) => {
-      let av: number | string | null = null;
-      let bv: number | string | null = null;
-      switch (sortKey) {
-        case "name": av = a.name.toLowerCase(); bv = b.name.toLowerCase(); break;
-        case "enabled": av = a.enabled ? 1 : 0; bv = b.enabled ? 1 : 0; break;
-        case "group": av = a.group_number ?? -1; bv = b.group_number ?? -1; break;
-        case "pending": av = statsMap[a.id]?.pending ?? -1; bv = statsMap[b.id]?.pending ?? -1; break;
-        case "complete": av = statsMap[a.id]?.complete ?? -1; bv = statsMap[b.id]?.complete ?? -1; break;
-        case "total": av = statsMap[a.id]?.total ?? -1; bv = statsMap[b.id]?.total ?? -1; break;
-        case "success": av = statsMap[a.id]?.success ?? -1; bv = statsMap[b.id]?.success ?? -1; break;
-        case "last_25": av = statsMap[a.id]?.last_25 ?? -1; bv = statsMap[b.id]?.last_25 ?? -1; break;
-        case "all_time": av = statsMap[a.id]?.all_time ?? -1; bv = statsMap[b.id]?.all_time ?? -1; break;
-      }
+      const av = getVal(a, sortKey);
+      const bv = getVal(b, sortKey);
       if (av < bv) return -1 * dir;
       if (av > bv) return 1 * dir;
       return 0;
     });
     return list;
-  }, [accounts, statsMap, sortKey, sortDir]);
+  }, [accounts, statsMap, logMap, fbMap, sortKey, sortDir]);
 
   function SortTh({ label, field, className = "" }: { label: string; field: SortKey; className?: string }) {
     const active = sortKey === field;
@@ -118,6 +137,18 @@ export default function AccountsPage() {
 
   useEffect(() => { load(); }, []);
 
+  useEffect(() => {
+    if (tab === "log") {
+      getLogSummary(logPeriod).then(setLogMap).catch(() => {});
+    }
+  }, [tab, logPeriod]);
+
+  useEffect(() => {
+    if (tab === "stats") {
+      getFollowbackSummary(statsPeriod).then(setFbMap).catch(() => {});
+    }
+  }, [tab, statsPeriod]);
+
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!newName.trim()) return;
@@ -139,6 +170,27 @@ export default function AccountsPage() {
     if (updated) setAccounts((prev) => prev.map((a) => (a.id === account.id ? updated : a)));
   }
 
+  function PeriodSelect({ value, onChange }: { value: Period; onChange: (p: Period) => void }) {
+    return (
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as Period)}
+        className="bg-transparent text-[#73726c] border border-[#3d3d3a] text-xs px-1 py-0.5 cursor-pointer outline-none focus:border-[#d97757] transition-colors"
+      >
+        <option value="day">day</option>
+        <option value="week">week</option>
+        <option value="month">month</option>
+      </select>
+    );
+  }
+
+  const tabs: { key: Tab; label: string }[] = [
+    { key: "settings", label: "settings" },
+    { key: "log", label: "log" },
+    { key: "stats", label: "stats" },
+    { key: "database", label: "database" },
+  ];
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
@@ -147,18 +199,15 @@ export default function AccountsPage() {
         </h1>
         <span className="text-[#73726c] font-mono">--</span>
         <div className="flex items-center gap-2 font-mono text-sm">
-          <button
-            onClick={() => setTab("settings")}
-            className="group cursor-pointer transition-colors"
-          >
-            <Bracket className={tab === "settings" ? "text-[#d97757]" : "text-[#73726c] group-hover:text-[#f0eee6]"}>settings</Bracket>
-          </button>
-          <button
-            onClick={() => setTab("stats")}
-            className="group cursor-pointer transition-colors"
-          >
-            <Bracket className={tab === "stats" ? "text-[#d97757]" : "text-[#73726c] group-hover:text-[#f0eee6]"}>stats</Bracket>
-          </button>
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className="group cursor-pointer transition-colors"
+            >
+              <Bracket className={tab === t.key ? "text-[#d97757]" : "text-[#73726c] group-hover:text-[#f0eee6]"}>{t.label}</Bracket>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -170,7 +219,7 @@ export default function AccountsPage() {
             <thead>
               <tr className="text-left text-[#73726c] border-b border-[#3d3d3a]">
                 <SortTh label="Account" field="name" />
-                {tab === "settings" ? (
+                {tab === "settings" && (
                   <>
                     <SortTh label="On" field="enabled" />
                     <SortTh label="Group" field="group" />
@@ -178,7 +227,29 @@ export default function AccountsPage() {
                     <th className="px-2 py-2 font-normal">Daily</th>
                     <th className="px-2 py-2 font-normal">Status</th>
                   </>
-                ) : (
+                )}
+                {tab === "log" && (
+                  <>
+                    <SortTh label="Sessions" field="sessions" className="whitespace-nowrap" />
+                    <SortTh label="Likes" field="likes" className="whitespace-nowrap" />
+                    <SortTh label="Follows" field="follows" className="whitespace-nowrap" />
+                    <SortTh label="Unfollows" field="unfollows" className="whitespace-nowrap" />
+                    <th className="px-2 py-2 font-normal text-right">
+                      <PeriodSelect value={logPeriod} onChange={setLogPeriod} />
+                    </th>
+                  </>
+                )}
+                {tab === "stats" && (
+                  <>
+                    <SortTh label="Followed" field="followed" className="whitespace-nowrap" />
+                    <SortTh label="Followed Back" field="followed_back" className="whitespace-nowrap" />
+                    <SortTh label="FB Rate" field="fb_rate" className="whitespace-nowrap" />
+                    <th className="px-2 py-2 font-normal text-right">
+                      <PeriodSelect value={statsPeriod} onChange={setStatsPeriod} />
+                    </th>
+                  </>
+                )}
+                {tab === "database" && (
                   <>
                     <SortTh label="Pend." field="pending" className="whitespace-nowrap" />
                     <SortTh label="Compl." field="complete" className="whitespace-nowrap" />
@@ -194,10 +265,12 @@ export default function AccountsPage() {
             <tbody className="divide-y divide-[#3d3d3a]">
               {sortedAccounts.map((account) => {
                 const stats = statsMap[account.id];
+                const log = logMap[account.id];
+                const fb = fbMap[account.id];
                 return (
                   <tr key={account.id} className="hover:bg-[#1f1e1d] transition-colors">
                     <td className="px-2 pr-6 py-2 text-[#f0eee6] whitespace-nowrap overflow-hidden text-ellipsis" style={{ maxWidth: "20ch" }}>{account.name}</td>
-                    {tab === "settings" ? (
+                    {tab === "settings" && (
                       <>
                         <td className="px-2 py-2 whitespace-nowrap">
                           <button
@@ -222,7 +295,25 @@ export default function AccountsPage() {
                           <span className="text-[#73726c]">]</span>
                         </td>
                       </>
-                    ) : (
+                    )}
+                    {tab === "log" && (
+                      <>
+                        <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(log?.sessions)}</td>
+                        <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(log?.likes)}</td>
+                        <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(log?.follows)}</td>
+                        <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(log?.unfollows)}</td>
+                        <td></td>
+                      </>
+                    )}
+                    {tab === "stats" && (
+                      <>
+                        <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(fb?.followed)}</td>
+                        <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(fb?.followed_back)}</td>
+                        <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtPct(fb?.rate ?? null)}</td>
+                        <td></td>
+                      </>
+                    )}
+                    {tab === "database" && (
                       <>
                         <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(stats?.pending)}</td>
                         <td className="px-2 py-2 text-[#73726c] whitespace-nowrap">{fmtNum(stats?.complete)}</td>
@@ -234,19 +325,25 @@ export default function AccountsPage() {
                     )}
                     <td className="px-2 py-2 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        {tab === "settings" ? (
+                        {tab === "settings" && (
                           <Link href={`/dashboard/accounts/${account.id}`} className="group font-mono transition-colors">
                             <Bracket className="text-[#73726c] group-hover:text-[#d97757]">settings</Bracket>
                           </Link>
-                        ) : (
-                          <>
-                            <Link href={`/dashboard/accounts/${account.id}/log`} className="group font-mono transition-colors">
-                              <Bracket className="text-[#73726c] group-hover:text-[#d97757]">log</Bracket>
-                            </Link>
-                            <Link href={`/dashboard/accounts/${account.id}/database`} className="group font-mono transition-colors">
-                              <Bracket className="text-[#73726c] group-hover:text-[#d97757]">data</Bracket>
-                            </Link>
-                          </>
+                        )}
+                        {tab === "log" && (
+                          <Link href={`/dashboard/accounts/${account.id}/log`} className="group font-mono transition-colors">
+                            <Bracket className="text-[#73726c] group-hover:text-[#d97757]">log</Bracket>
+                          </Link>
+                        )}
+                        {tab === "stats" && (
+                          <Link href={`/dashboard/accounts/${account.id}/database`} className="group font-mono transition-colors">
+                            <Bracket className="text-[#73726c] group-hover:text-[#d97757]">stats</Bracket>
+                          </Link>
+                        )}
+                        {tab === "database" && (
+                          <Link href={`/dashboard/accounts/${account.id}/database`} className="group font-mono transition-colors">
+                            <Bracket className="text-[#73726c] group-hover:text-[#d97757]">data</Bracket>
+                          </Link>
                         )}
                       </div>
                     </td>

@@ -1,8 +1,9 @@
 """Account CRUD — dashboard use."""
 import uuid
+from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import current_active_user
@@ -66,6 +67,98 @@ async def create_account(
     await session.commit()
     await session.refresh(account)
     return _account_read(account)
+
+
+def _period_start(period: str) -> date:
+    today = date.today()
+    if period == "week":
+        return today - timedelta(days=7)
+    if period == "month":
+        return today - timedelta(days=30)
+    return today  # day
+
+
+def _action_sum(type_col, count_col, action_type: str):
+    return func.coalesce(func.sum(case((type_col == action_type, count_col), else_=0)), 0)
+
+
+@router.get("/log-summary", response_model=dict)
+async def log_summary(
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+    period: str = Query("day"),
+):
+    """Per-account aggregated session counts for a time period."""
+    since = _period_start(period)
+    SL = SessionLog
+
+    likes = sum(
+        _action_sum(getattr(SL, f"action_{i}_type"), getattr(SL, f"action_{i}_count"), "like")
+        for i in range(1, 5)
+    )
+    follows = sum(
+        _action_sum(getattr(SL, f"action_{i}_type"), getattr(SL, f"action_{i}_count"), "follow")
+        for i in range(1, 5)
+    )
+    unfollows = sum(
+        _action_sum(getattr(SL, f"action_{i}_type"), getattr(SL, f"action_{i}_count"), "unfollow")
+        for i in range(1, 5)
+    )
+
+    result = await session.execute(
+        select(
+            SL.account_id,
+            func.count().label("sessions"),
+            likes.label("likes"),
+            follows.label("follows"),
+            unfollows.label("unfollows"),
+        )
+        .where(SL.user_id == user.id, SL.run_date >= since)
+        .group_by(SL.account_id)
+    )
+    return {
+        str(row.account_id): {
+            "sessions": row.sessions,
+            "likes": row.likes,
+            "follows": row.follows,
+            "unfollows": row.unfollows,
+        }
+        for row in result.all()
+    }
+
+
+@router.get("/followback-summary", response_model=dict)
+async def followback_summary(
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+    period: str = Query("day"),
+):
+    """Per-account follow-back rates for targets followed within a time period."""
+    since = _period_start(period)
+    FT = FollowTarget
+
+    result = await session.execute(
+        select(
+            FT.account_id,
+            func.count().label("followed"),
+            func.sum(case((FT.follow_back == True, 1), else_=0)).label("followed_back"),
+        )
+        .where(
+            FT.user_id == user.id,
+            FT.follow_date >= since,
+            FT.follow_back.isnot(None),
+        )
+        .group_by(FT.account_id)
+    )
+    rows = result.all()
+    return {
+        str(row.account_id): {
+            "followed": row.followed,
+            "followed_back": row.followed_back,
+            "rate": round(row.followed_back / row.followed, 2) if row.followed else None,
+        }
+        for row in rows
+    }
 
 
 @router.get("/{account_id}", response_model=AccountRead)
