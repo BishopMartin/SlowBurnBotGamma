@@ -103,7 +103,7 @@ export default function AccountsPage() {
     const arrow = active ? (sortDir === "asc" ? "↑" : "↓") : "\u00a0";
     return (
       <th
-        className={`px-2 py-2 font-normal cursor-pointer select-none transition-colors hover:text-white ${active ? "text-[#eab308]" : ""} ${className}`}
+        className={`px-2 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f0eee6] ${active ? "text-[#d97757]" : ""} ${className}`}
         onClick={() => toggleSort(field)}
       >
         <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>
@@ -337,22 +337,22 @@ export default function AccountsPage() {
                       <div className="flex items-center justify-end gap-1">
                         {tab === "settings" && (
                           <Link href={`/dashboard/accounts/${account.id}`} className="group font-mono transition-colors">
-                            <Bracket className="text-[#73726c] group-hover:text-white">settings</Bracket>
+                            <Bracket className="text-[#73726c] group-hover:text-[#d97757]">settings</Bracket>
                           </Link>
                         )}
                         {tab === "activity" && (
                           <Link href={`/dashboard/accounts/${account.id}/log`} className="group font-mono transition-colors">
-                            <Bracket className="text-[#73726c] group-hover:text-white">log</Bracket>
+                            <Bracket className="text-[#73726c] group-hover:text-[#d97757]">log</Bracket>
                           </Link>
                         )}
                         {tab === "stats" && (
                           <Link href={`/dashboard/accounts/${account.id}/database`} className="group font-mono transition-colors">
-                            <Bracket className="text-[#73726c] group-hover:text-white">stats</Bracket>
+                            <Bracket className="text-[#73726c] group-hover:text-[#d97757]">stats</Bracket>
                           </Link>
                         )}
                         {tab === "database" && (
                           <Link href={`/dashboard/accounts/${account.id}/database`} className="group font-mono transition-colors">
-                            <Bracket className="text-[#73726c] group-hover:text-white">data</Bracket>
+                            <Bracket className="text-[#73726c] group-hover:text-[#d97757]">data</Bracket>
                           </Link>
                         )}
                       </div>
@@ -379,7 +379,7 @@ export default function AccountsPage() {
               disabled={adding}
               className="group font-mono disabled:opacity-50 transition-colors shrink-0"
             >
-              <Bracket className="text-[#eab308] group-hover:text-white">add</Bracket>
+              <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">add</Bracket>
             </button>
           </form>
         </div>

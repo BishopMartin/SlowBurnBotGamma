@@ -40,7 +40,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex flex-col font-mono">
       <div className="flex-1 max-w-5xl mx-auto w-full border-x border-[#3d3d3a]">
         <header className="px-6 py-3">
-          <span className="font-semibold text-[#eab308]">SlowBurnBot</span>
+          <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
         </header>
         <main className="px-6 py-6">
         <div className="text-[#73726c] mb-4">create account</div>
@@ -87,11 +87,11 @@ export default function RegisterPage() {
               disabled={loading}
               className="group disabled:opacity-50 transition-colors"
             >
-              <Bracket className="text-[#eab308] group-hover:text-white">
+              <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
                 {loading ? "creating…" : "create account"}
               </Bracket>
             </button>
-            <Link href="/login" className="text-[#73726c] hover:text-white transition-colors">
+            <Link href="/login" className="text-[#73726c] hover:text-[#d97757] transition-colors">
               ← sign in
             </Link>
           </div>

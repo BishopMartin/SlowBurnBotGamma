@@ -44,7 +44,7 @@ export function Dropdown({
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setOpen((o) => !o)}
-        className={`bg-transparent outline-none cursor-pointer text-[#f0eee6] ${disabled ? "text-[#3d3d3a] cursor-default" : "hover:text-white"}`}
+        className={`bg-transparent outline-none cursor-pointer text-[#f0eee6] ${disabled ? "text-[#3d3d3a] cursor-default" : ""}`}
       >
         {display}
       </button>
@@ -56,8 +56,8 @@ export function Dropdown({
               onClick={() => { onChange(opt.value); setOpen(false); }}
               className={`px-3 py-1 cursor-pointer transition-colors ${
                 opt.value === value
-                  ? "bg-[#2a2927] text-[#eab308]"
-                  : "text-[#f0eee6] hover:bg-[#2a2927] hover:text-white"
+                  ? "bg-[#d97757] text-[#141413]"
+                  : "text-[#f0eee6] hover:bg-[#2a2927]"
               }`}
             >
               {opt.label}

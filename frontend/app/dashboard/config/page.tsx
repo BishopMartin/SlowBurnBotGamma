@@ -212,7 +212,7 @@ export default function ConfigPage() {
           disabled={saving}
           className="group disabled:opacity-50 transition-colors"
         >
-          <Bracket className="text-[#eab308] group-hover:text-white">
+          <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
             {saving ? "saving…" : "save"}
           </Bracket>
         </button>

@@ -42,7 +42,7 @@ export default function AccountDatabasePage() {
     const arrow = active ? (sortDir === "asc" ? "↑" : "↓") : "\u00a0";
     return (
       <th
-        className={`px-4 py-2 font-normal cursor-pointer select-none transition-colors hover:text-white ${active ? "text-[#eab308]" : ""} ${className}`}
+        className={`px-4 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f0eee6] ${active ? "text-[#d97757]" : ""} ${className}`}
         onClick={() => toggleSort(field)}
       >
         <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>
@@ -78,7 +78,7 @@ export default function AccountDatabasePage() {
   return (
     <div className="space-y-4 font-mono">
       <div className="flex items-center gap-3 flex-wrap">
-        <Link href="/dashboard/accounts" className="text-[#73726c] hover:text-white transition-colors">
+        <Link href="/dashboard/accounts" className="text-[#73726c] hover:text-[#f0eee6] transition-colors">
           ← accounts
         </Link>
         <span className="text-[#3d3d3a]">/</span>
@@ -127,7 +127,7 @@ export default function AccountDatabasePage() {
           <button
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
-            className="disabled:opacity-30 text-[#73726c] hover:text-white transition-colors"
+            className="disabled:opacity-30 text-[#73726c] hover:text-[#f0eee6] transition-colors"
           >
             [prev]
           </button>
@@ -137,7 +137,7 @@ export default function AccountDatabasePage() {
           <button
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="disabled:opacity-30 text-[#73726c] hover:text-white transition-colors"
+            className="disabled:opacity-30 text-[#73726c] hover:text-[#f0eee6] transition-colors"
           >
             [next]
           </button>
