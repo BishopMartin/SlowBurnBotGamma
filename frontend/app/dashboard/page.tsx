@@ -46,14 +46,13 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <div className="flex items-center justify-between">
-        <span className="text-[#f0eee6]">accounts</span>
-        <Link href="/dashboard/accounts" className="text-[#d97757] hover:text-[#f0eee6] transition-colors">
-          manage →
-        </Link>
-      </div>
-
       <div className="border border-[#3d3d3a]">
+        <div className="flex items-center justify-between border-b border-[#3d3d3a] px-4 py-2">
+          <span className="text-[#f0eee6]">accounts</span>
+          <Link href="/dashboard/accounts" className="text-[#d97757] hover:text-[#f0eee6] transition-colors">
+            manage →
+          </Link>
+        </div>
         {accounts.length === 0 ? (
           <div className="px-4 py-6 text-[#73726c]">
             no accounts yet.{" "}
