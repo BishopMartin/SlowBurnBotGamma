@@ -12,6 +12,7 @@ import {
   RecentSessionLogEntry,
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
+import { formatSessionAction } from "@/lib/format";
 
 function fmtTime(iso: string | null): string {
   if (!iso) return "—";
@@ -21,11 +22,6 @@ function fmtTime(iso: string | null): string {
   const period = h >= 12 ? "PM" : "AM";
   const h12 = h % 12 || 12;
   return `${String(h12).padStart(2, "0")}:${String(m).padStart(2, "0")}${period}`;
-}
-
-function fmtAction(type: string | null, count: number): string {
-  if (!type) return "—";
-  return `${type} (${count})`;
 }
 
 export default function DashboardPage() {
@@ -154,16 +150,16 @@ export default function DashboardPage() {
                     <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtTime(entry.start_time)}</td>
                     <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtTime(entry.end_time)}</td>
                     <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">
-                      {fmtAction(entry.action_1_type, entry.action_1_count)}
+                      {formatSessionAction(entry.action_1_type, entry.action_1_count)}
                     </td>
                     <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">
-                      {fmtAction(entry.action_2_type, entry.action_2_count)}
+                      {formatSessionAction(entry.action_2_type, entry.action_2_count)}
                     </td>
                     <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">
-                      {fmtAction(entry.action_3_type, entry.action_3_count)}
+                      {formatSessionAction(entry.action_3_type, entry.action_3_count)}
                     </td>
                     <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">
-                      {fmtAction(entry.action_4_type, entry.action_4_count)}
+                      {formatSessionAction(entry.action_4_type, entry.action_4_count)}
                     </td>
                     <td className="px-2 py-1.5 whitespace-nowrap">
                       {entry.error_message ? (

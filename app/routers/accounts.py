@@ -40,6 +40,20 @@ def _account_read(account: Account) -> AccountRead:
     )
 
 
+def _clean_session_action_type(raw: str | None) -> str | None:
+    """Strip placeholders and mis-mapped numeric cells (bad runlog imports) from action type fields."""
+    if raw is None:
+        return None
+    s = raw.strip()
+    if not s or s in ("—", "--", "-"):
+        return None
+    try:
+        float(s.replace(",", ""))
+        return None
+    except ValueError:
+        return s
+
+
 @router.get("", response_model=list[AccountRead])
 async def list_accounts(
     user: User = Depends(current_active_user),
@@ -190,13 +204,13 @@ async def get_recent_log_across_accounts(
                 "run_sequence": lg.run_sequence,
                 "start_time": fmt_dt(lg.start_time),
                 "end_time": fmt_dt(lg.end_time),
-                "action_1_type": lg.action_1_type,
+                "action_1_type": _clean_session_action_type(lg.action_1_type),
                 "action_1_count": lg.action_1_count,
-                "action_2_type": lg.action_2_type,
+                "action_2_type": _clean_session_action_type(lg.action_2_type),
                 "action_2_count": lg.action_2_count,
-                "action_3_type": lg.action_3_type,
+                "action_3_type": _clean_session_action_type(lg.action_3_type),
                 "action_3_count": lg.action_3_count,
-                "action_4_type": lg.action_4_type,
+                "action_4_type": _clean_session_action_type(lg.action_4_type),
                 "action_4_count": lg.action_4_count,
                 "error_message": lg.error_message,
             }
@@ -456,13 +470,13 @@ async def get_account_log(
                 "run_sequence": lg.run_sequence,
                 "start_time": fmt_dt(lg.start_time),
                 "end_time": fmt_dt(lg.end_time),
-                "action_1_type": lg.action_1_type,
+                "action_1_type": _clean_session_action_type(lg.action_1_type),
                 "action_1_count": lg.action_1_count,
-                "action_2_type": lg.action_2_type,
+                "action_2_type": _clean_session_action_type(lg.action_2_type),
                 "action_2_count": lg.action_2_count,
-                "action_3_type": lg.action_3_type,
+                "action_3_type": _clean_session_action_type(lg.action_3_type),
                 "action_3_count": lg.action_3_count,
-                "action_4_type": lg.action_4_type,
+                "action_4_type": _clean_session_action_type(lg.action_4_type),
                 "action_4_count": lg.action_4_count,
                 "error_message": lg.error_message,
             }

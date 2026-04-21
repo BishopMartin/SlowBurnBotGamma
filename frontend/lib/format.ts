@@ -29,3 +29,20 @@ export function scheduleLabel(s: {
   }
   return parts.length ? parts.join(" ") : "—";
 }
+
+/** True when stored type is a placeholder or a mis-mapped number (bad runlog import), not a real action label. */
+export function isInvalidSessionActionType(type: string | null | undefined): boolean {
+  if (type == null || type.trim() === "") return true;
+  const t = type.trim();
+  if (t === "—" || t === "--" || t === "-") return true;
+  const normalized = t.replace(/,/g, "");
+  return /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(normalized);
+}
+
+/**
+ * Display one session-log action slot. Hides junk types so stats columns are not shown as fake actions.
+ */
+export function formatSessionAction(type: string | null | undefined, count: number): string {
+  if (isInvalidSessionActionType(type)) return "—";
+  return `${type!.trim()} (${count})`;
+}

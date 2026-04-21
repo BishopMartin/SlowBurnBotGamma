@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getAccounts, getAccountLog, Account, SessionLogEntry } from "@/lib/api";
+import { formatSessionAction } from "@/lib/format";
 import { Bracket } from "@/lib/bracket";
 
 const PAGE_SIZE = 100;
@@ -20,11 +21,6 @@ function fmtTime(iso: string | null): string {
   const period = h >= 12 ? "PM" : "AM";
   const h12 = h % 12 || 12;
   return `${String(h12).padStart(2, "0")}:${String(m).padStart(2, "0")}${period}`;
-}
-
-function fmtAction(type: string | null, count: number): string {
-  if (!type) return "—";
-  return `${type} (${count})`;
 }
 
 export default function AccountLogPage() {
@@ -141,10 +137,10 @@ export default function AccountLogPage() {
                       <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{entry.run_sequence}</td>
                       <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtTime(entry.start_time)}</td>
                       <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtTime(entry.end_time)}</td>
-                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtAction(entry.action_1_type, entry.action_1_count)}</td>
-                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtAction(entry.action_2_type, entry.action_2_count)}</td>
-                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtAction(entry.action_3_type, entry.action_3_count)}</td>
-                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtAction(entry.action_4_type, entry.action_4_count)}</td>
+                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{formatSessionAction(entry.action_1_type, entry.action_1_count)}</td>
+                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{formatSessionAction(entry.action_2_type, entry.action_2_count)}</td>
+                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{formatSessionAction(entry.action_3_type, entry.action_3_count)}</td>
+                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{formatSessionAction(entry.action_4_type, entry.action_4_count)}</td>
                       <td className="px-2 py-1.5 whitespace-nowrap">
                         {entry.error_message ? (
                           <button
