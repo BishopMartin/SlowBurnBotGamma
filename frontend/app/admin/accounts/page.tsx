@@ -55,7 +55,7 @@ export default function AdminAccountsPage() {
                       href={`/admin/accounts/${a.id}/follow-targets`}
                       className="group transition-colors"
                     >
-                      <Bracket className="text-[#73726c] group-hover:text-[#d97757]">
+                      <Bracket className="text-[#73726c] group-hover:text-white">
                         follow-targets
                       </Bracket>
                     </Link>

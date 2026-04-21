@@ -59,7 +59,7 @@ export default function AccountLogPage() {
     const arrow = active ? (sortDir === "asc" ? "↑" : "↓") : "\u00a0";
     return (
       <th
-        className={`px-2 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f0eee6] ${active ? "text-[#d97757]" : ""} ${className}`}
+        className={`px-2 py-2 font-normal cursor-pointer select-none transition-colors hover:text-white ${active ? "text-[#eab308]" : ""} ${className}`}
         onClick={() => toggleSort(field)}
       >
         <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>
@@ -95,7 +95,7 @@ export default function AccountLogPage() {
   return (
     <div className="space-y-4 font-mono">
       <div className="flex items-center gap-3 flex-wrap">
-        <Link href="/dashboard/accounts" className="text-[#73726c] hover:text-[#f0eee6] transition-colors">
+        <Link href="/dashboard/accounts" className="text-[#73726c] hover:text-white transition-colors">
           ← accounts
         </Link>
         <span className="text-[#3d3d3a]">/</span>
@@ -178,7 +178,7 @@ export default function AccountLogPage() {
             onClick={() => setPage((p) => p - 1)}
             className="disabled:opacity-30 transition-colors"
           >
-            <Bracket className="text-[#73726c] hover:text-[#f0eee6]">prev</Bracket>
+            <Bracket className="text-[#73726c] hover:text-white">prev</Bracket>
           </button>
           <span className="text-[#73726c]">
             page {page} / {totalPages}
@@ -188,7 +188,7 @@ export default function AccountLogPage() {
             onClick={() => setPage((p) => p + 1)}
             className="disabled:opacity-30 transition-colors"
           >
-            <Bracket className="text-[#73726c] hover:text-[#f0eee6]">next</Bracket>
+            <Bracket className="text-[#73726c] hover:text-white">next</Bracket>
           </button>
         </div>
       )}

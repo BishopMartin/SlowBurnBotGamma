@@ -190,7 +190,7 @@ export default function AdminConfigPage() {
           disabled={saving}
           className="group disabled:opacity-50 transition-colors"
         >
-          <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
+          <Bracket className="text-[#eab308] group-hover:text-white">
             {saving ? "saving…" : "save"}
           </Bracket>
         </button>

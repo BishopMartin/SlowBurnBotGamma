@@ -34,15 +34,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex-1 max-w-5xl mx-auto w-full border-x border-[#3d3d3a]">
         <header className="px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
-            <Link href="/admin" className={`transition-colors ${pathname.startsWith("/admin") && pathname !== "/admin/config" ? "text-[#f0eee6]" : "text-[#73726c] hover:text-[#f0eee6]"}`}>admin</Link>
-            <Link href="/admin/config" className={`transition-colors ${pathname === "/admin/config" ? "text-[#f0eee6]" : "text-[#73726c] hover:text-[#f0eee6]"}`}>config</Link>
+            <span className="font-semibold text-[#eab308]">SlowBurnBot</span>
+            <Link href="/admin" className={`transition-colors ${pathname.startsWith("/admin") && pathname !== "/admin/config" ? "text-[#eab308]" : "text-[#73726c] hover:text-white"}`}>admin</Link>
+            <Link href="/admin/config" className={`transition-colors ${pathname === "/admin/config" ? "text-[#eab308]" : "text-[#73726c] hover:text-white"}`}>config</Link>
           </div>
           <div className="flex items-center gap-4">
             <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#73726c] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
             <span className="text-[#73726c]">{user.email}</span>
             <button onClick={handleLogout} className="group transition-colors">
-              <Bracket className="text-[#73726c] group-hover:text-[#d97757]">sign out</Bracket>
+              <Bracket className="text-[#73726c] group-hover:text-white">sign out</Bracket>
             </button>
           </div>
         </header>
@@ -55,8 +55,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 href={item.href}
                 className={`transition-colors ${
                   pathname === item.href
-                    ? "text-[#f0eee6]"
-                    : "text-[#73726c] hover:text-[#f0eee6]"
+                    ? "text-[#eab308]"
+                    : "text-[#73726c] hover:text-white"
                 }`}
               >
                 {item.label}

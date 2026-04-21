@@ -136,7 +136,7 @@ export default function AccountDetailPage() {
 
       {/* Header */}
       <div className="flex items-center gap-3 flex-wrap">
-        <Link href="/dashboard/accounts" className="text-[#73726c] hover:text-[#f0eee6] transition-colors">
+        <Link href="/dashboard/accounts" className="text-[#73726c] hover:text-white transition-colors">
           ← accounts
         </Link>
         <span className="text-[#f0eee6] font-semibold">{account.name}</span>
@@ -211,7 +211,7 @@ export default function AccountDetailPage() {
                   onClick={() => setEditingPw(true)}
                   className="group cursor-pointer transition-colors"
                 >
-                  <Bracket className={account.has_password ? "text-green-400 group-hover:text-[#d97757]" : "text-[#73726c] group-hover:text-[#d97757]"}>
+                  <Bracket className={account.has_password ? "text-green-400 group-hover:text-white" : "text-[#73726c] group-hover:text-white"}>
                     {account.has_password ? "******" : "------"}
                   </Bracket>
                 </button>
@@ -433,7 +433,7 @@ export default function AccountDetailPage() {
         {/* Save / Delete */}
         <div className="flex items-center gap-6">
           <button type="submit" disabled={saving} className="group disabled:opacity-50 transition-colors">
-            <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
+            <Bracket className="text-[#eab308] group-hover:text-white">
               {saving ? "saving…" : "save settings"}
             </Bracket>
           </button>

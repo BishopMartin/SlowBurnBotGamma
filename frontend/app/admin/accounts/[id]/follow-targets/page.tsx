@@ -43,7 +43,7 @@ export default function FollowTargetsPage() {
   return (
     <div className="space-y-4 font-mono">
       <div className="flex items-center gap-3 flex-wrap">
-        <Link href="/admin/accounts" className="text-[#73726c] hover:text-[#f0eee6] transition-colors">
+        <Link href="/admin/accounts" className="text-[#73726c] hover:text-white transition-colors">
           ← accounts
         </Link>
         <span className="text-[#3d3d3a]">/</span>
@@ -94,7 +94,7 @@ export default function FollowTargetsPage() {
           <button
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
-            className="disabled:opacity-30 text-[#73726c] hover:text-[#f0eee6] transition-colors"
+            className="disabled:opacity-30 text-[#73726c] hover:text-white transition-colors"
           >
             [prev]
           </button>
@@ -104,7 +104,7 @@ export default function FollowTargetsPage() {
           <button
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="disabled:opacity-30 text-[#73726c] hover:text-[#f0eee6] transition-colors"
+            className="disabled:opacity-30 text-[#73726c] hover:text-white transition-colors"
           >
             [next]
           </button>

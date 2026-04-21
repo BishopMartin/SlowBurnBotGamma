@@ -74,14 +74,14 @@ export default function DashboardPage() {
       <div className="border border-[#3d3d3a]">
         <div className="flex items-center justify-between border-b border-[#3d3d3a] px-4 py-2">
           <span className="text-[#f0eee6]">accounts</span>
-          <Link href="/dashboard/accounts" className="text-[#d97757] hover:text-[#f0eee6] transition-colors">
+          <Link href="/dashboard/accounts" className="text-[#eab308] hover:text-white transition-colors">
             manage →
           </Link>
         </div>
         {accounts.length === 0 ? (
           <div className="px-4 py-6 text-[#73726c]">
             no accounts yet.{" "}
-            <Link href="/dashboard/accounts" className="text-[#d97757] hover:underline">
+            <Link href="/dashboard/accounts" className="text-[#eab308] hover:text-white hover:underline">
               add one
             </Link>
           </div>
@@ -111,7 +111,7 @@ export default function DashboardPage() {
       <div className="border border-[#3d3d3a]">
         <div className="flex items-center justify-between border-b border-[#3d3d3a] px-4 py-2">
           <span className="text-[#f0eee6]">recent activity</span>
-          <Link href="/dashboard/accounts" className="text-[#d97757] hover:text-[#f0eee6] transition-colors">
+          <Link href="/dashboard/accounts" className="text-[#eab308] hover:text-white transition-colors">
             by account →
           </Link>
         </div>
@@ -140,7 +140,7 @@ export default function DashboardPage() {
                     <td className="px-2 py-1.5 whitespace-nowrap">
                       <Link
                         href={`/dashboard/accounts/${entry.account_id}/log`}
-                        className="text-[#d97757] hover:text-[#f0eee6] transition-colors"
+                        className="text-[#eab308] hover:text-white transition-colors"
                       >
                         {entry.account_name}
                       </Link>

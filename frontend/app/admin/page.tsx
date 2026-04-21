@@ -91,7 +91,7 @@ export default function AdminPage() {
                       disabled={busy === u.id}
                       className="group disabled:opacity-50 transition-colors"
                     >
-                      <Bracket className={u.subscription_status === "active" ? "text-[#73726c] group-hover:text-[#f0eee6]" : "text-green-400 group-hover:text-[#f0eee6]"}>
+                      <Bracket className={u.subscription_status === "active" ? "text-[#73726c] group-hover:text-white" : "text-green-400 group-hover:text-white"}>
                         {busy === u.id ? "…" : u.subscription_status === "active" ? "deactivate" : "activate"}
                       </Bracket>
                     </button>
@@ -100,7 +100,7 @@ export default function AdminPage() {
                       disabled={busy === u.id}
                       className="group disabled:opacity-50 transition-colors"
                     >
-                      <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
+                      <Bracket className="text-[#eab308] group-hover:text-white">
                         {busy === u.id ? "…" : "sync stripe"}
                       </Bracket>
                     </button>
