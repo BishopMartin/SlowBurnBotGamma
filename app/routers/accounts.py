@@ -450,7 +450,7 @@ async def get_account_log(
     result = await session.execute(
         select(SessionLog)
         .where(SessionLog.account_id == account_id)
-        .order_by(order, SessionLog.run_date.desc(), SessionLog.run_sequence)
+        .order_by(order, SessionLog.run_date.desc(), SessionLog.run_sequence.desc())
         .offset(offset)
         .limit(page_size)
     )
