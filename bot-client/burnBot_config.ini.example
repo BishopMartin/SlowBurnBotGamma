@@ -1,0 +1,78 @@
+# Copy to burnBot_config.ini (gitignored) and adjust paths / URLs.
+
+[bot_settings]
+system_group = 1
+system_type = windows
+#system_type = chromebook
+bot_debug = FALSE
+system_user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+close_browser_session = FALSE
+close_browser_exit = FALSE
+bot_idle_delay = 5
+
+[api]
+api_url = http://127.0.0.1:8080
+
+[api_credentials]
+# Optional: store login credentials here to skip manual entry at startup
+# Leave blank to be prompted interactively
+email =
+password =
+
+[driver.uchrome.windows]
+chrome_path = PortableChrome\chrome.exe
+chrome_version = 143
+driverType = webdriver.Chrome
+headless = false
+detach = false
+chrome_user_data_dir_base = PortableChrome
+add_argument =
+    --disable-blink-features=AutomationControlled
+    --disable-features=ChromeWhatsNewUI,AutoExpandDetailsElement,WebOTP,InterestFeedContentSuggestions,DefaultBrowserPrompt,FocusStealingMitigation
+    --disable-extensions
+    --start-maximized
+    --disable-session-crashed-bubble
+    --disable-component-extensions-with-background-pages
+    --no-first-run
+    --no-default-browser-check
+    --no-sandbox
+    --disable-background-timer-throttling
+    --disable-backgrounding-occluded-windows
+    --disable-renderer-backgrounding
+    --disable-background-mode
+    --disable-notifications
+    --exclude-switches=enable-automation
+    --disable-dev-shm-usage
+    --disable-logging
+    --log-level=3
+    --silent
+    ;--auto-open-devtools-for-tabs
+
+[driver.uchrome.chromebook]
+chrome_path = /usr/bin/chromium
+chrome_version = 144
+driverType = webdriver.Chrome
+headless = false
+detach = false
+chrome_user_data_dir_base = ChromeUserData
+add_argument =
+    --disable-blink-features=AutomationControlled
+    --disable-features=ChromeWhatsNewUI,AutoExpandDetailsElement,WebOTP,InterestFeedContentSuggestions,DefaultBrowserPrompt,FocusStealingMitigation
+    --disable-extensions
+    --start-maximized
+    --disable-session-crashed-bubble
+    --disable-component-extensions-with-background-pages
+    --no-first-run
+    --no-default-browser-check
+    --no-sandbox
+    --disable-background-timer-throttling
+    --disable-backgrounding-occluded-windows
+    --disable-renderer-backgrounding
+    --disable-background-mode
+    --disable-notifications
+    --exclude-switches=enable-automation
+    --disable-dev-shm-usage
+    --disable-logging
+    --log-level=3
+    --silent
+    ;--auto-open-devtools-for-tabs

@@ -12,3 +12,4 @@ scripts/
 public/
 *.md
 frontend/
+bot-client/

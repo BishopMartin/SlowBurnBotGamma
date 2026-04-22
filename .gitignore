@@ -6,6 +6,12 @@
 # Google Sheets shortcut stubs (cloud-only; not useful in git)
 *.gsheet
 
+# Desktop bot client (merged from SlowBurnBotDelta)
+bot-client/PortableChrome/
+bot-client/ChromeUserData/
+bot-client/burnBot_config.ini
+bot-client/.venv/
+
 # Local bot state / secrets (common in sibling Beta tree; mirror here if copied)
 burnBot_runs.json
 *-slowburnbot-*.json
