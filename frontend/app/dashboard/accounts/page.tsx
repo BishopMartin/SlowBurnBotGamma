@@ -22,7 +22,7 @@ import { Dropdown } from "@/lib/dropdown";
 
 function fmtGroup(n: number | null | undefined): React.ReactNode {
   if (n == null) return <span className="text-[#73726c]">—</span>;
-  return <span className="text-[#73726c]">[{String(n).padStart(2, "0")}]</span>;
+  return <span className="text-[#73726c]">{String(n).padStart(2, "0")}</span>;
 }
 
 function fmtNum(v: number | null | undefined): string {
@@ -281,7 +281,7 @@ export default function AccountsPage() {
                 const fb = fbMap[account.id];
                 return (
                   <tr key={account.id} className="hover:bg-[#1f1e1d] transition-colors">
-                    <td className="px-2 pr-6 py-2 text-[#f0eee6] whitespace-nowrap overflow-hidden text-ellipsis" style={{ maxWidth: "20ch" }}>{account.name}</td>
+                    <td className="px-2 pr-6 py-2 text-[#73726c] whitespace-nowrap overflow-hidden text-ellipsis" style={{ maxWidth: "20ch" }}>{account.name}</td>
                     {tab === "settings" && (
                       <>
                         <td className="px-2 py-2 whitespace-nowrap">
@@ -302,9 +302,7 @@ export default function AccountsPage() {
                           {settingsMap[account.id]?.max_runs_per_day ?? "—"}
                         </td>
                         <td className="px-2 py-2 font-mono whitespace-nowrap">
-                          <span className="text-[#73726c]">[</span>
                           <span className={account.enabled ? "text-status-ok" : "text-status-bad"}>{account.enabled ? "on" : "off"}</span>
-                          <span className="text-[#73726c]">]</span>
                         </td>
                       </>
                     )}
