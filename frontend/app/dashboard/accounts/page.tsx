@@ -103,7 +103,7 @@ export default function AccountsPage() {
     const arrow = active ? (sortDir === "asc" ? "↑" : "↓") : "\u00a0";
     return (
       <th
-        className={`px-2 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f0eee6] ${active ? "text-[#d97757]" : ""} ${className}`}
+        className={`px-2 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f4f3ee] ${active ? "text-[#d97757]" : ""} ${className}`}
         onClick={() => toggleSort(field)}
       >
         <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>
@@ -187,7 +187,7 @@ export default function AccountsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
-        <h1 className="font-semibold text-[#f0eee6] font-mono">
+        <h1 className="font-semibold text-[#f4f3ee] font-mono">
           Accounts <span className="text-[#B1ADA1] font-normal">[{String(accounts.length).padStart(2, "0")}/10]</span>
         </h1>
         <span className="text-[#B1ADA1] font-mono">--</span>
@@ -250,25 +250,25 @@ export default function AccountsPage() {
                   {tab === "activity" && (
                     <span className="inline-flex items-center gap-0">
                       <span className="text-[#B1ADA1]">{"activity:\u00a0 "}</span>
-                      <span className="text-[#f0eee6]">{"["}</span>
+                      <span className="text-[#f4f3ee]">{"["}</span>
                       <Dropdown
                         value={activityPeriod}
                         onChange={(v) => setActivityPeriod(v as Period)}
                         options={summaryPeriodOptions}
                       />
-                      <span className="text-[#f0eee6]">{"]"}</span>
+                      <span className="text-[#f4f3ee]">{"]"}</span>
                     </span>
                   )}
                   {tab === "stats" && (
                     <span className="inline-flex items-center gap-0">
                       <span className="text-[#B1ADA1]">{"results:\u00a0 "}</span>
-                      <span className="text-[#f0eee6]">{"["}</span>
+                      <span className="text-[#f4f3ee]">{"["}</span>
                       <Dropdown
                         value={statsPeriod}
                         onChange={(v) => setStatsPeriod(v as Period)}
                         options={summaryPeriodOptions}
                       />
-                      <span className="text-[#f0eee6]">{"]"}</span>
+                      <span className="text-[#f4f3ee]">{"]"}</span>
                     </span>
                   )}
                 </th>
@@ -370,14 +370,14 @@ export default function AccountsPage() {
               placeholder="Account Name"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#B1ADA1] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
+              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] placeholder-[#B1ADA1] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
             />
             <button
               type="submit"
               disabled={adding}
               className="group font-mono disabled:opacity-50 transition-colors shrink-0"
             >
-              <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">add</Bracket>
+              <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">add</Bracket>
             </button>
           </form>
         </div>

@@ -10,7 +10,7 @@ const PAGE_SIZE = 100;
 function statusCls(status: string): string {
   if (status === "done") return "text-status-ok";
   if (status === "skipped") return "text-[#B1ADA1]";
-  return "text-[#f0eee6]";
+  return "text-[#f4f3ee]";
 }
 
 export default function FollowTargetsPage() {
@@ -43,11 +43,11 @@ export default function FollowTargetsPage() {
   return (
     <div className="space-y-4 font-mono">
       <div className="flex items-center gap-3 flex-wrap">
-        <Link href="/admin/accounts" className="text-[#B1ADA1] hover:text-[#f0eee6] transition-colors">
+        <Link href="/admin/accounts" className="text-[#B1ADA1] hover:text-[#f4f3ee] transition-colors">
           ← accounts
         </Link>
         <span className="text-[#3d3d3a]">/</span>
-        <span className="text-[#f0eee6]">{account?.name ?? id}</span>
+        <span className="text-[#f4f3ee]">{account?.name ?? id}</span>
         <span className="text-[#B1ADA1]">follow-targets</span>
         <span className="text-[#B1ADA1] ml-auto">
           [{total.toLocaleString()} total]
@@ -74,7 +74,7 @@ export default function FollowTargetsPage() {
             <tbody className="divide-y divide-[#3d3d3a]">
               {items.map((t) => (
                 <tr key={t.id} className="hover:bg-[#1f1e1d] transition-colors">
-                  <td className="px-4 py-1.5 text-[#f0eee6]">{t.target_handle}</td>
+                  <td className="px-4 py-1.5 text-[#f4f3ee]">{t.target_handle}</td>
                   <td className="px-4 py-1.5 text-[#B1ADA1] text-xs">{t.source ?? "—"}</td>
                   <td className={`px-4 py-1.5 ${statusCls(t.status)}`}>{t.status}</td>
                   <td className="px-4 py-1.5 text-[#B1ADA1]">{t.follow_date ?? "—"}</td>
@@ -94,7 +94,7 @@ export default function FollowTargetsPage() {
           <button
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
-            className="disabled:opacity-30 text-[#B1ADA1] hover:text-[#f0eee6] transition-colors"
+            className="disabled:opacity-30 text-[#B1ADA1] hover:text-[#f4f3ee] transition-colors"
           >
             [prev]
           </button>
@@ -104,7 +104,7 @@ export default function FollowTargetsPage() {
           <button
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="disabled:opacity-30 text-[#B1ADA1] hover:text-[#f0eee6] transition-colors"
+            className="disabled:opacity-30 text-[#B1ADA1] hover:text-[#f4f3ee] transition-colors"
           >
             [next]
           </button>

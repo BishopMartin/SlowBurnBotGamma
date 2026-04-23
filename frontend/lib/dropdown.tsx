@@ -57,7 +57,7 @@ export function Dropdown({
               className={`px-3 py-1 cursor-pointer transition-colors ${
                 opt.value === value
                   ? "bg-[#d97757] text-[#141413]"
-                  : "text-[#f0eee6] hover:bg-[#2a2927]"
+                  : "text-[#f4f3ee] hover:bg-[#2a2927]"
               }`}
             >
               {opt.label}

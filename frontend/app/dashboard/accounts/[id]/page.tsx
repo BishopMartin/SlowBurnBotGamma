@@ -136,10 +136,10 @@ export default function AccountDetailPage() {
 
       {/* Header */}
       <div className="flex items-center gap-3 flex-wrap">
-        <Link href="/dashboard/accounts" className="text-[#B1ADA1] hover:text-[#f0eee6] transition-colors">
+        <Link href="/dashboard/accounts" className="text-[#B1ADA1] hover:text-[#f4f3ee] transition-colors">
           ← accounts
         </Link>
-        <span className="text-[#f0eee6] font-semibold">{account.name}</span>
+        <span className="text-[#f4f3ee] font-semibold">{account.name}</span>
       </div>
 
       <form onSubmit={handleSaveSettings} className="space-y-4">
@@ -164,7 +164,7 @@ export default function AccountDetailPage() {
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#B1ADA1]">{"group: "}</span>
-              <span className="text-[#f0eee6]">{"["}</span>
+              <span className="text-[#f4f3ee]">{"["}</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -176,16 +176,16 @@ export default function AccountDetailPage() {
                   setAccount((a) => a && { ...a, group_number: val ? +val : null });
                 }}
                 onBlur={() => handleAccountField({ group_number: account.group_number })}
-                className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#B1ADA1] text-center"
+                className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#B1ADA1] text-center"
               />
-              <span className="text-[#f0eee6]">{"]"}</span>
+              <span className="text-[#f4f3ee]">{"]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-1">
               <span className="text-[#B1ADA1]">password:</span>
               {editingPw ? (
                 <span className="inline-flex items-center gap-0">
-                  <span className="text-[#f0eee6]">{"["}</span>
+                  <span className="text-[#f4f3ee]">{"["}</span>
                   <input
                     type="password"
                     autoFocus
@@ -201,9 +201,9 @@ export default function AccountDetailPage() {
                       if (e.key === "Escape") { setEditingPw(false); setPwValue(""); }
                     }}
                     style={{ width: "6ch" }}
-                    className="bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors"
+                    className="bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] outline-none focus:border-[#d97757] font-mono transition-colors"
                   />
-                  <span className="text-[#f0eee6]">{"]"}</span>
+                  <span className="text-[#f4f3ee]">{"]"}</span>
                 </span>
               ) : (
                 <button
@@ -228,7 +228,7 @@ export default function AccountDetailPage() {
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#B1ADA1]">{"days: "}</span>
-              <span className="text-[#f0eee6]">{"["}</span>
+              <span className="text-[#f4f3ee]">{"["}</span>
               <Dropdown
                 value={settings.schedule_days ?? ""}
                 onChange={(v) => setSettings((s) => ({ ...s, schedule_days: v || null }))}
@@ -238,12 +238,12 @@ export default function AccountDetailPage() {
                   ...SCHEDULE_DAYS.map((d) => ({ value: d, label: d })),
                 ]}
               />
-              <span className="text-[#f0eee6]">{"]"}</span>
+              <span className="text-[#f4f3ee]">{"]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#B1ADA1]">{"start: "}</span>
-              <span className="text-[#f0eee6]">{"["}</span>
+              <span className="text-[#f4f3ee]">{"["}</span>
               <input
                 type="text"
                 value={editingStart ?? (settings.schedule_start ? formatTime(settings.schedule_start) : "")}
@@ -252,14 +252,14 @@ export default function AccountDetailPage() {
                 onBlur={() => { setSettings((s) => ({ ...s, schedule_start: parseTime(editingStart ?? "") })); setEditingStart(null); }}
                 placeholder="10:00 AM"
                 style={{ width: "8ch" }}
-                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
+                className="bg-transparent text-[#f4f3ee] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]">{"]"}</span>
+              <span className="text-[#f4f3ee]">{"]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#B1ADA1]">{"end: "}</span>
-              <span className="text-[#f0eee6]">{"["}</span>
+              <span className="text-[#f4f3ee]">{"["}</span>
               <input
                 type="text"
                 value={editingEnd ?? (settings.schedule_end ? formatTime(settings.schedule_end) : "")}
@@ -268,42 +268,42 @@ export default function AccountDetailPage() {
                 onBlur={() => { setSettings((s) => ({ ...s, schedule_end: parseTime(editingEnd ?? "") })); setEditingEnd(null); }}
                 placeholder="10:00 PM"
                 style={{ width: "8ch" }}
-                className="bg-transparent text-[#f0eee6] outline-none font-mono min-w-0 px-0"
+                className="bg-transparent text-[#f4f3ee] outline-none font-mono min-w-0 px-0"
               />
-              <span className="text-[#f0eee6]">{"]"}</span>
+              <span className="text-[#f4f3ee]">{"]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#B1ADA1]">{"delay fixed: "}</span>
-              <span className="text-[#f0eee6]">{"["}</span>
+              <span className="text-[#f4f3ee]">{"["}</span>
               <NumberInput
                 value={settings.delay_base_minutes}
                 onChange={(n) => setSettings((s) => ({ ...s, delay_base_minutes: n }))}
                 placeholder="60"
               />
-              <span className="text-[#f0eee6]">{"]"}</span>
+              <span className="text-[#f4f3ee]">{"]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#B1ADA1]">{"delay random: "}</span>
-              <span className="text-[#f0eee6]">{"["}</span>
+              <span className="text-[#f4f3ee]">{"["}</span>
               <NumberInput
                 value={settings.delay_random_minutes}
                 onChange={(n) => setSettings((s) => ({ ...s, delay_random_minutes: n }))}
                 placeholder="0"
               />
-              <span className="text-[#f0eee6]">{"]"}</span>
+              <span className="text-[#f4f3ee]">{"]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#B1ADA1]">{"sessions/day: "}</span>
-              <span className="text-[#f0eee6]">{"["}</span>
+              <span className="text-[#f4f3ee]">{"["}</span>
               <NumberInput
                 value={settings.max_runs_per_day}
                 onChange={(n) => setSettings((s) => ({ ...s, max_runs_per_day: n || 1 }))}
                 placeholder="1"
               />
-              <span className="text-[#f0eee6]">{"]"}</span>
+              <span className="text-[#f4f3ee]">{"]"}</span>
             </span>
 
           </div>
@@ -365,24 +365,24 @@ export default function AccountDetailPage() {
                     </td>
                     <td className="px-4 py-2">
                       <span className="inline-flex items-center gap-0">
-                        <span className="text-[#f0eee6]">{"["}</span>
+                        <span className="text-[#f4f3ee]">{"["}</span>
                         <NumberInput
                           value={action.fixed_count}
                           onChange={(n) => updateAction(i, { fixed_count: n })}
                           placeholder="0"
                         />
-                        <span className="text-[#f0eee6]">{"]"}</span>
+                        <span className="text-[#f4f3ee]">{"]"}</span>
                       </span>
                     </td>
                     <td className="px-4 py-2">
                       <span className="inline-flex items-center gap-0">
-                        <span className="text-[#f0eee6]">{"["}</span>
+                        <span className="text-[#f4f3ee]">{"["}</span>
                         <NumberInput
                           value={action.variable_count}
                           onChange={(n) => updateAction(i, { variable_count: n })}
                           placeholder="0"
                         />
-                        <span className="text-[#f0eee6]">{"]"}</span>
+                        <span className="text-[#f4f3ee]">{"]"}</span>
                       </span>
                     </td>
                   </tr>
@@ -399,13 +399,13 @@ export default function AccountDetailPage() {
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#B1ADA1]">{"unfollow after: "}</span>
-              <span className="text-[#f0eee6]">{"["}</span>
+              <span className="text-[#f4f3ee]">{"["}</span>
               <NumberInput
                 value={settings.unfollow_days}
                 onChange={(n) => setSettings((s) => ({ ...s, unfollow_days: n || 30 }))}
                 placeholder="30"
               />
-              <span className="text-[#f0eee6]">{"]"}</span>
+              <span className="text-[#f4f3ee]">{"]"}</span>
               <span className="text-[#B1ADA1]">{" days"}</span>
             </span>
 
@@ -416,7 +416,7 @@ export default function AccountDetailPage() {
               <textarea placeholder="comma-separated" rows={5}
                 value={settings.account_group ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, account_group: e.target.value || null }))}
-                className="w-full bg-transparent border border-[#3d3d3a] text-[#f0eee6] placeholder-[#B1ADA1] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
+                className="w-full bg-transparent border border-[#3d3d3a] text-[#f4f3ee] placeholder-[#B1ADA1] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
               />
             </div>
             <div>
@@ -424,7 +424,7 @@ export default function AccountDetailPage() {
               <textarea placeholder="comma-separated" rows={5}
                 value={settings.topics ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, topics: e.target.value || null }))}
-                className="w-full bg-transparent border border-[#3d3d3a] text-[#f0eee6] placeholder-[#B1ADA1] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
+                className="w-full bg-transparent border border-[#3d3d3a] text-[#f4f3ee] placeholder-[#B1ADA1] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
               />
             </div>
           </div>
@@ -433,7 +433,7 @@ export default function AccountDetailPage() {
         {/* Save / Delete */}
         <div className="flex items-center gap-6">
           <button type="submit" disabled={saving} className="group disabled:opacity-50 transition-colors">
-            <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
+            <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
               {saving ? "saving…" : "save settings"}
             </Bracket>
           </button>

@@ -2,7 +2,7 @@
 
 :root {
   --background: #141413;
-  --foreground: #f0eee6;
+  --foreground: #f4f3ee;
   /* Positive / “green” (nav selection uses #eab308 in layouts, not this token) */
   --status-ok: #adcc00;
   --status-bad: #cf3b0a;
@@ -46,7 +46,7 @@ select:focus {
 
 select option {
   background-color: #1f1e1d;
-  color: #f0eee6;
+  color: #f4f3ee;
 }
 
 select option:checked {

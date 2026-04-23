@@ -48,7 +48,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#B1ADA1] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
+              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] placeholder-[#B1ADA1] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -59,7 +59,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] placeholder-[#B1ADA1] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
+              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] placeholder-[#B1ADA1] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
             />
           </div>
           <div className="flex items-center justify-between pt-1">
@@ -68,7 +68,7 @@ export default function LoginPage() {
               disabled={loading}
               className="group disabled:opacity-50 transition-colors"
             >
-              <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
+              <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
                 {loading ? "signing in…" : "sign in"}
               </Bracket>
             </button>

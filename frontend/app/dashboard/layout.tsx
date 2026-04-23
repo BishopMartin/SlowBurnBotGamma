@@ -56,7 +56,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       : "text-[#B1ADA1] hover:text-white"
                   }`}
                 >
-                  <span className="text-[#f0eee6]">[</span>{item.label}<span className="text-[#f0eee6]">]</span>
+                  <span className="text-[#f4f3ee]">[</span>{item.label}<span className="text-[#f4f3ee]">]</span>
                 </Link>
               ))}
             </nav>

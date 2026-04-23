@@ -59,7 +59,7 @@ export default function AccountLogPage() {
     const arrow = active ? (sortDir === "asc" ? "↑" : "↓") : "\u00a0";
     return (
       <th
-        className={`px-2 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f0eee6] ${active ? "text-[#d97757]" : ""} ${className}`}
+        className={`px-2 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f4f3ee] ${active ? "text-[#d97757]" : ""} ${className}`}
         onClick={() => toggleSort(field)}
       >
         <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>
@@ -95,11 +95,11 @@ export default function AccountLogPage() {
   return (
     <div className="space-y-4 font-mono">
       <div className="flex items-center gap-3 flex-wrap">
-        <Link href="/dashboard/accounts" className="text-[#B1ADA1] hover:text-[#f0eee6] transition-colors">
+        <Link href="/dashboard/accounts" className="text-[#B1ADA1] hover:text-[#f4f3ee] transition-colors">
           ← accounts
         </Link>
         <span className="text-[#3d3d3a]">/</span>
-        <span className="text-[#f0eee6]">{account.name}</span>
+        <span className="text-[#f4f3ee]">{account.name}</span>
         <span className="text-[#B1ADA1]">/ log</span>
         <span className="text-[#B1ADA1] ml-auto">[{total.toLocaleString()} entries]</span>
       </div>
@@ -133,7 +133,7 @@ export default function AccountLogPage() {
                   return (
                   <>
                     <tr key={entry.id} className={`hover:bg-[#1f1e1d] transition-colors ${isNewDay ? "border-t-[3px] border-double border-[#B1ADA1]" : "border-t border-[#3d3d3a]"}`}>
-                      <td className="px-2 py-1.5 text-[#f0eee6] whitespace-nowrap">{entry.run_date ?? "—"}</td>
+                      <td className="px-2 py-1.5 text-[#f4f3ee] whitespace-nowrap">{entry.run_date ?? "—"}</td>
                       <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{entry.run_sequence}</td>
                       <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{fmtTime(entry.start_time)}</td>
                       <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{fmtTime(entry.end_time)}</td>
@@ -178,7 +178,7 @@ export default function AccountLogPage() {
             onClick={() => setPage((p) => p - 1)}
             className="disabled:opacity-30 transition-colors"
           >
-            <Bracket className="text-[#B1ADA1] hover:text-[#f0eee6]">prev</Bracket>
+            <Bracket className="text-[#B1ADA1] hover:text-[#f4f3ee]">prev</Bracket>
           </button>
           <span className="text-[#B1ADA1]">
             page {page} / {totalPages}
@@ -188,7 +188,7 @@ export default function AccountLogPage() {
             onClick={() => setPage((p) => p + 1)}
             className="disabled:opacity-30 transition-colors"
           >
-            <Bracket className="text-[#B1ADA1] hover:text-[#f0eee6]">next</Bracket>
+            <Bracket className="text-[#B1ADA1] hover:text-[#f4f3ee]">next</Bracket>
           </button>
         </div>
       )}

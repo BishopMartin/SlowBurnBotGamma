@@ -56,7 +56,7 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-4 font-mono">
-      <h1 className="font-semibold text-[#f0eee6]">admin — users</h1>
+      <h1 className="font-semibold text-[#f4f3ee]">admin — users</h1>
       {msg && <p className="text-status-ok">{msg}</p>}
       <div className="border border-[#3d3d3a]">
         {users.length === 0 ? (
@@ -75,7 +75,7 @@ export default function AdminPage() {
             <tbody className="divide-y divide-[#3d3d3a]">
               {users.map((u) => (
                 <tr key={u.id} className="hover:bg-[#1f1e1d] transition-colors">
-                  <td className="px-4 py-2 text-[#f0eee6]">{u.email}</td>
+                  <td className="px-4 py-2 text-[#f4f3ee]">{u.email}</td>
                   <td className="px-4 py-2 text-[#bfbdb4]">{u.plan_tier}</td>
                   <td className="px-4 py-2">
                     <Bracket className={u.subscription_status === "active" ? "text-status-ok" : "text-[#B1ADA1]"}>
@@ -91,7 +91,7 @@ export default function AdminPage() {
                       disabled={busy === u.id}
                       className="group disabled:opacity-50 transition-colors"
                     >
-                      <Bracket className={u.subscription_status === "active" ? "text-[#B1ADA1] group-hover:text-[#f0eee6]" : "text-status-ok group-hover:text-[#f0eee6]"}>
+                      <Bracket className={u.subscription_status === "active" ? "text-[#B1ADA1] group-hover:text-[#f4f3ee]" : "text-status-ok group-hover:text-[#f4f3ee]"}>
                         {busy === u.id ? "…" : u.subscription_status === "active" ? "deactivate" : "activate"}
                       </Bracket>
                     </button>
@@ -100,7 +100,7 @@ export default function AdminPage() {
                       disabled={busy === u.id}
                       className="group disabled:opacity-50 transition-colors"
                     >
-                      <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
+                      <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
                         {busy === u.id ? "…" : "sync stripe"}
                       </Bracket>
                     </button>

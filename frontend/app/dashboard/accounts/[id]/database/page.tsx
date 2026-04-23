@@ -13,7 +13,7 @@ type SortDir = "asc" | "desc";
 function statusCls(status: string): string {
   if (status === "done") return "text-status-ok";
   if (status === "skipped") return "text-[#B1ADA1]";
-  return "text-[#f0eee6]";
+  return "text-[#f4f3ee]";
 }
 
 export default function AccountDatabasePage() {
@@ -42,7 +42,7 @@ export default function AccountDatabasePage() {
     const arrow = active ? (sortDir === "asc" ? "↑" : "↓") : "\u00a0";
     return (
       <th
-        className={`px-4 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f0eee6] ${active ? "text-[#d97757]" : ""} ${className}`}
+        className={`px-4 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f4f3ee] ${active ? "text-[#d97757]" : ""} ${className}`}
         onClick={() => toggleSort(field)}
       >
         <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>
@@ -78,11 +78,11 @@ export default function AccountDatabasePage() {
   return (
     <div className="space-y-4 font-mono">
       <div className="flex items-center gap-3 flex-wrap">
-        <Link href="/dashboard/accounts" className="text-[#B1ADA1] hover:text-[#f0eee6] transition-colors">
+        <Link href="/dashboard/accounts" className="text-[#B1ADA1] hover:text-[#f4f3ee] transition-colors">
           ← accounts
         </Link>
         <span className="text-[#3d3d3a]">/</span>
-        <span className="text-[#f0eee6]">{account.name}</span>
+        <span className="text-[#f4f3ee]">{account.name}</span>
         <span className="text-[#B1ADA1]">/ database</span>
         <span className="text-[#B1ADA1] ml-auto">[{total.toLocaleString()} records]</span>
       </div>
@@ -107,7 +107,7 @@ export default function AccountDatabasePage() {
             <tbody className="divide-y divide-[#3d3d3a]">
               {items.map((t) => (
                 <tr key={t.id} className="hover:bg-[#1f1e1d] transition-colors">
-                  <td className="px-4 py-1.5 text-[#f0eee6]">{t.target_handle}</td>
+                  <td className="px-4 py-1.5 text-[#f4f3ee]">{t.target_handle}</td>
                   <td className="px-4 py-1.5 text-[#B1ADA1] text-xs">{t.source ?? "—"}</td>
                   <td className={`px-4 py-1.5 ${statusCls(t.status)}`}>{t.status}</td>
                   <td className="px-4 py-1.5 text-[#B1ADA1]">{t.follow_date ?? "—"}</td>
@@ -127,7 +127,7 @@ export default function AccountDatabasePage() {
           <button
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
-            className="disabled:opacity-30 text-[#B1ADA1] hover:text-[#f0eee6] transition-colors"
+            className="disabled:opacity-30 text-[#B1ADA1] hover:text-[#f4f3ee] transition-colors"
           >
             [prev]
           </button>
@@ -137,7 +137,7 @@ export default function AccountDatabasePage() {
           <button
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="disabled:opacity-30 text-[#B1ADA1] hover:text-[#f0eee6] transition-colors"
+            className="disabled:opacity-30 text-[#B1ADA1] hover:text-[#f4f3ee] transition-colors"
           >
             [next]
           </button>

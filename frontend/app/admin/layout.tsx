@@ -55,7 +55,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   headerAdminActive ? "text-[#d97757]" : "text-[#B1ADA1] hover:text-white"
                 }`}
               >
-                <span className="text-[#f0eee6]">[</span>admin<span className="text-[#f0eee6]">]</span>
+                <span className="text-[#f4f3ee]">[</span>admin<span className="text-[#f4f3ee]">]</span>
               </Link>
               <Link
                 href="/admin/config"
@@ -63,7 +63,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   headerConfigActive ? "text-[#d97757]" : "text-[#B1ADA1] hover:text-white"
                 }`}
               >
-                <span className="text-[#f0eee6]">[</span>config<span className="text-[#f0eee6]">]</span>
+                <span className="text-[#f4f3ee]">[</span>config<span className="text-[#f4f3ee]">]</span>
               </Link>
             </nav>
           </div>

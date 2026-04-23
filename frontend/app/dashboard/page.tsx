@@ -40,7 +40,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 font-mono">
-      <h1 className="font-semibold text-[#f0eee6]">
+      <h1 className="font-semibold text-[#f4f3ee]">
         Overview{user?.display_name ? ` — ${user.display_name}` : ""}
       </h1>
 
@@ -64,7 +64,7 @@ export default function DashboardPage() {
           >
             <span className="text-[#B1ADA1] shrink-0">{label}</span>
             <div className="flex items-center gap-2 min-w-0 justify-end">
-              <span className="text-[#f0eee6] font-semibold capitalize truncate">{value}</span>
+              <span className="text-[#f4f3ee] font-semibold capitalize truncate">{value}</span>
               {sub}
             </div>
           </div>
@@ -73,8 +73,8 @@ export default function DashboardPage() {
 
       <div className="border border-[#3d3d3a]">
         <div className="flex items-center justify-between border-b border-[#3d3d3a] px-4 py-2">
-          <span className="text-[#f0eee6]">accounts</span>
-          <Link href="/dashboard/accounts" className="text-[#d97757] hover:text-[#f0eee6] transition-colors">
+          <span className="text-[#f4f3ee]">accounts</span>
+          <Link href="/dashboard/accounts" className="text-[#d97757] hover:text-[#f4f3ee] transition-colors">
             manage →
           </Link>
         </div>
@@ -90,7 +90,7 @@ export default function DashboardPage() {
             <tbody className="divide-y divide-[#3d3d3a]">
               {accounts.slice(0, 5).map((account) => (
                 <tr key={account.id}>
-                  <td className="px-4 py-2 text-[#f0eee6]">
+                  <td className="px-4 py-2 text-[#f4f3ee]">
                     {account.name}
                     {account.group_number != null && (
                       <span className="ml-2 text-[#B1ADA1]">grp:{account.group_number}</span>
@@ -110,8 +110,8 @@ export default function DashboardPage() {
 
       <div className="border border-[#3d3d3a]">
         <div className="flex items-center justify-between border-b border-[#3d3d3a] px-4 py-2">
-          <span className="text-[#f0eee6]">recent activity</span>
-          <Link href="/dashboard/accounts" className="text-[#d97757] hover:text-[#f0eee6] transition-colors">
+          <span className="text-[#f4f3ee]">recent activity</span>
+          <Link href="/dashboard/accounts" className="text-[#d97757] hover:text-[#f4f3ee] transition-colors">
             by account →
           </Link>
         </div>
@@ -140,12 +140,12 @@ export default function DashboardPage() {
                     <td className="px-2 py-1.5 whitespace-nowrap">
                       <Link
                         href={`/dashboard/accounts/${entry.account_id}/log`}
-                        className="text-[#d97757] hover:text-[#f0eee6] transition-colors"
+                        className="text-[#d97757] hover:text-[#f4f3ee] transition-colors"
                       >
                         {entry.account_name}
                       </Link>
                     </td>
-                    <td className="px-2 py-1.5 text-[#f0eee6] whitespace-nowrap">{entry.run_date ?? "—"}</td>
+                    <td className="px-2 py-1.5 text-[#f4f3ee] whitespace-nowrap">{entry.run_date ?? "—"}</td>
                     <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{entry.run_sequence}</td>
                     <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{fmtTime(entry.start_time)}</td>
                     <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{fmtTime(entry.end_time)}</td>

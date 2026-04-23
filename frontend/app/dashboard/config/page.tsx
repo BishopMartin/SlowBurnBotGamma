@@ -87,7 +87,7 @@ export default function ConfigPage() {
 
   return (
     <div className="space-y-6 font-mono">
-      <h1 className="font-semibold text-[#f0eee6]">Config</h1>
+      <h1 className="font-semibold text-[#f4f3ee]">Config</h1>
 
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#B1ADA1]">session settings</div>
@@ -134,7 +134,7 @@ export default function ConfigPage() {
 
           <span className="inline-flex items-center gap-0">
             <span className="text-[#B1ADA1]">{"login tries: "}</span>
-            <span className="text-[#f0eee6]">{"["}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
             <NumberInput
               value={loginTries}
               onChange={(n) => setLoginTries(n || 1)}
@@ -142,7 +142,7 @@ export default function ConfigPage() {
               max={10}
               maxLength={2}
             />
-            <span className="text-[#f0eee6]">{"]"}</span>
+            <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
         </div>
       </div>
@@ -166,42 +166,42 @@ export default function ConfigPage() {
 
           <span className="inline-flex items-center gap-0">
             <span className="text-[#B1ADA1]">{"type: "}</span>
-            <span className="text-[#f0eee6]">{"["}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
             <Dropdown
               value={noticesType}
               onChange={(v) => setNoticesType(v)}
               placeholder="----"
               options={NOTICES_OPTIONS}
             />
-            <span className="text-[#f0eee6]">{"]"}</span>
+            <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
             <span className="text-[#B1ADA1]">{"email: "}</span>
-            <span className="text-[#f0eee6]">{"["}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
             <input
               type="email"
               value={notifyEmail}
               onChange={(e) => setNotifyEmail(e.target.value)}
               placeholder="email@example.com"
               style={{ width: "20ch" }}
-              className="bg-transparent text-[#f0eee6] placeholder-[#B1ADA1] outline-none font-mono min-w-0 px-0"
+              className="bg-transparent text-[#f4f3ee] placeholder-[#B1ADA1] outline-none font-mono min-w-0 px-0"
             />
-            <span className="text-[#f0eee6]">{"]"}</span>
+            <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
             <span className="text-[#B1ADA1]">{"phone: "}</span>
-            <span className="text-[#f0eee6]">{"["}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
             <input
               type="tel"
               value={formatPhone(notifyPhone)}
               onChange={(e) => setNotifyPhone(stripPhone(e.target.value))}
               placeholder="(123) 456-7890"
               style={{ width: "16ch" }}
-              className="bg-transparent text-[#f0eee6] placeholder-[#B1ADA1] outline-none font-mono min-w-0 px-0"
+              className="bg-transparent text-[#f4f3ee] placeholder-[#B1ADA1] outline-none font-mono min-w-0 px-0"
             />
-            <span className="text-[#f0eee6]">{"]"}</span>
+            <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
         </div>
       </div>
@@ -212,7 +212,7 @@ export default function ConfigPage() {
           disabled={saving}
           className="group disabled:opacity-50 transition-colors"
         >
-          <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
+          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
             {saving ? "saving…" : "save"}
           </Bracket>
         </button>

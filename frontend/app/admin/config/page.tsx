@@ -67,7 +67,7 @@ export default function AdminConfigPage() {
 
   return (
     <div className="space-y-6 font-mono">
-      <h1 className="font-semibold text-[#f0eee6]">admin — Config</h1>
+      <h1 className="font-semibold text-[#f4f3ee]">admin — Config</h1>
 
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#B1ADA1]">Notification Settings</div>
@@ -78,21 +78,21 @@ export default function AdminConfigPage() {
 
           <span className="inline-flex items-center gap-0">
             <span className="text-[#B1ADA1]">{"server: "}</span>
-            <span className="text-[#f0eee6]">{"["}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
             <input
               type="text"
               value={smtpServer}
               onChange={(e) => setSmtpServer(e.target.value)}
               placeholder="----"
               style={{ width: "18ch" }}
-              className="bg-transparent text-[#f0eee6] placeholder-[#B1ADA1] outline-none font-mono min-w-0 px-0"
+              className="bg-transparent text-[#f4f3ee] placeholder-[#B1ADA1] outline-none font-mono min-w-0 px-0"
             />
-            <span className="text-[#f0eee6]">{"]"}</span>
+            <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
             <span className="text-[#B1ADA1]">{"port: "}</span>
-            <span className="text-[#f0eee6]">{"["}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
             <input
               type="text"
               inputMode="numeric"
@@ -100,28 +100,28 @@ export default function AdminConfigPage() {
               onChange={(e) => setSmtpPort(e.target.value.replace(/\D/g, ""))}
               placeholder="----"
               style={{ width: "4ch" }}
-              className="bg-transparent text-[#f0eee6] placeholder-[#B1ADA1] outline-none font-mono min-w-0 px-0 text-center"
+              className="bg-transparent text-[#f4f3ee] placeholder-[#B1ADA1] outline-none font-mono min-w-0 px-0 text-center"
             />
-            <span className="text-[#f0eee6]">{"]"}</span>
+            <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
             <span className="text-[#B1ADA1]">{"user: "}</span>
-            <span className="text-[#f0eee6]">{"["}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
             <input
               type="text"
               value={smtpUser}
               onChange={(e) => setSmtpUser(e.target.value)}
               placeholder="----"
               style={{ width: "20ch" }}
-              className="bg-transparent text-[#f0eee6] placeholder-[#B1ADA1] outline-none font-mono min-w-0 px-0"
+              className="bg-transparent text-[#f4f3ee] placeholder-[#B1ADA1] outline-none font-mono min-w-0 px-0"
             />
-            <span className="text-[#f0eee6]">{"]"}</span>
+            <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
             <span className="text-[#B1ADA1]">{"password: "}</span>
-            <span className="text-[#f0eee6]">{"["}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
             {editingSmtpPassword ? (
               <input
                 type="text"
@@ -131,7 +131,7 @@ export default function AdminConfigPage() {
                 autoFocus
                 onBlur={() => { if (!smtpPassword) setEditingSmtpPassword(false); }}
                 style={{ width: "14ch" }}
-                className="bg-transparent text-[#f0eee6] placeholder-[#B1ADA1] outline-none font-mono min-w-0 pl-1"
+                className="bg-transparent text-[#f4f3ee] placeholder-[#B1ADA1] outline-none font-mono min-w-0 pl-1"
               />
             ) : (
               <button
@@ -140,12 +140,12 @@ export default function AdminConfigPage() {
                 style={{ width: "14ch" }}
                 className="bg-transparent text-left font-mono min-w-0 pl-1 cursor-pointer inline-flex items-center translate-y-px"
               >
-                <span className={creds.smtp_password_set ? "text-[#f0eee6]" : "text-[#B1ADA1]"}>
+                <span className={creds.smtp_password_set ? "text-[#f4f3ee]" : "text-[#B1ADA1]"}>
                   {creds.smtp_password_set ? " " + "*".repeat(13) : "----"}
                 </span>
               </button>
             )}
-            <span className="text-[#f0eee6]">{"]"}</span>
+            <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
         </div>
 
@@ -155,7 +155,7 @@ export default function AdminConfigPage() {
 
           <span className="inline-flex items-center gap-0">
             <span className="text-[#B1ADA1]">{"api key: "}</span>
-            <span className="text-[#f0eee6]">{"["}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
             {editingTextbeltKey ? (
               <input
                 type="text"
@@ -165,7 +165,7 @@ export default function AdminConfigPage() {
                 autoFocus
                 onBlur={() => { if (!textbeltKey) setEditingTextbeltKey(false); }}
                 style={{ width: "20ch" }}
-                className="bg-transparent text-[#f0eee6] placeholder-[#B1ADA1] outline-none font-mono min-w-0 pl-1"
+                className="bg-transparent text-[#f4f3ee] placeholder-[#B1ADA1] outline-none font-mono min-w-0 pl-1"
               />
             ) : (
               <button
@@ -174,12 +174,12 @@ export default function AdminConfigPage() {
                 style={{ width: "20ch" }}
                 className="bg-transparent text-left font-mono min-w-0 pl-1 cursor-pointer inline-flex items-center translate-y-px"
               >
-                <span className={creds.textbelt_key_set ? "text-[#f0eee6]" : "text-[#B1ADA1]"}>
+                <span className={creds.textbelt_key_set ? "text-[#f4f3ee]" : "text-[#B1ADA1]"}>
                   {creds.textbelt_key_set ? " " + "*".repeat(19) : "----"}
                 </span>
               </button>
             )}
-            <span className="text-[#f0eee6]">{"]"}</span>
+            <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
         </div>
       </div>
@@ -190,7 +190,7 @@ export default function AdminConfigPage() {
           disabled={saving}
           className="group disabled:opacity-50 transition-colors"
         >
-          <Bracket className="text-[#d97757] group-hover:text-[#f0eee6]">
+          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
             {saving ? "saving…" : "save"}
           </Bracket>
         </button>

@@ -14,7 +14,7 @@ export default function AdminAccountsPage() {
 
   return (
     <div className="space-y-4 font-mono">
-      <h1 className="font-semibold text-[#f0eee6]">
+      <h1 className="font-semibold text-[#f4f3ee]">
         admin — accounts{" "}
         <span className="text-[#B1ADA1] font-normal">
           [{String(accounts.length).padStart(2, "0")}]
@@ -39,7 +39,7 @@ export default function AdminAccountsPage() {
               {accounts.map((a) => (
                 <tr key={a.id} className="hover:bg-[#1f1e1d] transition-colors">
                   <td className="px-4 py-2 text-[#B1ADA1] text-sm">{a.user_email}</td>
-                  <td className="px-4 py-2 text-[#f0eee6]">{a.name}</td>
+                  <td className="px-4 py-2 text-[#f4f3ee]">{a.name}</td>
                   <td className="px-4 py-2">
                     <span className="text-[#B1ADA1]">[</span>
                     <span className={a.enabled ? "text-status-ok" : "text-status-bad"}>
