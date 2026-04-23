@@ -39,6 +39,7 @@ export default function ConfigPage() {
   // Notification settings
   const [noticesType, setNoticesType] = useState("email");
   const [noticesSession, setNoticesSession] = useState(true);
+  const [noticesLogin, setNoticesLogin] = useState(true);
   const [notifyEmail, setNotifyEmail] = useState("");
   const [notifyPhone, setNotifyPhone] = useState("");
 
@@ -55,6 +56,7 @@ export default function ConfigPage() {
         setLoginTries(c.login_tries);
         setNoticesType(c.notices_type);
         setNoticesSession(c.notices_session);
+        setNoticesLogin(c.notices_login);
         setNotifyEmail(c.notify_email ?? "");
         setNotifyPhone(c.notify_phone ?? "");
       })
@@ -75,6 +77,7 @@ export default function ConfigPage() {
         login_tries: loginTries,
         notices_type: noticesType,
         notices_session: noticesSession,
+        notices_login: noticesLogin,
         notify_email: notifyEmail || null,
         notify_phone: notifyPhone || null,
       });
@@ -211,6 +214,21 @@ export default function ConfigPage() {
               className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"
             />
             <span className="text-[#f4f3ee]">{"]"}</span>
+          </span>
+        </div>
+
+        <div className="px-4 py-3 border-t border-[#3d3d3a] flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
+          <span className="inline-flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setNoticesLogin(!noticesLogin)}
+              className="group cursor-pointer transition-colors"
+            >
+              <Bracket className={noticesLogin ? "text-status-ok group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
+                {noticesLogin ? "x" : "\u00a0"}
+              </Bracket>
+            </button>
+            <span className="text-[#9A968B]">Login Issue Notifications</span>
           </span>
         </div>
       </div>

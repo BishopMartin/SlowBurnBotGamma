@@ -206,6 +206,11 @@ def send_login_failure_alert(account, error_message, run_count=0, max_runs=0, ap
         apiClient: ApiClient instance for fetching user config from API
     """
     try:
+        # Check if login notifications are enabled
+        user_config = apiClient.get_user_config() if apiClient else None
+        if user_config and not user_config.get('notices_login', True):
+            return
+
         run_info = f"run {run_count}/{max_runs}" if max_runs > 0 else f"run {run_count}"
         formatted_message = f"Login Error ({run_info})\n\nAccount: {account}\nError: {error_message}"
         sms_summary = f"{account} - LOGIN FAILED\n{error_message}\n{run_info}"

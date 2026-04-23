@@ -11,6 +11,7 @@ class UserConfigUpdate(BaseModel):
     login_tries: int | None = None
     notices_type: str = "none"
     notices_session: bool = True
+    notices_login: bool = True
     notify_email: str | None = None
     notify_phone: str | None = None
 
@@ -26,6 +27,7 @@ class UserConfigRead(BaseModel):
     login_tries: int
     notices_type: str
     notices_session: bool
+    notices_login: bool
     notify_email: str | None
     notify_phone: str | None
     updated_at: datetime

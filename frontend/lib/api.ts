@@ -291,6 +291,7 @@ export interface UserConfig {
   login_tries: number;
   notices_type: string;
   notices_session: boolean;
+  notices_login: boolean;
   notify_email: string | null;
   notify_phone: string | null;
   updated_at: string;
