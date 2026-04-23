@@ -109,35 +109,35 @@ export default function AccountStatsPage() {
       </div>
 
       <div className="border border-[#3d3d3a]">
-        {loading ? (
-          <p className="px-4 py-6 text-[#9A968B]">loading&hellip;</p>
-        ) : items.length === 0 ? (
-          <p className="px-4 py-6 text-[#9A968B]">no follow data yet.</p>
-        ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
-                <SortTh label="source" field="source" />
-                <SortTh label="total" field="total" />
-                <SortTh label="complete" field="complete" />
-                <SortTh label="fb yes" field="followed_back" />
-                <SortTh label="fb rate" field="rate" />
-                <th className="px-2 py-2 font-normal w-full text-right whitespace-nowrap">
-                  <span className="inline-flex items-center gap-0">
-                    <span className="text-[#9A968B]">{"results:\u00a0 "}</span>
-                    <span className="text-[#f4f3ee]">{"["}</span>
-                    <Dropdown
-                      value={period}
-                      onChange={(v) => setPeriod(v as Period)}
-                      options={periodOptions}
-                    />
-                    <span className="text-[#f4f3ee]">{"]"}</span>
-                  </span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#3d3d3a]">
-              {sorted.map((s, i) => (
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
+              <SortTh label="source" field="source" />
+              <SortTh label="total" field="total" />
+              <SortTh label="complete" field="complete" />
+              <SortTh label="fb yes" field="followed_back" />
+              <SortTh label="fb rate" field="rate" />
+              <th className="px-2 py-2 font-normal w-full text-right whitespace-nowrap">
+                <span className="inline-flex items-center gap-0">
+                  <span className="text-[#9A968B]">{"results:\u00a0 "}</span>
+                  <span className="text-[#f4f3ee]">{"["}</span>
+                  <Dropdown
+                    value={period}
+                    onChange={(v) => setPeriod(v as Period)}
+                    options={periodOptions}
+                  />
+                  <span className="text-[#f4f3ee]">{"]"}</span>
+                </span>
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#3d3d3a]">
+            {loading ? (
+              <tr><td colSpan={6} className="px-4 py-6 text-[#9A968B]">loading&hellip;</td></tr>
+            ) : items.length === 0 ? (
+              <tr><td colSpan={6} className="px-4 py-6 text-[#9A968B]">no follow data yet.</td></tr>
+            ) : (
+              sorted.map((s, i) => (
                 <tr key={i} className="hover:bg-[#1f1e1d] transition-colors">
                   <td className="px-4 py-1.5 text-[#f4f3ee]">{s.source ?? "—"}</td>
                   <td className="px-4 py-1.5 text-[#9A968B]">{s.total.toLocaleString()}</td>
@@ -146,8 +146,10 @@ export default function AccountStatsPage() {
                   <td className="px-4 py-1.5 text-[#9A968B]">{fmtPct(s.rate)}</td>
                   <td></td>
                 </tr>
-              ))}
-            </tbody>
+              ))
+            )}
+          </tbody>
+          {items.length > 0 && (
             <tfoot>
               <tr className="text-[#9A968B] border-t border-[#3d3d3a] bg-[#1a1918]">
                 <td className="px-4 py-2 text-[#f4f3ee]">total</td>
@@ -158,8 +160,8 @@ export default function AccountStatsPage() {
                 <td></td>
               </tr>
             </tfoot>
-          </table>
-        )}
+          )}
+        </table>
       </div>
     </div>
   );
