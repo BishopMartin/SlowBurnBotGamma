@@ -62,7 +62,7 @@ export default function FollowTargetsPage() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a]">
+              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
                 <th className="px-4 py-2 font-normal">handle</th>
                 <th className="px-4 py-2 font-normal">source</th>
                 <th className="px-4 py-2 font-normal">status</th>

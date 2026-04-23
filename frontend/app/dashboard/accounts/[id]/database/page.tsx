@@ -95,7 +95,7 @@ export default function AccountDatabasePage() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a]">
+              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
                 <SortTh label="handle" field="handle" />
                 <SortTh label="source" field="source" />
                 <SortTh label="status" field="status" />

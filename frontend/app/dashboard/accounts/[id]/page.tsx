@@ -314,7 +314,7 @@ export default function AccountDetailPage() {
           <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">session actions</div>
           <table className="w-full font-mono">
             <thead>
-              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a]">
+              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
                 <th className="px-4 py-2 font-normal w-10"></th>
                 <th className="px-4 py-2 font-normal w-10">on</th>
                 <th className="px-4 py-2 font-normal">type</th>

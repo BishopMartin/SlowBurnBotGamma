@@ -27,7 +27,7 @@ export default function AdminAccountsPage() {
         ) : (
           <table className="w-full">
             <thead>
-              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a]">
+              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
                 <th className="px-4 py-2 font-normal">user</th>
                 <th className="px-4 py-2 font-normal">account</th>
                 <th className="px-4 py-2 font-normal">on</th>
