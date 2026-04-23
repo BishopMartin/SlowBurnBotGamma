@@ -249,7 +249,7 @@ export default function AccountsPage() {
                 <th className="px-2 py-2 font-normal w-full text-right whitespace-nowrap">
                   {tab === "activity" && (
                     <span className="inline-flex items-center gap-0">
-                      <span className="text-[#73726c]">{"activity: "}</span>
+                      <span className="text-[#73726c]">{"activity:\u00a0 "}</span>
                       <span className="text-[#f0eee6]">{"["}</span>
                       <Dropdown
                         value={activityPeriod}
@@ -261,7 +261,7 @@ export default function AccountsPage() {
                   )}
                   {tab === "stats" && (
                     <span className="inline-flex items-center gap-0">
-                      <span className="text-[#73726c]">{"results: "}</span>
+                      <span className="text-[#73726c]">{"results:\u00a0 "}</span>
                       <span className="text-[#f0eee6]">{"["}</span>
                       <Dropdown
                         value={statsPeriod}

@@ -44,7 +44,7 @@ export function Dropdown({
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setOpen((o) => !o)}
-        className={`bg-transparent outline-none cursor-pointer text-[#f0eee6] ${disabled ? "text-[#3d3d3a] cursor-default" : ""}`}
+        className={`bg-transparent outline-none cursor-pointer text-[#73726c] ${disabled ? "text-[#3d3d3a] cursor-default" : ""}`}
       >
         {display}
       </button>
