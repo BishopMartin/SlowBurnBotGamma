@@ -27,7 +27,7 @@ async def get_config(
     )
     config = result.scalar_one_or_none()
     if config is None:
-        config = UserConfig(user_id=user.id, notify_email=user.email)
+        config = UserConfig(user_id=user.id, notify_email=user.email, login_notify_email=user.email)
         session.add(config)
         await session.commit()
         await session.refresh(config)
@@ -45,7 +45,7 @@ async def update_config(
     )
     config = result.scalar_one_or_none()
     if config is None:
-        config = UserConfig(user_id=user.id, notify_email=user.email)
+        config = UserConfig(user_id=user.id, notify_email=user.email, login_notify_email=user.email)
         session.add(config)
 
     for field, value in body.model_dump(exclude_unset=True).items():
