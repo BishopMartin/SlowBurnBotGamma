@@ -62,7 +62,7 @@ export default function AdminConfigPage() {
   }
 
   if (!creds) {
-    return <div className="font-mono text-[#B1ADA1]">loading…</div>;
+    return <div className="font-mono text-[#9A968B]">loading…</div>;
   }
 
   return (
@@ -70,14 +70,14 @@ export default function AdminConfigPage() {
       <h1 className="font-semibold text-[#f4f3ee]">admin — Config</h1>
 
       <div className={sectionCls}>
-        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#B1ADA1]">Notification Settings</div>
+        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B]">Notification Settings</div>
 
         {/* SMTP row */}
         <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm border-b border-[#3d3d3a]">
-          <span className="text-[#B1ADA1]" style={{ width: "8ch" }}>smtp:</span>
+          <span className="text-[#9A968B]" style={{ width: "8ch" }}>smtp:</span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#B1ADA1]">{"server: "}</span>
+            <span className="text-[#9A968B]">{"server: "}</span>
             <span className="text-[#f4f3ee]">{"["}</span>
             <input
               type="text"
@@ -85,13 +85,13 @@ export default function AdminConfigPage() {
               onChange={(e) => setSmtpServer(e.target.value)}
               placeholder="----"
               style={{ width: "18ch" }}
-              className="bg-transparent text-[#f4f3ee] placeholder-[#B1ADA1] outline-none font-mono min-w-0 px-0"
+              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"
             />
             <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#B1ADA1]">{"port: "}</span>
+            <span className="text-[#9A968B]">{"port: "}</span>
             <span className="text-[#f4f3ee]">{"["}</span>
             <input
               type="text"
@@ -100,13 +100,13 @@ export default function AdminConfigPage() {
               onChange={(e) => setSmtpPort(e.target.value.replace(/\D/g, ""))}
               placeholder="----"
               style={{ width: "4ch" }}
-              className="bg-transparent text-[#f4f3ee] placeholder-[#B1ADA1] outline-none font-mono min-w-0 px-0 text-center"
+              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0 text-center"
             />
             <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#B1ADA1]">{"user: "}</span>
+            <span className="text-[#9A968B]">{"user: "}</span>
             <span className="text-[#f4f3ee]">{"["}</span>
             <input
               type="text"
@@ -114,13 +114,13 @@ export default function AdminConfigPage() {
               onChange={(e) => setSmtpUser(e.target.value)}
               placeholder="----"
               style={{ width: "20ch" }}
-              className="bg-transparent text-[#f4f3ee] placeholder-[#B1ADA1] outline-none font-mono min-w-0 px-0"
+              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"
             />
             <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#B1ADA1]">{"password: "}</span>
+            <span className="text-[#9A968B]">{"password: "}</span>
             <span className="text-[#f4f3ee]">{"["}</span>
             {editingSmtpPassword ? (
               <input
@@ -131,7 +131,7 @@ export default function AdminConfigPage() {
                 autoFocus
                 onBlur={() => { if (!smtpPassword) setEditingSmtpPassword(false); }}
                 style={{ width: "14ch" }}
-                className="bg-transparent text-[#f4f3ee] placeholder-[#B1ADA1] outline-none font-mono min-w-0 pl-1"
+                className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 pl-1"
               />
             ) : (
               <button
@@ -140,7 +140,7 @@ export default function AdminConfigPage() {
                 style={{ width: "14ch" }}
                 className="bg-transparent text-left font-mono min-w-0 pl-1 cursor-pointer inline-flex items-center translate-y-px"
               >
-                <span className={creds.smtp_password_set ? "text-[#f4f3ee]" : "text-[#B1ADA1]"}>
+                <span className={creds.smtp_password_set ? "text-[#f4f3ee]" : "text-[#9A968B]"}>
                   {creds.smtp_password_set ? " " + "*".repeat(13) : "----"}
                 </span>
               </button>
@@ -151,10 +151,10 @@ export default function AdminConfigPage() {
 
         {/* TextBelt row */}
         <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
-          <span className="text-[#B1ADA1]" style={{ width: "8ch" }}>textbelt:</span>
+          <span className="text-[#9A968B]" style={{ width: "8ch" }}>textbelt:</span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#B1ADA1]">{"api key: "}</span>
+            <span className="text-[#9A968B]">{"api key: "}</span>
             <span className="text-[#f4f3ee]">{"["}</span>
             {editingTextbeltKey ? (
               <input
@@ -165,7 +165,7 @@ export default function AdminConfigPage() {
                 autoFocus
                 onBlur={() => { if (!textbeltKey) setEditingTextbeltKey(false); }}
                 style={{ width: "20ch" }}
-                className="bg-transparent text-[#f4f3ee] placeholder-[#B1ADA1] outline-none font-mono min-w-0 pl-1"
+                className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 pl-1"
               />
             ) : (
               <button
@@ -174,7 +174,7 @@ export default function AdminConfigPage() {
                 style={{ width: "20ch" }}
                 className="bg-transparent text-left font-mono min-w-0 pl-1 cursor-pointer inline-flex items-center translate-y-px"
               >
-                <span className={creds.textbelt_key_set ? "text-[#f4f3ee]" : "text-[#B1ADA1]"}>
+                <span className={creds.textbelt_key_set ? "text-[#f4f3ee]" : "text-[#9A968B]"}>
                   {creds.textbelt_key_set ? " " + "*".repeat(19) : "----"}
                 </span>
               </button>

@@ -62,7 +62,7 @@ export default function DashboardPage() {
             key={label}
             className="border border-[#3d3d3a] px-4 py-2.5 flex flex-row items-center justify-between gap-3 min-w-0"
           >
-            <span className="text-[#B1ADA1] shrink-0">{label}</span>
+            <span className="text-[#9A968B] shrink-0">{label}</span>
             <div className="flex items-center gap-2 min-w-0 justify-end">
               <span className="text-[#f4f3ee] font-semibold capitalize truncate">{value}</span>
               {sub}
@@ -72,14 +72,14 @@ export default function DashboardPage() {
       </div>
 
       <div className="border border-[#3d3d3a]">
-        <div className="flex items-center justify-between border-b border-[#3d3d3a] px-4 py-2">
+        <div className="flex items-center justify-between border-b border-[#3d3d3a] px-4 py-2 bg-[#1a1918]">
           <span className="text-[#f4f3ee]">accounts</span>
           <Link href="/dashboard/accounts" className="text-[#d97757] hover:text-[#f4f3ee] transition-colors">
             manage →
           </Link>
         </div>
         {accounts.length === 0 ? (
-          <div className="px-4 py-6 text-[#B1ADA1]">
+          <div className="px-4 py-6 text-[#9A968B]">
             no accounts yet.{" "}
             <Link href="/dashboard/accounts" className="text-[#d97757] hover:underline">
               add one
@@ -93,11 +93,11 @@ export default function DashboardPage() {
                   <td className="px-4 py-2 text-[#f4f3ee]">
                     {account.name}
                     {account.group_number != null && (
-                      <span className="ml-2 text-[#B1ADA1]">grp:{account.group_number}</span>
+                      <span className="ml-2 text-[#9A968B]">grp:{account.group_number}</span>
                     )}
                   </td>
                   <td className="px-4 py-2 text-right">
-                    <Bracket className={account.enabled ? "text-status-ok" : "text-[#B1ADA1]"}>
+                    <Bracket className={account.enabled ? "text-status-ok" : "text-[#9A968B]"}>
                       {account.enabled ? "on" : "off"}
                     </Bracket>
                   </td>
@@ -109,19 +109,19 @@ export default function DashboardPage() {
       </div>
 
       <div className="border border-[#3d3d3a]">
-        <div className="flex items-center justify-between border-b border-[#3d3d3a] px-4 py-2">
+        <div className="flex items-center justify-between border-b border-[#3d3d3a] px-4 py-2 bg-[#1a1918]">
           <span className="text-[#f4f3ee]">recent activity</span>
           <Link href="/dashboard/accounts" className="text-[#d97757] hover:text-[#f4f3ee] transition-colors">
             by account →
           </Link>
         </div>
         {recentLog.length === 0 ? (
-          <div className="px-4 py-6 text-[#B1ADA1]">no session log entries yet.</div>
+          <div className="px-4 py-6 text-[#9A968B]">no session log entries yet.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[#B1ADA1] border-b border-[#3d3d3a]">
+                <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a]">
                   <th className="px-2 py-2 font-normal whitespace-nowrap">account</th>
                   <th className="px-2 py-2 font-normal whitespace-nowrap">date</th>
                   <th className="px-2 py-2 font-normal whitespace-nowrap">run</th>
@@ -149,19 +149,19 @@ export default function DashboardPage() {
                       </Link>
                     </td>
                     <td className="px-2 py-1.5 text-[#f4f3ee] whitespace-nowrap">{entry.run_date ?? "—"}</td>
-                    <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{entry.run_sequence}</td>
-                    <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{fmtTime(entry.start_time)}</td>
-                    <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{fmtTime(entry.end_time)}</td>
-                    <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">
+                    <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">{entry.run_sequence}</td>
+                    <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">{fmtTime(entry.start_time)}</td>
+                    <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">{fmtTime(entry.end_time)}</td>
+                    <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">
                       {formatSessionAction(entry.action_1_type, entry.action_1_count)}
                     </td>
-                    <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">
+                    <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">
                       {formatSessionAction(entry.action_2_type, entry.action_2_count)}
                     </td>
-                    <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">
+                    <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">
                       {formatSessionAction(entry.action_3_type, entry.action_3_count)}
                     </td>
-                    <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">
+                    <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">
                       {formatSessionAction(entry.action_4_type, entry.action_4_count)}
                     </td>
                     <td className="px-2 py-1.5 whitespace-nowrap">

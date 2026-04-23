@@ -21,8 +21,8 @@ import { Bracket } from "@/lib/bracket";
 import { Dropdown } from "@/lib/dropdown";
 
 function fmtGroup(n: number | null | undefined): React.ReactNode {
-  if (n == null) return <span className="text-[#B1ADA1]">—</span>;
-  return <span className="text-[#B1ADA1]">{String(n).padStart(2, "0")}</span>;
+  if (n == null) return <span className="text-[#9A968B]">—</span>;
+  return <span className="text-[#9A968B]">{String(n).padStart(2, "0")}</span>;
 }
 
 function fmtNum(v: number | null | undefined): string {
@@ -188,9 +188,9 @@ export default function AccountsPage() {
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <h1 className="font-semibold text-[#f4f3ee] font-mono">
-          Accounts <span className="text-[#B1ADA1] font-normal">[{String(accounts.length).padStart(2, "0")}/10]</span>
+          Accounts <span className="text-[#9A968B] font-normal">[{String(accounts.length).padStart(2, "0")}/10]</span>
         </h1>
-        <span className="text-[#B1ADA1] font-mono">--</span>
+        <span className="text-[#9A968B] font-mono">--</span>
         <div className="flex items-center gap-2 font-mono text-sm">
           {tabs.map((t) => (
             <button
@@ -198,7 +198,7 @@ export default function AccountsPage() {
               onClick={() => setTab(t.key)}
               className="group cursor-pointer transition-colors"
             >
-              <Bracket className={tab === t.key ? "text-[#d97757]" : "text-[#B1ADA1] group-hover:text-white"}>{t.label}</Bracket>
+              <Bracket className={tab === t.key ? "text-[#d97757]" : "text-[#9A968B] group-hover:text-white"}>{t.label}</Bracket>
             </button>
           ))}
         </div>
@@ -206,11 +206,11 @@ export default function AccountsPage() {
 
       <div className="border border-[#3d3d3a]">
         {accounts.length === 0 ? (
-          <p className="px-4 py-6 font-mono text-[#B1ADA1]">No accounts yet.</p>
+          <p className="px-4 py-6 font-mono text-[#9A968B]">No accounts yet.</p>
         ) : (
           <table className="w-full font-mono">
             <thead>
-              <tr className="text-left text-[#B1ADA1] border-b border-[#3d3d3a]">
+              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
                 <SortTh label="Account" field="name" />
                 {tab === "settings" && (
                   <>
@@ -249,7 +249,7 @@ export default function AccountsPage() {
                 <th className="px-2 py-2 font-normal w-full text-right whitespace-nowrap">
                   {tab === "activity" && (
                     <span className="inline-flex items-center gap-0">
-                      <span className="text-[#B1ADA1]">{"activity:\u00a0 "}</span>
+                      <span className="text-[#9A968B]">{"activity:\u00a0 "}</span>
                       <span className="text-[#f4f3ee]">{"["}</span>
                       <Dropdown
                         value={activityPeriod}
@@ -261,7 +261,7 @@ export default function AccountsPage() {
                   )}
                   {tab === "stats" && (
                     <span className="inline-flex items-center gap-0">
-                      <span className="text-[#B1ADA1]">{"results:\u00a0 "}</span>
+                      <span className="text-[#9A968B]">{"results:\u00a0 "}</span>
                       <span className="text-[#f4f3ee]">{"["}</span>
                       <Dropdown
                         value={statsPeriod}
@@ -281,7 +281,7 @@ export default function AccountsPage() {
                 const fb = fbMap[account.id];
                 return (
                   <tr key={account.id} className="hover:bg-[#1f1e1d] transition-colors">
-                    <td className="px-2 pr-6 py-2 text-[#B1ADA1] whitespace-nowrap overflow-hidden text-ellipsis" style={{ maxWidth: "20ch" }}>{account.name}</td>
+                    <td className="px-2 pr-6 py-2 text-[#9A968B] whitespace-nowrap overflow-hidden text-ellipsis" style={{ maxWidth: "20ch" }}>{account.name}</td>
                     {tab === "settings" && (
                       <>
                         <td className="px-2 py-2 whitespace-nowrap">
@@ -289,16 +289,16 @@ export default function AccountsPage() {
                             onClick={() => handleToggleEnabled(account)}
                             className="group cursor-pointer transition-colors"
                           >
-                            <Bracket className={account.enabled ? "text-[#B1ADA1] group-hover:text-status-bad" : "text-[#B1ADA1] group-hover:text-status-ok"}>
+                            <Bracket className={account.enabled ? "text-[#9A968B] group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
                               {account.enabled ? "x" : "\u00a0"}
                             </Bracket>
                           </button>
                         </td>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtGroup(account.group_number)}</td>
-                        <td className="px-2 py-2 text-[#B1ADA1] whitespace-nowrap">
+                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
                           {scheduleLabel(settingsMap[account.id])}
                         </td>
-                        <td className="px-2 py-2 text-[#B1ADA1] whitespace-nowrap">
+                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
                           {settingsMap[account.id]?.max_runs_per_day ?? "—"}
                         </td>
                         <td className="px-2 py-2 font-mono whitespace-nowrap">
@@ -308,49 +308,49 @@ export default function AccountsPage() {
                     )}
                     {tab === "activity" && (
                       <>
-                        <td className="px-2 py-2 text-[#B1ADA1] whitespace-nowrap">{fmtNum(log?.sessions)}</td>
-                        <td className="px-2 py-2 text-[#B1ADA1] whitespace-nowrap">{fmtNum(log?.likes)}</td>
-                        <td className="px-2 py-2 text-[#B1ADA1] whitespace-nowrap">{fmtNum(log?.follows)}</td>
-                        <td className="px-2 py-2 text-[#B1ADA1] whitespace-nowrap">{fmtNum(log?.unfollows)}</td>
+                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(log?.sessions)}</td>
+                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(log?.likes)}</td>
+                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(log?.follows)}</td>
+                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(log?.unfollows)}</td>
                       </>
                     )}
                     {tab === "stats" && (
                       <>
-                        <td className="px-2 py-2 text-[#B1ADA1] whitespace-nowrap">{fmtNum(fb?.followed)}</td>
-                        <td className="px-2 py-2 text-[#B1ADA1] whitespace-nowrap">{fmtNum(fb?.followed_back)}</td>
-                        <td className="px-2 py-2 text-[#B1ADA1] whitespace-nowrap">{fmtPct(fb?.rate ?? null)}</td>
+                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(fb?.followed)}</td>
+                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(fb?.followed_back)}</td>
+                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtPct(fb?.rate ?? null)}</td>
                       </>
                     )}
                     {tab === "database" && (
                       <>
-                        <td className="px-2 py-2 text-[#B1ADA1] whitespace-nowrap">{fmtNum(stats?.pending)}</td>
-                        <td className="px-2 py-2 text-[#B1ADA1] whitespace-nowrap">{fmtNum(stats?.complete)}</td>
-                        <td className="px-2 py-2 text-[#B1ADA1] whitespace-nowrap">{fmtNum(stats?.total)}</td>
-                        <td className="px-2 py-2 text-[#B1ADA1] whitespace-nowrap">{fmtNum(stats?.success)}</td>
-                        <td className="px-2 py-2 text-[#B1ADA1] whitespace-nowrap">{fmtPct(stats?.last_25 ?? null)}</td>
-                        <td className="px-2 py-2 text-[#B1ADA1] whitespace-nowrap">{fmtPct(stats?.all_time ?? null)}</td>
+                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(stats?.pending)}</td>
+                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(stats?.complete)}</td>
+                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(stats?.total)}</td>
+                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(stats?.success)}</td>
+                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtPct(stats?.last_25 ?? null)}</td>
+                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtPct(stats?.all_time ?? null)}</td>
                       </>
                     )}
                     <td className="px-2 py-2 text-right">
                       <div className="flex items-center justify-end gap-1">
                         {tab === "settings" && (
                           <Link href={`/dashboard/accounts/${account.id}`} className="group font-mono transition-colors">
-                            <Bracket className="text-[#B1ADA1] group-hover:text-[#d97757]">settings</Bracket>
+                            <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">settings</Bracket>
                           </Link>
                         )}
                         {tab === "activity" && (
                           <Link href={`/dashboard/accounts/${account.id}/log`} className="group font-mono transition-colors">
-                            <Bracket className="text-[#B1ADA1] group-hover:text-[#d97757]">log</Bracket>
+                            <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">log</Bracket>
                           </Link>
                         )}
                         {tab === "stats" && (
                           <Link href={`/dashboard/accounts/${account.id}/database`} className="group font-mono transition-colors">
-                            <Bracket className="text-[#B1ADA1] group-hover:text-[#d97757]">stats</Bracket>
+                            <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">stats</Bracket>
                           </Link>
                         )}
                         {tab === "database" && (
                           <Link href={`/dashboard/accounts/${account.id}/database`} className="group font-mono transition-colors">
-                            <Bracket className="text-[#B1ADA1] group-hover:text-[#d97757]">data</Bracket>
+                            <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">data</Bracket>
                           </Link>
                         )}
                       </div>
@@ -364,13 +364,13 @@ export default function AccountsPage() {
 
         <div className="border-t border-[#3d3d3a]">
           <form onSubmit={handleAdd} className="flex items-center gap-2 px-4 py-3">
-            <span className="font-mono text-[#B1ADA1] shrink-0">Insert New Account:</span>
+            <span className="font-mono text-[#9A968B] shrink-0">Insert New Account:</span>
             <input
               type="text"
               placeholder="Account Name"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] placeholder-[#B1ADA1] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
+              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] placeholder-[#9A968B] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
             />
             <button
               type="submit"

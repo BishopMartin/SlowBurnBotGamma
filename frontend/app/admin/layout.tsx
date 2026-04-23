@@ -52,7 +52,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 href="/admin"
                 className={`transition-colors ${
-                  headerAdminActive ? "text-[#d97757]" : "text-[#B1ADA1] hover:text-white"
+                  headerAdminActive ? "text-[#d97757]" : "text-[#9A968B] hover:text-white"
                 }`}
               >
                 <span className="text-[#f4f3ee]">[</span>admin<span className="text-[#f4f3ee]">]</span>
@@ -60,7 +60,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 href="/admin/config"
                 className={`transition-colors ${
-                  headerConfigActive ? "text-[#d97757]" : "text-[#B1ADA1] hover:text-white"
+                  headerConfigActive ? "text-[#d97757]" : "text-[#9A968B] hover:text-white"
                 }`}
               >
                 <span className="text-[#f4f3ee]">[</span>config<span className="text-[#f4f3ee]">]</span>
@@ -68,16 +68,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#B1ADA1] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
+            <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#9A968B] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
             <span className="text-[#E5C07B]">{user.email}</span>
             <button onClick={handleLogout} className="group transition-colors">
-              <Bracket className="text-[#B1ADA1] group-hover:text-[#d97757]">sign out</Bracket>
+              <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">sign out</Bracket>
             </button>
           </div>
         </header>
         <main className="px-6 py-6 space-y-4">
           <nav className="flex gap-4 text-sm border-b border-[#3d3d3a] pb-3">
-            <span className="text-[#B1ADA1]">admin:</span>
+            <span className="text-[#9A968B]">admin:</span>
             {navItems.map((item) => {
               const active =
                 item.href === "/admin"
@@ -88,7 +88,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   key={item.href}
                   href={item.href}
                   className={`transition-colors ${
-                    active ? "text-[#d97757]" : "text-[#B1ADA1] hover:text-white"
+                    active ? "text-[#d97757]" : "text-[#9A968B] hover:text-white"
                   }`}
                 >
                   {item.label}

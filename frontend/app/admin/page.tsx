@@ -60,11 +60,11 @@ export default function AdminPage() {
       {msg && <p className="text-status-ok">{msg}</p>}
       <div className="border border-[#3d3d3a]">
         {users.length === 0 ? (
-          <p className="px-4 py-6 text-[#B1ADA1]">no users found.</p>
+          <p className="px-4 py-6 text-[#9A968B]">no users found.</p>
         ) : (
           <table className="w-full">
             <thead>
-              <tr className="text-left text-[#B1ADA1] border-b border-[#3d3d3a]">
+              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a]">
                 <th className="px-4 py-2 font-normal">email</th>
                 <th className="px-4 py-2 font-normal">plan</th>
                 <th className="px-4 py-2 font-normal">subscription</th>
@@ -78,11 +78,11 @@ export default function AdminPage() {
                   <td className="px-4 py-2 text-[#f4f3ee]">{u.email}</td>
                   <td className="px-4 py-2 text-[#bfbdb4]">{u.plan_tier}</td>
                   <td className="px-4 py-2">
-                    <Bracket className={u.subscription_status === "active" ? "text-status-ok" : "text-[#B1ADA1]"}>
+                    <Bracket className={u.subscription_status === "active" ? "text-status-ok" : "text-[#9A968B]"}>
                       {u.subscription_status}
                     </Bracket>
                   </td>
-                  <td className="px-4 py-2 text-[#B1ADA1]">
+                  <td className="px-4 py-2 text-[#9A968B]">
                     {new Date(u.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-2 text-right space-x-2">
@@ -91,7 +91,7 @@ export default function AdminPage() {
                       disabled={busy === u.id}
                       className="group disabled:opacity-50 transition-colors"
                     >
-                      <Bracket className={u.subscription_status === "active" ? "text-[#B1ADA1] group-hover:text-[#f4f3ee]" : "text-status-ok group-hover:text-[#f4f3ee]"}>
+                      <Bracket className={u.subscription_status === "active" ? "text-[#9A968B] group-hover:text-[#f4f3ee]" : "text-status-ok group-hover:text-[#f4f3ee]"}>
                         {busy === u.id ? "…" : u.subscription_status === "active" ? "deactivate" : "activate"}
                       </Bracket>
                     </button>

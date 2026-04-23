@@ -33,7 +33,7 @@ export function NumberInput({
       }}
       placeholder={placeholder}
       maxLength={maxLength}
-      className={`w-5 bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#B1ADA1] text-center ${className}`}
+      className={`w-5 bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#9A968B] text-center ${className}`}
     />
   );
 }

@@ -18,7 +18,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [user, loading, router]);
 
   if (loading || !user) {
-    return <div className="min-h-screen flex items-center justify-center font-mono text-[#B1ADA1]">loading…</div>;
+    return <div className="min-h-screen flex items-center justify-center font-mono text-[#9A968B]">loading…</div>;
   }
 
   async function handleLogout() {
@@ -53,7 +53,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   className={`transition-colors ${
                     isNavActive(item.href)
                       ? "text-[#d97757]"
-                      : "text-[#B1ADA1] hover:text-white"
+                      : "text-[#9A968B] hover:text-white"
                   }`}
                 >
                   <span className="text-[#f4f3ee]">[</span>{item.label}<span className="text-[#f4f3ee]">]</span>
@@ -62,10 +62,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#B1ADA1] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
+            <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#9A968B] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
             <span className="text-[#E5C07B]">{user.email}</span>
             <button onClick={handleLogout} className="group transition-colors">
-              <Bracket className="text-[#B1ADA1] group-hover:text-[#d97757]">sign out</Bracket>
+              <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">sign out</Bracket>
             </button>
           </div>
         </header>
