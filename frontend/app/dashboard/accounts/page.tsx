@@ -347,7 +347,7 @@ export default function AccountsPage() {
                           </Link>
                         )}
                         {tab === "stats" && (
-                          <Link href={`/dashboard/accounts/${account.id}/database`} className="group font-mono transition-colors">
+                          <Link href={`/dashboard/accounts/${account.id}/stats`} className="group font-mono transition-colors">
                             <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">stats</Bracket>
                           </Link>
                         )}

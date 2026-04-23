@@ -417,6 +417,43 @@ async def get_account_stats(
     }
 
 
+@router.get("/{account_id}/source-stats", response_model=dict)
+async def get_account_source_stats(
+    account_id: uuid.UUID,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    await _get_owned_account(account_id, user, session)
+
+    result = await session.execute(
+        select(
+            FollowTarget.source,
+            func.count().label("total"),
+            func.count().filter(FollowTarget.follow_back.isnot(None)).label("complete"),
+            func.count().filter(FollowTarget.follow_back == True).label("followed_back"),
+            func.count().filter(FollowTarget.follow_back == False).label("not_followed_back"),
+        )
+        .where(FollowTarget.account_id == account_id)
+        .group_by(FollowTarget.source)
+        .order_by(func.count().desc())
+    )
+    rows = result.all()
+
+    return {
+        "items": [
+            {
+                "source": row.source,
+                "total": row.total,
+                "complete": row.complete,
+                "followed_back": row.followed_back,
+                "not_followed_back": row.not_followed_back,
+                "rate": round(row.followed_back / row.complete, 2) if row.complete else None,
+            }
+            for row in rows
+        ],
+    }
+
+
 LOG_SORT_COLUMNS = {
     "date": SessionLog.run_date,
     "run": SessionLog.run_sequence,

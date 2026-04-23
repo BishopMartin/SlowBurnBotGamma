@@ -217,6 +217,19 @@ export async function getAccountStats(id: string) {
   return request<AccountStats>(`/accounts/${id}/stats`);
 }
 
+export interface SourceStat {
+  source: string | null;
+  total: number;
+  complete: number;
+  followed_back: number;
+  not_followed_back: number;
+  rate: number | null;
+}
+
+export async function getAccountSourceStats(id: string) {
+  return request<{ items: SourceStat[] }>(`/accounts/${id}/source-stats`);
+}
+
 export async function adminListAccounts() {
   return request<AdminAccount[]>("/admin/accounts");
 }
