@@ -48,22 +48,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex items-center gap-6">
             <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
             <span className="text-[#3d3d3a]">--</span>
-            <Link
-              href="/admin"
-              className={`transition-colors ${
-                headerAdminActive ? "text-[#d97757]" : "text-[#73726c] hover:text-white"
-              }`}
-            >
-              [admin]
-            </Link>
-            <Link
-              href="/admin/config"
-              className={`transition-colors ${
-                headerConfigActive ? "text-[#d97757]" : "text-[#73726c] hover:text-white"
-              }`}
-            >
-              [config]
-            </Link>
+            <nav className="flex gap-1">
+              <Link
+                href="/admin"
+                className={`transition-colors ${
+                  headerAdminActive ? "text-[#d97757]" : "text-[#73726c] hover:text-white"
+                }`}
+              >
+                <span className="text-[#f0eee6]">[</span>admin<span className="text-[#f0eee6]">]</span>
+              </Link>
+              <Link
+                href="/admin/config"
+                className={`transition-colors ${
+                  headerConfigActive ? "text-[#d97757]" : "text-[#73726c] hover:text-white"
+                }`}
+              >
+                <span className="text-[#f0eee6]">[</span>config<span className="text-[#f0eee6]">]</span>
+              </Link>
+            </nav>
           </div>
           <div className="flex items-center gap-4">
             <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#73726c] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>

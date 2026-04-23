@@ -45,7 +45,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-6">
             <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
             <span className="text-[#3d3d3a]">--</span>
-            <nav className="flex gap-4">
+            <nav className="flex gap-1">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
@@ -56,7 +56,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       : "text-[#73726c] hover:text-white"
                   }`}
                 >
-                  [{item.label}]
+                  <span className="text-[#f0eee6]">[</span>{item.label}<span className="text-[#f0eee6]">]</span>
                 </Link>
               ))}
             </nav>

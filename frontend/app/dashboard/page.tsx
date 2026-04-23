@@ -41,7 +41,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 font-mono">
       <h1 className="font-semibold text-[#f0eee6]">
-        welcome back{user?.display_name ? `, ${user.display_name}` : ""}
+        Overview{user?.display_name ? ` — ${user.display_name}` : ""}
       </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

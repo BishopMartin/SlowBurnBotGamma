@@ -87,7 +87,7 @@ export default function ConfigPage() {
 
   return (
     <div className="space-y-6 font-mono">
-      <h1 className="font-semibold text-[#f0eee6]">config</h1>
+      <h1 className="font-semibold text-[#f0eee6]">Config</h1>
 
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">session settings</div>
