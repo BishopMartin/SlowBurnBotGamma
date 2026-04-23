@@ -90,7 +90,7 @@ export default function ConfigPage() {
       <h1 className="font-semibold text-[#f4f3ee]">Config</h1>
 
       <div className={sectionCls}>
-        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B]">session settings</div>
+        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">session settings</div>
 
         <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
           <span className="inline-flex items-center gap-1">
@@ -148,7 +148,7 @@ export default function ConfigPage() {
       </div>
 
       <div className={sectionCls}>
-        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B]">notifications</div>
+        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">notifications</div>
 
         <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
           <span className="inline-flex items-center gap-1">

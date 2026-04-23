@@ -70,7 +70,7 @@ export default function AdminConfigPage() {
       <h1 className="font-semibold text-[#f4f3ee]">admin — Config</h1>
 
       <div className={sectionCls}>
-        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B]">Notification Settings</div>
+        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">Notification Settings</div>
 
         {/* SMTP row */}
         <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm border-b border-[#3d3d3a]">

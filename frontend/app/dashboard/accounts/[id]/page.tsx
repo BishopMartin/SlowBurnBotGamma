@@ -146,7 +146,7 @@ export default function AccountDetailPage() {
 
         {/* Configuration */}
         <div className={sectionCls}>
-          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B]">configuration</div>
+          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">configuration</div>
           <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
 
             <span className="inline-flex items-center gap-1">
@@ -223,7 +223,7 @@ export default function AccountDetailPage() {
 
         {/* Schedule */}
         <div className={sectionCls}>
-          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B]">schedule</div>
+          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">schedule</div>
           <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
 
             <span className="inline-flex items-center gap-0">
@@ -311,7 +311,7 @@ export default function AccountDetailPage() {
 
         {/* Actions */}
         <div className={sectionCls}>
-          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B]">session actions</div>
+          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">session actions</div>
           <table className="w-full font-mono">
             <thead>
               <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a]">
@@ -394,7 +394,7 @@ export default function AccountDetailPage() {
 
         {/* Follow Settings */}
         <div className={sectionCls}>
-          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B]">follow settings</div>
+          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">follow settings</div>
           <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm border-b border-[#3d3d3a]">
 
             <span className="inline-flex items-center gap-0">
