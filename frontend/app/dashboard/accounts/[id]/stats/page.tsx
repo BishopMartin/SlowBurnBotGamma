@@ -4,14 +4,23 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getAccounts, getAccountSourceStats, Account, SourceStat } from "@/lib/api";
+import { Dropdown } from "@/lib/dropdown";
 
-type SortKey = "source" | "total" | "complete" | "followed_back" | "not_followed_back" | "rate";
+type SortKey = "source" | "total" | "complete" | "followed_back" | "rate";
 type SortDir = "asc" | "desc";
+type Period = "day" | "week" | "month" | "all";
 
 function fmtPct(v: number | null): string {
   if (v == null) return "----";
   return `${Math.round(v * 100)}%`;
 }
+
+const periodOptions = [
+  { value: "day", label: "today" },
+  { value: "week", label: "last 7 days" },
+  { value: "month", label: "last 30 days" },
+  { value: "all", label: "all time" },
+];
 
 export default function AccountStatsPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +28,7 @@ export default function AccountStatsPage() {
   const [account, setAccount] = useState<Account | null>(null);
   const [items, setItems] = useState<SourceStat[]>([]);
   const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState<Period>("week");
   const [sortKey, setSortKey] = useState<SortKey>("total");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -57,6 +67,16 @@ export default function AccountStatsPage() {
     return list;
   }, [items, sortKey, sortDir]);
 
+  const totals = useMemo(() => {
+    const t = { total: 0, complete: 0, followed_back: 0 };
+    for (const s of items) {
+      t.total += s.total;
+      t.complete += s.complete;
+      t.followed_back += s.followed_back;
+    }
+    return { ...t, rate: t.complete ? t.followed_back / t.complete : null };
+  }, [items]);
+
   useEffect(() => {
     getAccounts()
       .then((all) => {
@@ -69,11 +89,11 @@ export default function AccountStatsPage() {
 
   useEffect(() => {
     setLoading(true);
-    getAccountSourceStats(id)
+    getAccountSourceStats(id, period)
       .then((res) => setItems(res.items))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, period]);
 
   if (!account) return null;
 
@@ -86,7 +106,16 @@ export default function AccountStatsPage() {
         <span className="text-[#3d3d3a]">/</span>
         <span className="text-[#f4f3ee]">{account.name}</span>
         <span className="text-[#9A968B]">/ stats</span>
-        <span className="text-[#9A968B] ml-auto">[{items.length} sources]</span>
+        <span className="ml-auto inline-flex items-center gap-0 text-sm">
+          <span className="text-[#9A968B]">{"results:\u00a0 "}</span>
+          <span className="text-[#f4f3ee]">{"["}</span>
+          <Dropdown
+            value={period}
+            onChange={(v) => setPeriod(v as Period)}
+            options={periodOptions}
+          />
+          <span className="text-[#f4f3ee]">{"]"}</span>
+        </span>
       </div>
 
       <div className="border border-[#3d3d3a]">
@@ -102,7 +131,6 @@ export default function AccountStatsPage() {
                 <SortTh label="total" field="total" />
                 <SortTh label="complete" field="complete" />
                 <SortTh label="fb yes" field="followed_back" />
-                <SortTh label="fb no" field="not_followed_back" />
                 <SortTh label="fb rate" field="rate" />
               </tr>
             </thead>
@@ -112,14 +140,20 @@ export default function AccountStatsPage() {
                   <td className="px-4 py-1.5 text-[#f4f3ee]">{s.source ?? "—"}</td>
                   <td className="px-4 py-1.5 text-[#9A968B]">{s.total.toLocaleString()}</td>
                   <td className="px-4 py-1.5 text-[#9A968B]">{s.complete.toLocaleString()}</td>
-                  <td className="px-4 py-1.5 text-status-ok">{s.followed_back.toLocaleString()}</td>
-                  <td className="px-4 py-1.5 text-status-bad">{s.not_followed_back.toLocaleString()}</td>
-                  <td className={`px-4 py-1.5 ${s.rate != null && s.rate >= 0.1 ? "text-status-ok" : s.rate != null ? "text-status-bad" : "text-[#9A968B]"}`}>
-                    {fmtPct(s.rate)}
-                  </td>
+                  <td className="px-4 py-1.5 text-[#9A968B]">{s.followed_back.toLocaleString()}</td>
+                  <td className="px-4 py-1.5 text-[#9A968B]">{fmtPct(s.rate)}</td>
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr className="text-[#9A968B] border-t border-[#3d3d3a] bg-[#1a1918]">
+                <td className="px-4 py-2 text-[#f4f3ee]">total</td>
+                <td className="px-4 py-2">{totals.total.toLocaleString()}</td>
+                <td className="px-4 py-2">{totals.complete.toLocaleString()}</td>
+                <td className="px-4 py-2">{totals.followed_back.toLocaleString()}</td>
+                <td className="px-4 py-2">{fmtPct(totals.rate)}</td>
+              </tr>
+            </tfoot>
           </table>
         )}
       </div>

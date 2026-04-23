@@ -226,8 +226,8 @@ export interface SourceStat {
   rate: number | null;
 }
 
-export async function getAccountSourceStats(id: string) {
-  return request<{ items: SourceStat[] }>(`/accounts/${id}/source-stats`);
+export async function getAccountSourceStats(id: string, period: string = "week") {
+  return request<{ items: SourceStat[] }>(`/accounts/${id}/source-stats?period=${period}`);
 }
 
 export async function adminListAccounts() {

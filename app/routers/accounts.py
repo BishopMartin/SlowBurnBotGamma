@@ -422,8 +422,13 @@ async def get_account_source_stats(
     account_id: uuid.UUID,
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
+    period: str = Query("week"),
 ):
     await _get_owned_account(account_id, user, session)
+
+    filters = [FollowTarget.account_id == account_id]
+    if period != "all":
+        filters.append(FollowTarget.follow_date >= _period_start(period))
 
     result = await session.execute(
         select(
@@ -433,7 +438,7 @@ async def get_account_source_stats(
             func.count().filter(FollowTarget.follow_back == True).label("followed_back"),
             func.count().filter(FollowTarget.follow_back == False).label("not_followed_back"),
         )
-        .where(FollowTarget.account_id == account_id)
+        .where(*filters)
         .group_by(FollowTarget.source)
         .order_by(func.count().desc())
     )
