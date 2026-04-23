@@ -44,6 +44,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <header className="px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
+            <span className="text-[#3d3d3a]">--</span>
             <nav className="flex gap-4">
               {navItems.map((item) => (
                 <Link
@@ -51,18 +52,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   href={item.href}
                   className={`transition-colors ${
                     isNavActive(item.href)
-                      ? "text-[#eab308]"
+                      ? "text-[#d97757]"
                       : "text-[#73726c] hover:text-white"
                   }`}
                 >
-                  {item.label}
+                  [{item.label}]
                 </Link>
               ))}
             </nav>
           </div>
           <div className="flex items-center gap-4">
             <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#73726c] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
-            <span className="text-[#73726c]">{user.email}</span>
+            <span className="text-[#eab308]">{user.email}</span>
             <button onClick={handleLogout} className="group transition-colors">
               <Bracket className="text-[#73726c] group-hover:text-[#d97757]">sign out</Bracket>
             </button>
