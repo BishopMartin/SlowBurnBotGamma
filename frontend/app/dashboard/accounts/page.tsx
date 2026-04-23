@@ -218,6 +218,7 @@ export default function AccountsPage() {
                   <>
                     <SortTh label="Group" field="group" />
                     <th className="px-2 py-2 font-normal">Schedule</th>
+                    <th className="px-2 py-2 font-normal">Delay</th>
                     <th className="px-2 py-2 font-normal">Runs/Day</th>
                   </>
                 )}
@@ -298,6 +299,9 @@ export default function AccountsPage() {
                         <td className="px-2 py-2 whitespace-nowrap">{fmtGroup(account.group_number)}</td>
                         <td className="px-2 py-2 whitespace-nowrap">
                           {scheduleLabel(settingsMap[account.id])}
+                        </td>
+                        <td className="px-2 py-2 whitespace-nowrap">
+                          {settingsMap[account.id] ? `${settingsMap[account.id].delay_base_minutes ?? 0}/${settingsMap[account.id].delay_random_minutes ?? 0}` : "—"}
                         </td>
                         <td className="px-2 py-2 whitespace-nowrap">
                           {settingsMap[account.id]?.max_runs_per_day ?? "—"}
