@@ -122,7 +122,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
 
     try:
         today = date.today()
-        today_mdy = today.strftime("%m/%d/%y")
+        unfollow_date = today
 
         print(f"- [{account}]: [unfollow][database] - loading account data...")
 
@@ -130,7 +130,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
         try:
             targets = apiClient.get_follow_targets(
                 account_id, status="following", older_than_days=unfollow_days,
-                limit=target_count
+                page_size=target_count
             )
         except Exception as e:
             print(f"- [{account}]: [unfollow][database] - ERROR: Could not load follow targets: {e}")
@@ -279,7 +279,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
                         apiClient.update_follow_target(
                             target_id,
                             status="done",
-                            unfollow_date=today_mdy,
+                            unfollow_date=unfollow_date,
                             follow_back=follow_back
                         )
                     except Exception as update_error:
@@ -300,7 +300,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
                     apiClient.update_follow_target(
                         target_id,
                         status="done",
-                        unfollow_date=today_mdy,
+                        unfollow_date=unfollow_date,
                         follow_back=follow_back
                     )
                 except Exception as update_error:

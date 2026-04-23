@@ -110,14 +110,14 @@ def _find_explore_people_candidates(driver, max_candidates: int = 50):
     return _find_home_follow_candidates(driver, max_candidates=max_candidates)
 
 
-def _create_follow_entry(apiClient, account_id, user_name: str, source: str, status: str, today_mdy: str):
+def _create_follow_entry(apiClient, account_id, user_name: str, source: str, status: str, follow_date):
     """
     Create a follow target entry via the API.
     """
     try:
         apiClient.create_follow_target(
             account_id, user_name, source=source,
-            status=status, follow_date=today_mdy
+            status=status, follow_date=follow_date
         )
     except Exception:
         # Logging failures shouldn't crash the bot action
@@ -143,7 +143,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id):
 
     try:
         today = date.today()
-        today_mdy = today.strftime("%m/%d/%Y")
+        follow_date = today
 
         # Load database of previously followed accounts from API
         try:
@@ -223,7 +223,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id):
                                 user_name=user_name,
                                 source="suggested[accounts]",
                                 status="private",
-                                today_mdy=today_mdy,
+                                follow_date=follow_date,
                             )
                             database_names.append(user_name)
                             print(f"- [{account}]: [follow][suggested] - [private][skipped] - {user_name}")
@@ -260,7 +260,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id):
                         user_name=user_name,
                         source="suggested[accounts]",
                         status="following",
-                        today_mdy=today_mdy,
+                        follow_date=follow_date,
                     )
                     print(f"- [{account}]: [follow][suggested] - [{followed_count:02d}/{target_count:02d}] - {user_name}")
                     time.sleep(random.uniform(10, 20))
@@ -359,7 +359,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id):
                                 user_name=user_name,
                                 source="suggested[accounts]",
                                 status="private",
-                                today_mdy=today_mdy,
+                                follow_date=follow_date,
                             )
                             database_names.append(user_name)
 
@@ -380,7 +380,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id):
                                 user_name=user_name,
                                 source="suggested[accounts]",
                                 status="following",
-                                today_mdy=today_mdy,
+                                follow_date=follow_date,
                             )
                             database_names.append(user_name)
 
@@ -444,7 +444,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id):
                                 user_name=user_name,
                                 source="suggested[accounts]",
                                 status="private",
-                                today_mdy=today_mdy,
+                                follow_date=follow_date,
                             )
                             database_names.append(user_name)
                             print(f"- [{account}]: [follow][suggested] - [private][skipped] - {user_name}")
@@ -471,7 +471,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id):
                                 user_name=user_name,
                                 source="suggested[accounts]",
                                 status="following",
-                                today_mdy=today_mdy,
+                                follow_date=follow_date,
                             )
                             database_names.append(user_name)
                             print(f"- [{account}]: [follow][suggested] - [{followed_count:02d}/{target_count:02d}] - {user_name}")

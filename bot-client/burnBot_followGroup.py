@@ -30,7 +30,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
 
     try:
         today = date.today()
-        today_mdy = today.strftime("%m/%d/%Y")
+        follow_date = today
 
         # Load database of previously followed accounts from API
         try:
@@ -182,7 +182,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                         try:
                             apiClient.create_follow_target(
                                 account_id, user_name, source=target_source,
-                                status="private", follow_date=today_mdy
+                                status="private", follow_date=follow_date
                             )
                         except Exception:
                             pass
@@ -208,7 +208,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                         try:
                             apiClient.create_follow_target(
                                 account_id, user_name, source=target_source,
-                                status="following", follow_date=today_mdy
+                                status="following", follow_date=follow_date
                             )
                         except Exception:
                             pass
