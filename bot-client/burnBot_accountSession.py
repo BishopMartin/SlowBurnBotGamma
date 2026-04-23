@@ -254,13 +254,13 @@ def accountSession(account, account_id, idx, threads_active, stop_flag, apiClien
                             print(f"- [{account}]: [action {_slot_num}][enabled] -  [{_act_type}][{_act_target}][{_total}]")
 
                             try:
-                                if _act_type == "like" and _act_target in ["home", "homepage posts", "post[homepage]"]:
+                                if _act_type == "like" and _act_target in ["home", "homepage posts", "post[homepage]", "posts [homepage]"]:
                                     actions_run += 1
                                     _count, _errs = do_like_posts_home(driver, account, _total, apiClient, account_id)
                                     if _errs:
                                         moduleErrorsLog += _errs
 
-                                elif _act_type == "like" and _act_target == "post[topics]":
+                                elif _act_type == "like" and _act_target in ["post[topics]", "posts [topics]"]:
                                     _topics = action_topics
                                     if _topics:
                                         actions_run += 1
@@ -270,13 +270,13 @@ def accountSession(account, account_id, idx, threads_active, stop_flag, apiClien
                                     else:
                                         print(f"- [{account}]: [action {_slot_num}] - [{_act_type}][{_act_target}] - ERROR: No topics specified")
 
-                                elif _act_type == "follow" and _act_target in ["suggested", "home", "homepage"]:
+                                elif _act_type == "follow" and _act_target in ["suggested", "home", "homepage", "suggested users"]:
                                     actions_run += 1
                                     _count, _errs = do_follow_suggested(driver, account, _total, apiClient, account_id)
                                     if _errs:
                                         moduleErrorsLog += _errs
 
-                                elif _act_type == "follow" and _act_target in ["followers[group]", "following[group]"]:
+                                elif _act_type == "follow" and _act_target in ["followers[group]", "following[group]", "account list [followers]", "account list [following]"]:
                                     _target_accounts = account_list_tab
                                     if _target_accounts:
                                         actions_run += 1
@@ -289,7 +289,7 @@ def accountSession(account, account_id, idx, threads_active, stop_flag, apiClien
                                     else:
                                         print(f"- [{account}]: [action {_slot_num}] - [{_act_type}][{_act_target}] - ERROR: No target accounts specified")
 
-                                elif _act_type == "unfollow" and _act_target == "database":
+                                elif _act_type == "unfollow" and _act_target in ["database", "previous follows"]:
                                     actions_run += 1
                                     _count, _errs = do_unfollow_database(driver, account, _total, apiClient, account_id, unfollow_days)
                                     if _errs:

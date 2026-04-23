@@ -102,6 +102,14 @@ export async function updateUserConfig(data: Partial<UserConfig>) {
   return request<UserConfig>("/config", { method: "PUT", body: JSON.stringify(data) });
 }
 
+export async function getIgnoreHandles() {
+  return request<{ handles: string[] }>("/config/ignore-handles");
+}
+
+export async function updateIgnoreHandles(handles: string[]) {
+  return request<{ handles: string[] }>("/config/ignore-handles", { method: "PUT", body: JSON.stringify({ handles }) });
+}
+
 // Admin
 export async function adminListUsers() {
   return request<AdminUser[]>("/admin/users");

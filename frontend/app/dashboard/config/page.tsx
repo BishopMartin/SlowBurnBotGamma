@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getUserConfig, updateUserConfig, UserConfig } from "@/lib/api";
+import { getUserConfig, updateUserConfig, getIgnoreHandles, updateIgnoreHandles, UserConfig } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
 import { Dropdown } from "@/lib/dropdown";
 import { NumberInput } from "@/lib/number-input";
@@ -42,6 +42,9 @@ export default function ConfigPage() {
   const [notifyEmail, setNotifyEmail] = useState("");
   const [notifyPhone, setNotifyPhone] = useState("");
 
+  // Ignore list
+  const [ignoreHandles, setIgnoreHandles] = useState("");
+
   useEffect(() => {
     getUserConfig()
       .then((c) => {
@@ -55,6 +58,9 @@ export default function ConfigPage() {
         setNotifyEmail(c.notify_email ?? "");
         setNotifyPhone(c.notify_phone ?? "");
       })
+      .catch(() => {});
+    getIgnoreHandles()
+      .then((r) => setIgnoreHandles(r.handles.join(", ")))
       .catch(() => {});
   }, []);
 
@@ -73,6 +79,9 @@ export default function ConfigPage() {
         notify_phone: notifyPhone || null,
       });
       setConfig(updated);
+      const handles = ignoreHandles.split(",").map((h) => h.trim()).filter(Boolean);
+      const result = await updateIgnoreHandles(handles);
+      setIgnoreHandles(result.handles.join(", "));
       setMsg("saved.");
     } catch (err: unknown) {
       setMsg(err instanceof Error ? err.message : "save failed.");
@@ -203,6 +212,21 @@ export default function ConfigPage() {
             />
             <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
+        </div>
+      </div>
+
+      <div className={sectionCls}>
+        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">universal ignore</div>
+
+        <div className="px-4 py-3 text-sm">
+          <textarea
+            value={ignoreHandles}
+            onChange={(e) => setIgnoreHandles(e.target.value)}
+            placeholder="----"
+            rows={3}
+            className="w-full bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono border border-[#3d3d3a] px-2 py-1 focus:border-[#d97757] transition-colors resize-y"
+          />
+          <span className="text-[#9A968B] text-xs">comma-separated list of accounts to ignore</span>
         </div>
       </div>
 
