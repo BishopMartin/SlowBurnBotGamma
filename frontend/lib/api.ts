@@ -198,6 +198,7 @@ export interface SessionLogEntry {
 export interface AccountStats {
   pending: number;
   complete: number;
+  ignored: number;
   total: number;
   success: number;
   last_25: number | null;

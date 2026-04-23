@@ -371,6 +371,12 @@ async def get_account_stats(
             FollowTarget.status == "following",
         )
     )
+    ignored = await session.scalar(
+        select(func.count()).where(
+            FollowTarget.account_id == account_id,
+            FollowTarget.status == "skipped",
+        )
+    )
     complete = await session.scalar(
         select(func.count()).where(
             FollowTarget.account_id == account_id,
@@ -403,6 +409,7 @@ async def get_account_stats(
     return {
         "pending": pending or 0,
         "complete": complete or 0,
+        "ignored": ignored or 0,
         "total": total or 0,
         "success": success or 0,
         "last_25": round(last25_rate, 2) if last25_rate is not None else None,

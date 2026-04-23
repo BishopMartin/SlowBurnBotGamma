@@ -44,7 +44,7 @@ ACTION_TARGET_MAP = {
 STATUS_MAP = {
     "done": "done",
     "private": "skipped",
-    "pending": "pending",
+    "pending": "following",
 }
 
 

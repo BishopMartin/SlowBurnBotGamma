@@ -36,7 +36,7 @@ function fmtPct(v: number | null): string {
 }
 
 type Tab = "settings" | "activity" | "stats" | "database";
-type SortKey = "name" | "enabled" | "group" | "pending" | "complete" | "total" | "success" | "last_25" | "all_time" | "sessions" | "likes" | "follows" | "unfollows" | "fb_rate" | "followed" | "followed_back";
+type SortKey = "name" | "enabled" | "group" | "pending" | "complete" | "ignored" | "total" | "success" | "last_25" | "all_time" | "sessions" | "likes" | "follows" | "unfollows" | "fb_rate" | "followed" | "followed_back";
 type SortDir = "asc" | "desc";
 type Period = "day" | "week" | "month";
 
@@ -47,8 +47,8 @@ export default function AccountsPage() {
   const [logMap, setLogMap] = useState<Record<string, LogSummaryEntry>>({});
   const [fbMap, setFbMap] = useState<Record<string, FollowbackSummaryEntry>>({});
   const [tab, setTab] = useState<Tab>("settings");
-  const [activityPeriod, setActivityPeriod] = useState<Period>("day");
-  const [statsPeriod, setStatsPeriod] = useState<Period>("day");
+  const [activityPeriod, setActivityPeriod] = useState<Period>("week");
+  const [statsPeriod, setStatsPeriod] = useState<Period>("week");
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [newName, setNewName] = useState("");
@@ -71,6 +71,7 @@ export default function AccountsPage() {
       case "group": return account.group_number ?? -1;
       case "pending": return statsMap[account.id]?.pending ?? -1;
       case "complete": return statsMap[account.id]?.complete ?? -1;
+      case "ignored": return statsMap[account.id]?.ignored ?? -1;
       case "total": return statsMap[account.id]?.total ?? -1;
       case "success": return statsMap[account.id]?.success ?? -1;
       case "last_25": return statsMap[account.id]?.last_25 ?? -1;
@@ -239,6 +240,7 @@ export default function AccountsPage() {
                   <>
                     <SortTh label="Pend." field="pending" className="whitespace-nowrap" />
                     <SortTh label="Compl." field="complete" className="whitespace-nowrap" />
+                    <SortTh label="Ignored" field="ignored" className="whitespace-nowrap" />
                     <SortTh label="Total" field="total" className="whitespace-nowrap" />
                     <SortTh label="Success" field="success" className="whitespace-nowrap" />
                     <SortTh label="Recent" field="last_25" className="whitespace-nowrap" />
@@ -321,6 +323,7 @@ export default function AccountsPage() {
                       <>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.pending)}</td>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.complete)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.ignored)}</td>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.total)}</td>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.success)}</td>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtPct(stats?.last_25 ?? null)}</td>
