@@ -95,25 +95,25 @@ export default function AccountLogPage() {
   return (
     <div className="space-y-4 font-mono">
       <div className="flex items-center gap-3 flex-wrap">
-        <Link href="/dashboard/accounts" className="text-[#73726c] hover:text-[#f0eee6] transition-colors">
+        <Link href="/dashboard/accounts" className="text-[#B1ADA1] hover:text-[#f0eee6] transition-colors">
           ← accounts
         </Link>
         <span className="text-[#3d3d3a]">/</span>
         <span className="text-[#f0eee6]">{account.name}</span>
-        <span className="text-[#73726c]">/ log</span>
-        <span className="text-[#73726c] ml-auto">[{total.toLocaleString()} entries]</span>
+        <span className="text-[#B1ADA1]">/ log</span>
+        <span className="text-[#B1ADA1] ml-auto">[{total.toLocaleString()} entries]</span>
       </div>
 
       <div className="border border-[#3d3d3a]">
         {loading ? (
-          <p className="px-4 py-6 text-[#73726c]">loading...</p>
+          <p className="px-4 py-6 text-[#B1ADA1]">loading...</p>
         ) : items.length === 0 ? (
-          <p className="px-4 py-6 text-[#73726c]">no log entries found.</p>
+          <p className="px-4 py-6 text-[#B1ADA1]">no log entries found.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[#73726c] border-b border-[#3d3d3a]">
+                <tr className="text-left text-[#B1ADA1] border-b border-[#3d3d3a]">
                   <SortTh label="date" field="date" />
                   <SortTh label="run" field="run" />
                   <SortTh label="start" field="start" />
@@ -132,15 +132,15 @@ export default function AccountLogPage() {
                   const isNewDay = idx > 0 && entry.run_date !== prevDate;
                   return (
                   <>
-                    <tr key={entry.id} className={`hover:bg-[#1f1e1d] transition-colors ${isNewDay ? "border-t-[3px] border-double border-[#73726c]" : "border-t border-[#3d3d3a]"}`}>
+                    <tr key={entry.id} className={`hover:bg-[#1f1e1d] transition-colors ${isNewDay ? "border-t-[3px] border-double border-[#B1ADA1]" : "border-t border-[#3d3d3a]"}`}>
                       <td className="px-2 py-1.5 text-[#f0eee6] whitespace-nowrap">{entry.run_date ?? "—"}</td>
-                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{entry.run_sequence}</td>
-                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtTime(entry.start_time)}</td>
-                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{fmtTime(entry.end_time)}</td>
-                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{formatSessionAction(entry.action_1_type, entry.action_1_count)}</td>
-                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{formatSessionAction(entry.action_2_type, entry.action_2_count)}</td>
-                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{formatSessionAction(entry.action_3_type, entry.action_3_count)}</td>
-                      <td className="px-2 py-1.5 text-[#73726c] whitespace-nowrap">{formatSessionAction(entry.action_4_type, entry.action_4_count)}</td>
+                      <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{entry.run_sequence}</td>
+                      <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{fmtTime(entry.start_time)}</td>
+                      <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{fmtTime(entry.end_time)}</td>
+                      <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{formatSessionAction(entry.action_1_type, entry.action_1_count)}</td>
+                      <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{formatSessionAction(entry.action_2_type, entry.action_2_count)}</td>
+                      <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{formatSessionAction(entry.action_3_type, entry.action_3_count)}</td>
+                      <td className="px-2 py-1.5 text-[#B1ADA1] whitespace-nowrap">{formatSessionAction(entry.action_4_type, entry.action_4_count)}</td>
                       <td className="px-2 py-1.5 whitespace-nowrap">
                         {entry.error_message ? (
                           <button
@@ -178,9 +178,9 @@ export default function AccountLogPage() {
             onClick={() => setPage((p) => p - 1)}
             className="disabled:opacity-30 transition-colors"
           >
-            <Bracket className="text-[#73726c] hover:text-[#f0eee6]">prev</Bracket>
+            <Bracket className="text-[#B1ADA1] hover:text-[#f0eee6]">prev</Bracket>
           </button>
-          <span className="text-[#73726c]">
+          <span className="text-[#B1ADA1]">
             page {page} / {totalPages}
           </span>
           <button
@@ -188,7 +188,7 @@ export default function AccountLogPage() {
             onClick={() => setPage((p) => p + 1)}
             className="disabled:opacity-30 transition-colors"
           >
-            <Bracket className="text-[#73726c] hover:text-[#f0eee6]">next</Bracket>
+            <Bracket className="text-[#B1ADA1] hover:text-[#f0eee6]">next</Bracket>
           </button>
         </div>
       )}

@@ -82,7 +82,7 @@ export default function ConfigPage() {
   }
 
   if (!config) {
-    return <div className="font-mono text-[#73726c]">loading…</div>;
+    return <div className="font-mono text-[#B1ADA1]">loading…</div>;
   }
 
   return (
@@ -90,7 +90,7 @@ export default function ConfigPage() {
       <h1 className="font-semibold text-[#f0eee6]">Config</h1>
 
       <div className={sectionCls}>
-        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">session settings</div>
+        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#B1ADA1]">session settings</div>
 
         <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
           <span className="inline-flex items-center gap-1">
@@ -99,11 +99,11 @@ export default function ConfigPage() {
               onClick={() => setLikeSuggested(!likeSuggested)}
               className="group cursor-pointer transition-colors"
             >
-              <Bracket className={likeSuggested ? "text-status-ok group-hover:text-status-bad" : "text-[#73726c] group-hover:text-status-ok"}>
+              <Bracket className={likeSuggested ? "text-status-ok group-hover:text-status-bad" : "text-[#B1ADA1] group-hover:text-status-ok"}>
                 {likeSuggested ? "x" : "\u00a0"}
               </Bracket>
             </button>
-            <span className="text-[#73726c]">Like Suggested</span>
+            <span className="text-[#B1ADA1]">Like Suggested</span>
           </span>
 
           <span className="inline-flex items-center gap-1">
@@ -112,11 +112,11 @@ export default function ConfigPage() {
               onClick={() => setLikeSponsored(!likeSponsored)}
               className="group cursor-pointer transition-colors"
             >
-              <Bracket className={likeSponsored ? "text-status-ok group-hover:text-status-bad" : "text-[#73726c] group-hover:text-status-ok"}>
+              <Bracket className={likeSponsored ? "text-status-ok group-hover:text-status-bad" : "text-[#B1ADA1] group-hover:text-status-ok"}>
                 {likeSponsored ? "x" : "\u00a0"}
               </Bracket>
             </button>
-            <span className="text-[#73726c]">Like Sponsored</span>
+            <span className="text-[#B1ADA1]">Like Sponsored</span>
           </span>
 
           <span className="inline-flex items-center gap-1">
@@ -125,15 +125,15 @@ export default function ConfigPage() {
               onClick={() => setSkipLoginCheck(!skipLoginCheck)}
               className="group cursor-pointer transition-colors"
             >
-              <Bracket className={skipLoginCheck ? "text-status-ok group-hover:text-status-bad" : "text-[#73726c] group-hover:text-status-ok"}>
+              <Bracket className={skipLoginCheck ? "text-status-ok group-hover:text-status-bad" : "text-[#B1ADA1] group-hover:text-status-ok"}>
                 {skipLoginCheck ? "x" : "\u00a0"}
               </Bracket>
             </button>
-            <span className="text-[#73726c]">Skip Login Check</span>
+            <span className="text-[#B1ADA1]">Skip Login Check</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#73726c]">{"login tries: "}</span>
+            <span className="text-[#B1ADA1]">{"login tries: "}</span>
             <span className="text-[#f0eee6]">{"["}</span>
             <NumberInput
               value={loginTries}
@@ -148,7 +148,7 @@ export default function ConfigPage() {
       </div>
 
       <div className={sectionCls}>
-        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">notifications</div>
+        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#B1ADA1]">notifications</div>
 
         <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
           <span className="inline-flex items-center gap-1">
@@ -157,15 +157,15 @@ export default function ConfigPage() {
               onClick={() => setNoticesSession(!noticesSession)}
               className="group cursor-pointer transition-colors"
             >
-              <Bracket className={noticesSession ? "text-status-ok group-hover:text-status-bad" : "text-[#73726c] group-hover:text-status-ok"}>
+              <Bracket className={noticesSession ? "text-status-ok group-hover:text-status-bad" : "text-[#B1ADA1] group-hover:text-status-ok"}>
                 {noticesSession ? "x" : "\u00a0"}
               </Bracket>
             </button>
-            <span className="text-[#73726c]">Session Notifications</span>
+            <span className="text-[#B1ADA1]">Session Notifications</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#73726c]">{"type: "}</span>
+            <span className="text-[#B1ADA1]">{"type: "}</span>
             <span className="text-[#f0eee6]">{"["}</span>
             <Dropdown
               value={noticesType}
@@ -177,7 +177,7 @@ export default function ConfigPage() {
           </span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#73726c]">{"email: "}</span>
+            <span className="text-[#B1ADA1]">{"email: "}</span>
             <span className="text-[#f0eee6]">{"["}</span>
             <input
               type="email"
@@ -185,13 +185,13 @@ export default function ConfigPage() {
               onChange={(e) => setNotifyEmail(e.target.value)}
               placeholder="email@example.com"
               style={{ width: "20ch" }}
-              className="bg-transparent text-[#f0eee6] placeholder-[#73726c] outline-none font-mono min-w-0 px-0"
+              className="bg-transparent text-[#f0eee6] placeholder-[#B1ADA1] outline-none font-mono min-w-0 px-0"
             />
             <span className="text-[#f0eee6]">{"]"}</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#73726c]">{"phone: "}</span>
+            <span className="text-[#B1ADA1]">{"phone: "}</span>
             <span className="text-[#f0eee6]">{"["}</span>
             <input
               type="tel"
@@ -199,7 +199,7 @@ export default function ConfigPage() {
               onChange={(e) => setNotifyPhone(stripPhone(e.target.value))}
               placeholder="(123) 456-7890"
               style={{ width: "16ch" }}
-              className="bg-transparent text-[#f0eee6] placeholder-[#73726c] outline-none font-mono min-w-0 px-0"
+              className="bg-transparent text-[#f0eee6] placeholder-[#B1ADA1] outline-none font-mono min-w-0 px-0"
             />
             <span className="text-[#f0eee6]">{"]"}</span>
           </span>

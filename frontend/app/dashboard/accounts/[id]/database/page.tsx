@@ -12,7 +12,7 @@ type SortDir = "asc" | "desc";
 
 function statusCls(status: string): string {
   if (status === "done") return "text-status-ok";
-  if (status === "skipped") return "text-[#73726c]";
+  if (status === "skipped") return "text-[#B1ADA1]";
   return "text-[#f0eee6]";
 }
 
@@ -78,24 +78,24 @@ export default function AccountDatabasePage() {
   return (
     <div className="space-y-4 font-mono">
       <div className="flex items-center gap-3 flex-wrap">
-        <Link href="/dashboard/accounts" className="text-[#73726c] hover:text-[#f0eee6] transition-colors">
+        <Link href="/dashboard/accounts" className="text-[#B1ADA1] hover:text-[#f0eee6] transition-colors">
           ← accounts
         </Link>
         <span className="text-[#3d3d3a]">/</span>
         <span className="text-[#f0eee6]">{account.name}</span>
-        <span className="text-[#73726c]">/ database</span>
-        <span className="text-[#73726c] ml-auto">[{total.toLocaleString()} records]</span>
+        <span className="text-[#B1ADA1]">/ database</span>
+        <span className="text-[#B1ADA1] ml-auto">[{total.toLocaleString()} records]</span>
       </div>
 
       <div className="border border-[#3d3d3a]">
         {loading ? (
-          <p className="px-4 py-6 text-[#73726c]">loading…</p>
+          <p className="px-4 py-6 text-[#B1ADA1]">loading…</p>
         ) : items.length === 0 ? (
-          <p className="px-4 py-6 text-[#73726c]">no records found.</p>
+          <p className="px-4 py-6 text-[#B1ADA1]">no records found.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-[#73726c] border-b border-[#3d3d3a]">
+              <tr className="text-left text-[#B1ADA1] border-b border-[#3d3d3a]">
                 <SortTh label="handle" field="handle" />
                 <SortTh label="source" field="source" />
                 <SortTh label="status" field="status" />
@@ -108,11 +108,11 @@ export default function AccountDatabasePage() {
               {items.map((t) => (
                 <tr key={t.id} className="hover:bg-[#1f1e1d] transition-colors">
                   <td className="px-4 py-1.5 text-[#f0eee6]">{t.target_handle}</td>
-                  <td className="px-4 py-1.5 text-[#73726c] text-xs">{t.source ?? "—"}</td>
+                  <td className="px-4 py-1.5 text-[#B1ADA1] text-xs">{t.source ?? "—"}</td>
                   <td className={`px-4 py-1.5 ${statusCls(t.status)}`}>{t.status}</td>
-                  <td className="px-4 py-1.5 text-[#73726c]">{t.follow_date ?? "—"}</td>
-                  <td className="px-4 py-1.5 text-[#73726c]">{t.unfollow_date ?? "—"}</td>
-                  <td className={`px-4 py-1.5 ${t.follow_back === true ? "text-status-ok" : t.follow_back === false ? "text-status-bad" : "text-[#73726c]"}`}>
+                  <td className="px-4 py-1.5 text-[#B1ADA1]">{t.follow_date ?? "—"}</td>
+                  <td className="px-4 py-1.5 text-[#B1ADA1]">{t.unfollow_date ?? "—"}</td>
+                  <td className={`px-4 py-1.5 ${t.follow_back === true ? "text-status-ok" : t.follow_back === false ? "text-status-bad" : "text-[#B1ADA1]"}`}>
                     {t.follow_back === true ? "yes" : t.follow_back === false ? "no" : "—"}
                   </td>
                 </tr>
@@ -127,17 +127,17 @@ export default function AccountDatabasePage() {
           <button
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
-            className="disabled:opacity-30 text-[#73726c] hover:text-[#f0eee6] transition-colors"
+            className="disabled:opacity-30 text-[#B1ADA1] hover:text-[#f0eee6] transition-colors"
           >
             [prev]
           </button>
-          <span className="text-[#73726c]">
+          <span className="text-[#B1ADA1]">
             page {page} / {totalPages}
           </span>
           <button
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="disabled:opacity-30 text-[#73726c] hover:text-[#f0eee6] transition-colors"
+            className="disabled:opacity-30 text-[#B1ADA1] hover:text-[#f0eee6] transition-colors"
           >
             [next]
           </button>

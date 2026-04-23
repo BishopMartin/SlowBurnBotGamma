@@ -136,7 +136,7 @@ export default function AccountDetailPage() {
 
       {/* Header */}
       <div className="flex items-center gap-3 flex-wrap">
-        <Link href="/dashboard/accounts" className="text-[#73726c] hover:text-[#f0eee6] transition-colors">
+        <Link href="/dashboard/accounts" className="text-[#B1ADA1] hover:text-[#f0eee6] transition-colors">
           ← accounts
         </Link>
         <span className="text-[#f0eee6] font-semibold">{account.name}</span>
@@ -146,11 +146,11 @@ export default function AccountDetailPage() {
 
         {/* Configuration */}
         <div className={sectionCls}>
-          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">configuration</div>
+          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#B1ADA1]">configuration</div>
           <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
 
             <span className="inline-flex items-center gap-1">
-              <span className="text-[#73726c]">enabled:</span>
+              <span className="text-[#B1ADA1]">enabled:</span>
               <button
                 type="button"
                 onClick={() => handleAccountField({ enabled: !account.enabled })}
@@ -163,7 +163,7 @@ export default function AccountDetailPage() {
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">{"group: "}</span>
+              <span className="text-[#B1ADA1]">{"group: "}</span>
               <span className="text-[#f0eee6]">{"["}</span>
               <input
                 type="text"
@@ -176,13 +176,13 @@ export default function AccountDetailPage() {
                   setAccount((a) => a && { ...a, group_number: val ? +val : null });
                 }}
                 onBlur={() => handleAccountField({ group_number: account.group_number })}
-                className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#73726c] text-center"
+                className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f0eee6] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#B1ADA1] text-center"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-1">
-              <span className="text-[#73726c]">password:</span>
+              <span className="text-[#B1ADA1]">password:</span>
               {editingPw ? (
                 <span className="inline-flex items-center gap-0">
                   <span className="text-[#f0eee6]">{"["}</span>
@@ -211,7 +211,7 @@ export default function AccountDetailPage() {
                   onClick={() => setEditingPw(true)}
                   className="group cursor-pointer transition-colors"
                 >
-                  <Bracket className={account.has_password ? "text-status-ok group-hover:text-[#d97757]" : "text-[#73726c] group-hover:text-[#d97757]"}>
+                  <Bracket className={account.has_password ? "text-status-ok group-hover:text-[#d97757]" : "text-[#B1ADA1] group-hover:text-[#d97757]"}>
                     {account.has_password ? "******" : "------"}
                   </Bracket>
                 </button>
@@ -223,11 +223,11 @@ export default function AccountDetailPage() {
 
         {/* Schedule */}
         <div className={sectionCls}>
-          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">schedule</div>
+          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#B1ADA1]">schedule</div>
           <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">{"days: "}</span>
+              <span className="text-[#B1ADA1]">{"days: "}</span>
               <span className="text-[#f0eee6]">{"["}</span>
               <Dropdown
                 value={settings.schedule_days ?? ""}
@@ -242,7 +242,7 @@ export default function AccountDetailPage() {
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">{"start: "}</span>
+              <span className="text-[#B1ADA1]">{"start: "}</span>
               <span className="text-[#f0eee6]">{"["}</span>
               <input
                 type="text"
@@ -258,7 +258,7 @@ export default function AccountDetailPage() {
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">{"end: "}</span>
+              <span className="text-[#B1ADA1]">{"end: "}</span>
               <span className="text-[#f0eee6]">{"["}</span>
               <input
                 type="text"
@@ -274,7 +274,7 @@ export default function AccountDetailPage() {
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">{"delay fixed: "}</span>
+              <span className="text-[#B1ADA1]">{"delay fixed: "}</span>
               <span className="text-[#f0eee6]">{"["}</span>
               <NumberInput
                 value={settings.delay_base_minutes}
@@ -285,7 +285,7 @@ export default function AccountDetailPage() {
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">{"delay random: "}</span>
+              <span className="text-[#B1ADA1]">{"delay random: "}</span>
               <span className="text-[#f0eee6]">{"["}</span>
               <NumberInput
                 value={settings.delay_random_minutes}
@@ -296,7 +296,7 @@ export default function AccountDetailPage() {
             </span>
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">{"sessions/day: "}</span>
+              <span className="text-[#B1ADA1]">{"sessions/day: "}</span>
               <span className="text-[#f0eee6]">{"["}</span>
               <NumberInput
                 value={settings.max_runs_per_day}
@@ -311,10 +311,10 @@ export default function AccountDetailPage() {
 
         {/* Actions */}
         <div className={sectionCls}>
-          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">session actions</div>
+          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#B1ADA1]">session actions</div>
           <table className="w-full font-mono">
             <thead>
-              <tr className="text-left text-[#73726c] border-b border-[#3d3d3a]">
+              <tr className="text-left text-[#B1ADA1] border-b border-[#3d3d3a]">
                 <th className="px-4 py-2 font-normal w-10"></th>
                 <th className="px-4 py-2 font-normal w-10">on</th>
                 <th className="px-4 py-2 font-normal">type</th>
@@ -328,14 +328,14 @@ export default function AccountDetailPage() {
                 const targets = action.type ? (ACTION_TARGETS[action.type] ?? []) : [];
                 return (
                   <tr key={i}>
-                    <td className="px-4 py-2 text-[#73726c]">{ACTION_LABELS[i]}</td>
+                    <td className="px-4 py-2 text-[#B1ADA1]">{ACTION_LABELS[i]}</td>
                     <td className="px-4 py-2">
                       <button
                         type="button"
                         onClick={() => updateAction(i, { enabled: !action.enabled })}
                         className="group text-left cursor-pointer transition-colors"
                       >
-                        <Bracket className={action.enabled ? "text-status-ok group-hover:text-status-bad" : "text-[#73726c] group-hover:text-status-ok"}>
+                        <Bracket className={action.enabled ? "text-status-ok group-hover:text-status-bad" : "text-[#B1ADA1] group-hover:text-status-ok"}>
                           {action.enabled ? "x" : "\u00a0"}
                         </Bracket>
                       </button>
@@ -394,11 +394,11 @@ export default function AccountDetailPage() {
 
         {/* Follow Settings */}
         <div className={sectionCls}>
-          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#73726c]">follow settings</div>
+          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#B1ADA1]">follow settings</div>
           <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm border-b border-[#3d3d3a]">
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#73726c]">{"unfollow after: "}</span>
+              <span className="text-[#B1ADA1]">{"unfollow after: "}</span>
               <span className="text-[#f0eee6]">{"["}</span>
               <NumberInput
                 value={settings.unfollow_days}
@@ -406,25 +406,25 @@ export default function AccountDetailPage() {
                 placeholder="30"
               />
               <span className="text-[#f0eee6]">{"]"}</span>
-              <span className="text-[#73726c]">{" days"}</span>
+              <span className="text-[#B1ADA1]">{" days"}</span>
             </span>
 
           </div>
           <div className="px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-4">
             <div>
-              <div className="text-[#73726c] text-sm mb-1">account group</div>
+              <div className="text-[#B1ADA1] text-sm mb-1">account group</div>
               <textarea placeholder="comma-separated" rows={5}
                 value={settings.account_group ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, account_group: e.target.value || null }))}
-                className="w-full bg-transparent border border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
+                className="w-full bg-transparent border border-[#3d3d3a] text-[#f0eee6] placeholder-[#B1ADA1] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
               />
             </div>
             <div>
-              <div className="text-[#73726c] text-sm mb-1">instagram topics</div>
+              <div className="text-[#B1ADA1] text-sm mb-1">instagram topics</div>
               <textarea placeholder="comma-separated" rows={5}
                 value={settings.topics ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, topics: e.target.value || null }))}
-                className="w-full bg-transparent border border-[#3d3d3a] text-[#f0eee6] placeholder-[#73726c] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
+                className="w-full bg-transparent border border-[#3d3d3a] text-[#f0eee6] placeholder-[#B1ADA1] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
               />
             </div>
           </div>
@@ -439,7 +439,7 @@ export default function AccountDetailPage() {
           </button>
           {msg && <span className="text-status-ok">{msg}</span>}
           <button type="button" onClick={handleDelete} className="group transition-colors ml-auto">
-            <Bracket className="text-[#73726c] group-hover:text-status-bad">delete account</Bracket>
+            <Bracket className="text-[#B1ADA1] group-hover:text-status-bad">delete account</Bracket>
           </button>
         </div>
 
