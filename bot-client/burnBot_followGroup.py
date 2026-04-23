@@ -171,7 +171,12 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                         continue
                     
                     # Check if account is private
-                    if 'The account is private' in driver.page_source:
+                    _is_private = 'The account is private' in driver.page_source
+                    _skip_private = False
+                    if _is_private:
+                        user_config = apiClient.get_user_config() if apiClient else None
+                        _skip_private = bool(user_config and user_config.get('skip_private', False))
+                    if _is_private and _skip_private:
                         # Log private account via API
                         target_source = f"{target_account}[{action_type}]"
                         try:
@@ -187,7 +192,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                         actions.move_to_element(target_link)
                         actions.perform()
 
-                        print(f"- [{account}]: [follow][{group_type}] - [private] - {target_account} | {user_name}")
+                        print(f"- [{account}]: [follow][{group_type}] - [private][skipped] - {target_account} | {user_name}")
 
                     else:
                         # Follow the account

@@ -289,9 +289,13 @@ export interface UserConfig {
   like_sponsored: boolean;
   skip_login_check: boolean;
   login_tries: number;
+  skip_private: boolean;
   notices_type: string;
   notices_session: boolean;
   notices_login: boolean;
+  login_notices_type: string;
+  login_notify_email: string | null;
+  login_notify_phone: string | null;
   notify_email: string | null;
   notify_phone: string | null;
   updated_at: string;

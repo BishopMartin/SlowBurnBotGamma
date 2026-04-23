@@ -40,10 +40,14 @@ export default function ConfigPage() {
   const [noticesType, setNoticesType] = useState("email");
   const [noticesSession, setNoticesSession] = useState(true);
   const [noticesLogin, setNoticesLogin] = useState(true);
+  const [loginNoticesType, setLoginNoticesType] = useState("email");
+  const [loginNotifyEmail, setLoginNotifyEmail] = useState("");
+  const [loginNotifyPhone, setLoginNotifyPhone] = useState("");
   const [notifyEmail, setNotifyEmail] = useState("");
   const [notifyPhone, setNotifyPhone] = useState("");
 
   // Ignore list
+  const [skipPrivate, setSkipPrivate] = useState(false);
   const [ignoreHandles, setIgnoreHandles] = useState("");
 
   useEffect(() => {
@@ -57,6 +61,10 @@ export default function ConfigPage() {
         setNoticesType(c.notices_type);
         setNoticesSession(c.notices_session);
         setNoticesLogin(c.notices_login);
+        setLoginNoticesType(c.login_notices_type);
+        setLoginNotifyEmail(c.login_notify_email ?? "");
+        setLoginNotifyPhone(c.login_notify_phone ?? "");
+        setSkipPrivate(c.skip_private);
         setNotifyEmail(c.notify_email ?? "");
         setNotifyPhone(c.notify_phone ?? "");
       })
@@ -78,6 +86,10 @@ export default function ConfigPage() {
         notices_type: noticesType,
         notices_session: noticesSession,
         notices_login: noticesLogin,
+        login_notices_type: loginNoticesType,
+        login_notify_email: loginNotifyEmail || null,
+        login_notify_phone: loginNotifyPhone || null,
+        skip_private: skipPrivate,
         notify_email: notifyEmail || null,
         notify_phone: notifyPhone || null,
       });
@@ -230,13 +242,69 @@ export default function ConfigPage() {
             </button>
             <span className="text-[#9A968B]">Login Issue Notifications</span>
           </span>
+
+          <span className="inline-flex items-center gap-0">
+            <span className="text-[#9A968B]">{"type: "}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
+            <Dropdown
+              value={loginNoticesType}
+              onChange={(v) => setLoginNoticesType(v)}
+              placeholder="----"
+              options={NOTICES_OPTIONS}
+            />
+            <span className="text-[#f4f3ee]">{"]"}</span>
+          </span>
+
+          <span className="inline-flex items-center gap-0">
+            <span className="text-[#9A968B]">{"email: "}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
+            <input
+              type="email"
+              value={loginNotifyEmail}
+              onChange={(e) => setLoginNotifyEmail(e.target.value)}
+              placeholder="----"
+              style={{ width: "20ch" }}
+              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"
+            />
+            <span className="text-[#f4f3ee]">{"]"}</span>
+          </span>
+
+          <span className="inline-flex items-center gap-0">
+            <span className="text-[#9A968B]">{"phone: "}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
+            <input
+              type="tel"
+              value={formatPhone(loginNotifyPhone)}
+              onChange={(e) => setLoginNotifyPhone(stripPhone(e.target.value))}
+              placeholder="----"
+              style={{ width: "16ch" }}
+              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"
+            />
+            <span className="text-[#f4f3ee]">{"]"}</span>
+          </span>
         </div>
       </div>
 
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">universal ignore</div>
 
-        <div className="px-4 py-3 text-sm">
+        <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
+          <span className="inline-flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setSkipPrivate(!skipPrivate)}
+              className="group cursor-pointer transition-colors"
+            >
+              <Bracket className={skipPrivate ? "text-status-ok group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
+                {skipPrivate ? "x" : "\u00a0"}
+              </Bracket>
+            </button>
+            <span className="text-[#9A968B]">Skip Private Accounts</span>
+          </span>
+        </div>
+
+        <div className="px-4 py-3 border-t border-[#3d3d3a] text-sm">
+          <div className="text-[#9A968B] text-sm mb-1">skip/ignore account list</div>
           <textarea
             value={ignoreHandles}
             onChange={(e) => setIgnoreHandles(e.target.value)}
@@ -244,7 +312,6 @@ export default function ConfigPage() {
             rows={3}
             className="w-full bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono border border-[#3d3d3a] px-2 py-1 focus:border-[#d97757] transition-colors resize-y"
           />
-          <span className="text-[#9A968B] text-xs">comma-separated list of accounts to ignore</span>
         </div>
       </div>
 

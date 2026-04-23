@@ -216,16 +216,19 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id):
 
                     page = driver.page_source or ""
                     if ("The account is private" in page) or ("This Account is Private" in page):
-                        _create_follow_entry(
-                            apiClient, account_id,
-                            user_name=user_name,
-                            source="suggested[accounts]",
-                            status="private",
-                            today_mdy=today_mdy,
-                        )
-                        database_names.append(user_name)
+                        user_config = apiClient.get_user_config() if apiClient else None
+                        if user_config and user_config.get('skip_private', False):
+                            _create_follow_entry(
+                                apiClient, account_id,
+                                user_name=user_name,
+                                source="suggested[accounts]",
+                                status="private",
+                                today_mdy=today_mdy,
+                            )
+                            database_names.append(user_name)
+                            print(f"- [{account}]: [follow][suggested] - [private][skipped] - {user_name}")
+                            continue
                         print(f"- [{account}]: [follow][suggested] - [private] - {user_name}")
-                        continue
 
                     # Click follow
                     click_success = False
@@ -338,7 +341,12 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id):
                             continue
 
                         # Check if account is private
-                        if "The account is private" in driver.page_source:
+                        _is_private = "The account is private" in driver.page_source
+                        _skip_private = False
+                        if _is_private:
+                            user_config = apiClient.get_user_config() if apiClient else None
+                            _skip_private = bool(user_config and user_config.get('skip_private', False))
+                        if _is_private and _skip_private:
                             # Move away from hover
                             profile_link = driver.find_element(By.PARTIAL_LINK_TEXT, "Profile")
                             actions = ActionChains(driver)
@@ -355,7 +363,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id):
                             )
                             database_names.append(user_name)
 
-                            print(f"- [{account}]: [follow][suggested] - [private] - {user_name}")
+                            print(f"- [{account}]: [follow][suggested] - [private][skipped] - {user_name}")
 
                         else:
                             # Follow the account
@@ -425,7 +433,12 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id):
                                 pass
 
                         page = driver.page_source or ""
-                        if ("The account is private" in page) or ("This Account is Private" in page):
+                        _is_private = ("The account is private" in page) or ("This Account is Private" in page)
+                        _skip_private = False
+                        if _is_private:
+                            user_config = apiClient.get_user_config() if apiClient else None
+                            _skip_private = bool(user_config and user_config.get('skip_private', False))
+                        if _is_private and _skip_private:
                             _create_follow_entry(
                                 apiClient, account_id,
                                 user_name=user_name,
@@ -434,7 +447,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id):
                                 today_mdy=today_mdy,
                             )
                             database_names.append(user_name)
-                            print(f"- [{account}]: [follow][suggested] - [private] - {user_name}")
+                            print(f"- [{account}]: [follow][suggested] - [private][skipped] - {user_name}")
                         else:
                             followed_count += 1
 

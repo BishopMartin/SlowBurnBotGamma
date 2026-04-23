@@ -26,10 +26,16 @@ class UserConfig(Base):
     skip_login_check: Mapped[bool] = mapped_column(Boolean, default=False)
     login_tries: Mapped[int] = mapped_column(Integer, default=3)
 
+    # Follow settings
+    skip_private: Mapped[bool] = mapped_column(Boolean, default=False)
+
     # Notification settings
     notices_type: Mapped[str] = mapped_column(String(10), default="email")  # text/email/both/none
     notices_session: Mapped[bool] = mapped_column(Boolean, default=True)
     notices_login: Mapped[bool] = mapped_column(Boolean, default=True)
+    login_notices_type: Mapped[str] = mapped_column(String(10), default="email")
+    login_notify_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    login_notify_phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
     notify_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     notify_phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
 
