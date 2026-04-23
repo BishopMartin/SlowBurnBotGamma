@@ -139,7 +139,7 @@ export default function DashboardPage() {
                   const prevDate = idx > 0 ? recentLog[idx - 1].run_date : null;
                   const isNewDay = idx > 0 && entry.run_date !== prevDate;
                   return (
-                  <tr key={entry.id} className={`hover:bg-[#1f1e1d] transition-colors ${isNewDay ? "border-t-2 border-[#B1ADA1]" : "border-t border-[#3d3d3a]"}`}>
+                  <tr key={entry.id} className={`hover:bg-[#1f1e1d] transition-colors ${isNewDay ? "border-t-2 border-[#3d3d3a]" : "border-t border-[#3d3d3a]"}`}>
                     <td className="px-2 py-1.5 whitespace-nowrap">
                       <Link
                         href={`/dashboard/accounts/${entry.account_id}/log`}

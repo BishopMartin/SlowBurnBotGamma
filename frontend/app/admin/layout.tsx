@@ -69,7 +69,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <div className="flex items-center gap-4">
             <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#B1ADA1] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
-            <span className="text-[#eab308]">{user.email}</span>
+            <span className="text-[#E5C07B]">{user.email}</span>
             <button onClick={handleLogout} className="group transition-colors">
               <Bracket className="text-[#B1ADA1] group-hover:text-[#d97757]">sign out</Bracket>
             </button>
