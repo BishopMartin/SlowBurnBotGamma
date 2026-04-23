@@ -216,7 +216,7 @@ export default function AccountsPage() {
                 <SortTh label="Account" field="name" />
                 {tab === "settings" && (
                   <>
-                    <SortTh label="Group" field="group" />
+                    <SortTh label="Client" field="group" />
                     <th className="px-2 py-2 font-normal">Schedule</th>
                     <th className="px-2 py-2 font-normal">Delay</th>
                     <th className="px-2 py-2 font-normal">Runs/Day</th>

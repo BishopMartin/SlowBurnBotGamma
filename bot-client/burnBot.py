@@ -38,6 +38,28 @@ if not api_url:
 
 apiClient = ApiClient(api_url)
 
+
+def _api_credentials_from_ini():
+    email = CONFIG.get("api_credentials", "email", fallback="").strip()
+    password = CONFIG.get("api_credentials", "password", fallback="").strip()
+    return email, password
+
+
+def _try_api_relogin_from_config(client):
+    """
+    Re-post /auth/jwt/login using [api_credentials] when the keyring JWT is stale.
+    JWT access tokens expire (server default 1h); refresh only works while still valid.
+    """
+    email, password = _api_credentials_from_ini()
+    if not email or not password:
+        return False
+    print("[api]: Session expired — re-authenticating with [api_credentials] from config...")
+    ok = client.login(email, password)
+    if ok:
+        print("[api]: Re-login OK.")
+    return bool(ok)
+
+
 # Load bot_idle_delay for main loop check interval (in minutes, convert to seconds)
 bot_idle_delay_minutes = CONFIG.getint('bot_settings', 'bot_idle_delay', fallback=1)
 bot_idle_delay = bot_idle_delay_minutes * 60  # Convert to seconds
@@ -143,7 +165,13 @@ if not apiClient.has_token():
 # Entitlement check
 # ------------------------------------------------------------------
 try:
-    entitlement = apiClient.check_entitlement()
+    try:
+        entitlement = apiClient.check_entitlement()
+    except AuthenticationError:
+        if _try_api_relogin_from_config(apiClient):
+            entitlement = apiClient.check_entitlement()
+        else:
+            raise
     if not entitlement.get("active"):
         print("=" * 60)
         print("Subscription is not active.")
@@ -153,7 +181,8 @@ try:
         sys.exit(1)
     print(f"Subscription active (plan: {entitlement.get('plan_tier')})")
 except AuthenticationError:
-    print("Session expired. Please restart and log in again.")
+    print("Session expired. Add email/password under [api_credentials] in burnBot_config.ini for auto re-login,")
+    print("or run again and sign in when prompted.")
     sys.exit(1)
 except Exception as e:
     print(f"Entitlement check failed: {e}")
@@ -177,7 +206,7 @@ stop_flag = threading.Event()  # Global stop flag for clean shutdown
 run_counter = RunCounter()
 
 # Group filter
-system_group = CONFIG.get('bot_settings', 'system_group', fallback='')
+client_id = CONFIG.get('bot_settings', 'client_id', fallback='')
 
 def normalize_group(value):
     s = str(value).strip() if value is not None else ""
@@ -188,12 +217,12 @@ def normalize_group(value):
     except Exception:
         return s
 
-system_group_norm = normalize_group(system_group)
+client_id_norm = normalize_group(client_id)
 
 try:
     # --- Startup display ---
     _w = 24  # label column width
-    _sg = str(CONFIG.get('bot_settings', 'system_group', fallback='')).strip()
+    _sg = str(CONFIG.get('bot_settings', 'client_id', fallback='')).strip()
     try:
         _sg = f"{int(_sg):02d}"
     except Exception:
@@ -220,7 +249,7 @@ try:
     print("=" * 60)
     time.sleep(_p); print(f"{'local config file:':<{_w}}[{config_file}]")
     time.sleep(_p); print(f"{'api_url:':<{_w}}[{api_url}]")
-    time.sleep(_p); print(f"{'system_group:':<{_w}}[{_sg}]")
+    time.sleep(_p); print(f"{'client_id:':<{_w}}[{_sg}]")
     time.sleep(_p); print(f"{'system_type:':<{_w}}[{_st}]")
     time.sleep(_p); print(f"{'debug:':<{_w}}[{_dbg}]")
     time.sleep(_p); print(f"{'system_user_agent:':<{_w}}[{_ua}]")
@@ -250,11 +279,18 @@ try:
 
         # Refresh account list from API each cycle
         try:
-            group_param = int(system_group_norm) if system_group_norm else None
+            group_param = int(client_id_norm) if client_id_norm else None
             refreshed_accounts = apiClient.get_accounts(group_number=group_param)
         except AuthenticationError:
-            print("[system]: Session expired. Please restart and log in again.")
-            break
+            if _try_api_relogin_from_config(apiClient):
+                try:
+                    refreshed_accounts = apiClient.get_accounts(group_number=group_param)
+                except AuthenticationError:
+                    print("[system]: Session expired after re-login. Check [api_credentials] or dashboard.")
+                    break
+            else:
+                print("[system]: Session expired. Set [api_credentials] in burnBot_config.ini or restart and log in.")
+                break
         except Exception as e:
             if is_bot_debug_enabled():
                 print(f"[system]: Warning - account refresh failed, using cached values: {e}")

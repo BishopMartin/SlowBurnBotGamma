@@ -1,7 +1,7 @@
 # Copy to burnBot_config.ini (gitignored) and adjust paths / URLs.
 
 [bot_settings]
-system_group = 1
+client_id = 1
 system_type = windows
 #system_type = chromebook
 bot_debug = FALSE
@@ -14,8 +14,9 @@ bot_idle_delay = 5
 api_url = http://127.0.0.1:8080
 
 [api_credentials]
-# Optional: store login credentials here to skip manual entry at startup
-# Leave blank to be prompted interactively
+# Optional: store dashboard email/password to skip manual entry at startup.
+# If set, the bot can re-call /auth/jwt/login when the saved JWT expires (long runs).
+# Leave blank to be prompted interactively (you must restart manually after token expiry).
 email =
 password =
 
