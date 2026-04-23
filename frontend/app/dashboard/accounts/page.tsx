@@ -20,9 +20,9 @@ import { scheduleLabel } from "@/lib/format";
 import { Bracket } from "@/lib/bracket";
 import { Dropdown } from "@/lib/dropdown";
 
-function fmtGroup(n: number | null | undefined): React.ReactNode {
-  if (n == null) return <span className="text-[#9A968B]">—</span>;
-  return <span className="text-[#9A968B]">{String(n).padStart(2, "0")}</span>;
+function fmtGroup(n: number | null | undefined): string {
+  if (n == null) return "—";
+  return String(n).padStart(2, "0");
 }
 
 function fmtNum(v: number | null | undefined): string {
@@ -211,14 +211,13 @@ export default function AccountsPage() {
           <table className="w-full font-mono">
             <thead>
               <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
+                <SortTh label="On" field="enabled" />
                 <SortTh label="Account" field="name" />
                 {tab === "settings" && (
                   <>
-                    <SortTh label="On" field="enabled" />
                     <SortTh label="Group" field="group" />
                     <th className="px-2 py-2 font-normal">Schedule</th>
                     <th className="px-2 py-2 font-normal">Runs/Day</th>
-                    <th className="px-2 py-2 font-normal">Status</th>
                   </>
                 )}
                 {tab === "activity" && (
@@ -280,55 +279,52 @@ export default function AccountsPage() {
                 const log = logMap[account.id];
                 const fb = fbMap[account.id];
                 return (
-                  <tr key={account.id} className="hover:bg-[#1f1e1d] transition-colors">
-                    <td className="px-2 pr-6 py-2 text-[#9A968B] whitespace-nowrap overflow-hidden text-ellipsis" style={{ maxWidth: "20ch" }}>{account.name}</td>
+                  <tr key={account.id} className={`hover:bg-[#1f1e1d] transition-colors ${account.enabled ? "text-[#f4f3ee]" : "text-[#9A968B]"}`}>
+                    <td className="px-2 py-2 whitespace-nowrap">
+                      <button
+                        onClick={() => handleToggleEnabled(account)}
+                        className="group cursor-pointer transition-colors"
+                      >
+                        <Bracket className={account.enabled ? "text-[#9A968B] group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
+                          {account.enabled ? "x" : "\u00a0"}
+                        </Bracket>
+                      </button>
+                    </td>
+                    <td className="px-2 pr-6 py-2 whitespace-nowrap overflow-hidden text-ellipsis" style={{ maxWidth: "20ch" }}>{account.name}</td>
                     {tab === "settings" && (
                       <>
-                        <td className="px-2 py-2 whitespace-nowrap">
-                          <button
-                            onClick={() => handleToggleEnabled(account)}
-                            className="group cursor-pointer transition-colors"
-                          >
-                            <Bracket className={account.enabled ? "text-[#9A968B] group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
-                              {account.enabled ? "x" : "\u00a0"}
-                            </Bracket>
-                          </button>
-                        </td>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtGroup(account.group_number)}</td>
-                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
+                        <td className="px-2 py-2 whitespace-nowrap">
                           {scheduleLabel(settingsMap[account.id])}
                         </td>
-                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
+                        <td className="px-2 py-2 whitespace-nowrap">
                           {settingsMap[account.id]?.max_runs_per_day ?? "—"}
-                        </td>
-                        <td className="px-2 py-2 font-mono whitespace-nowrap">
-                          <span className={account.enabled ? "text-status-ok" : "text-status-bad"}>{account.enabled ? "on" : "off"}</span>
                         </td>
                       </>
                     )}
                     {tab === "activity" && (
                       <>
-                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(log?.sessions)}</td>
-                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(log?.likes)}</td>
-                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(log?.follows)}</td>
-                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(log?.unfollows)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(log?.sessions)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(log?.likes)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(log?.follows)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(log?.unfollows)}</td>
                       </>
                     )}
                     {tab === "stats" && (
                       <>
-                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(fb?.followed)}</td>
-                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(fb?.followed_back)}</td>
-                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtPct(fb?.rate ?? null)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(fb?.followed)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(fb?.followed_back)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtPct(fb?.rate ?? null)}</td>
                       </>
                     )}
                     {tab === "database" && (
                       <>
-                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(stats?.pending)}</td>
-                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(stats?.complete)}</td>
-                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(stats?.total)}</td>
-                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtNum(stats?.success)}</td>
-                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtPct(stats?.last_25 ?? null)}</td>
-                        <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{fmtPct(stats?.all_time ?? null)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.pending)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.complete)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.total)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.success)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtPct(stats?.last_25 ?? null)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtPct(stats?.all_time ?? null)}</td>
                       </>
                     )}
                     <td className="px-2 py-2 text-right">

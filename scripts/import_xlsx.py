@@ -23,7 +23,7 @@ import openpyxl
 
 XLSX_PATH = pathlib.Path(__file__).parent.parent / "thistlegroup-data.xlsx"
 USER_EMAIL = "ahmartin@gmail.com"
-ACCOUNTS = ["triagespirits", "theburleybar"]
+ACCOUNTS = ["triagespirits", "theburleybar", "marketalleygin", "timeforashifty"]
 BATCH_SIZE = 500
 
 # ── data mappings ─────────────────────────────────────────────────────────────
