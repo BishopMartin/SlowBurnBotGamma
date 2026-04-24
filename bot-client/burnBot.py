@@ -9,6 +9,7 @@ from burnBot_apiClient import ApiClient, AuthenticationError, SubscriptionRequir
 from burnBot_runCounter import RunCounter
 from datetime import datetime, timedelta
 import math
+import socket
 
 def _beep(kind):
     try:
@@ -274,6 +275,13 @@ try:
     _beep('startup')
     time.sleep(2)
 
+    # Resolve local IP for heartbeat reporting
+    try:
+        _local_ip = socket.gethostbyname(socket.gethostname())
+    except Exception:
+        _local_ip = ""
+    _heartbeat_system_type = _st
+
     while True:
         current_time = datetime.now().astimezone()
 
@@ -445,6 +453,9 @@ try:
                     while threads_active[account_idx].is_set():
                         time.sleep(1)
 
+                # Send running heartbeat before session starts
+                apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, "running", account_name)
+
                 # Set account to active
                 threads_active[account_idx].set()
 
@@ -486,6 +497,14 @@ try:
                 print(f"[bot]: {account_name} - [waiting] {run_info} - {minutes_remaining}m until next run")
 
         print("=" * 60)
+
+        # Send heartbeat — determine overall client status
+        if not enabled_accounts:
+            _hb_status, _hb_account = "idle", None
+        else:
+            _hb_status, _hb_account = "delay", None
+        apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, _hb_status, _hb_account)
+
         _delay_label = f"[{current_time.strftime('%I:%M %p')}] delay:"
         if sleep_with_interrupt_check(bot_idle_delay, stop_flag, label=_delay_label):
             raise KeyboardInterrupt

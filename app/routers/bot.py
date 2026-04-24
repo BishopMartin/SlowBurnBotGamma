@@ -15,6 +15,7 @@ from app.models.account_settings import AccountSettings
 from app.models.activity_log import ActivityLog
 from app.models.follow_target import FollowTarget
 from app.models.ignore_handle import IgnoreHandle
+from app.models.client_heartbeat import ClientHeartbeat
 from app.models.session_log import SessionLog
 from app.models.subscription import Subscription
 from app.models.user import User
@@ -28,6 +29,7 @@ from app.schemas.bot import (
     FollowTargetCreate,
     FollowTargetRead,
     FollowTargetUpdate,
+    HeartbeatCreate,
     IgnoreHandlesRead,
     NotificationCredentialsForBot,
     RunCountRead,
@@ -250,3 +252,29 @@ async def get_run_count(
         )
     )
     return RunCountRead(count=count or 0)
+
+
+@router.post("/heartbeat")
+async def post_heartbeat(
+    body: HeartbeatCreate,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Upsert client heartbeat — called every ~60s by the bot client."""
+    result = await session.execute(
+        select(ClientHeartbeat).where(
+            ClientHeartbeat.user_id == user.id,
+            ClientHeartbeat.client_id == body.client_id,
+        )
+    )
+    hb = result.scalar_one_or_none()
+    if hb is None:
+        hb = ClientHeartbeat(user_id=user.id, client_id=body.client_id)
+        session.add(hb)
+    hb.system_type = body.system_type
+    hb.ip_address = body.ip_address
+    hb.status = body.status
+    hb.current_account = body.current_account
+    hb.last_heartbeat = func.now()
+    await session.commit()
+    return {"ok": True}

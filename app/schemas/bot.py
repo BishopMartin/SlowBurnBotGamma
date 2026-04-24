@@ -89,3 +89,21 @@ class NotificationCredentialsForBot(BaseModel):
     smtp_user: str | None = None
     smtp_password: str | None = None
     textbelt_key: str | None = None
+
+
+class HeartbeatCreate(BaseModel):
+    client_id: int
+    system_type: str = ""
+    ip_address: str = ""
+    status: str = "idle"
+    current_account: str | None = None
+
+
+class ClientStatusRead(BaseModel):
+    client_id: int
+    system_type: str
+    ip_address: str
+    status: str
+    current_account: str | None
+    last_heartbeat: datetime
+    connected: bool

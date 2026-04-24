@@ -12,6 +12,7 @@ from app.database import get_async_session
 from app.plan_tiers import get_max_accounts
 from app.models.account import Account
 from app.models.account_settings import AccountSettings
+from app.models.client_heartbeat import ClientHeartbeat
 from app.models.follow_target import FollowTarget
 from app.models.session_log import SessionLog
 from app.models.user import User
@@ -66,6 +67,34 @@ async def list_accounts(
         query = query.where(Account.group_number == group_number)
     result = await session.execute(query)
     return [_account_read(a) for a in result.scalars().all()]
+
+
+@router.get("/client-status", response_model=list)
+async def get_client_status(
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Return heartbeat rows for all clients belonging to this user."""
+    from datetime import datetime, timezone
+    result = await session.execute(
+        select(ClientHeartbeat)
+        .where(ClientHeartbeat.user_id == user.id)
+        .order_by(ClientHeartbeat.client_id)
+    )
+    now = datetime.now(timezone.utc)
+    rows = result.scalars().all()
+    return [
+        {
+            "client_id": r.client_id,
+            "system_type": r.system_type,
+            "ip_address": r.ip_address,
+            "status": r.status,
+            "current_account": r.current_account,
+            "last_heartbeat": r.last_heartbeat.isoformat() if r.last_heartbeat else None,
+            "connected": (now - r.last_heartbeat).total_seconds() < 120 if r.last_heartbeat else False,
+        }
+        for r in rows
+    ]
 
 
 @router.post("", response_model=AccountRead, status_code=status.HTTP_201_CREATED)

@@ -10,11 +10,13 @@ import {
   getEntitlement,
   getLogSummary,
   getFollowbackSummary,
+  getClientStatus,
   getRecentSessionLog,
   updateAccount,
   Account,
   AccountSettings,
   AccountStats,
+  ClientStatus,
   Entitlement,
   LogSummaryEntry,
   FollowbackSummaryEntry,
@@ -63,6 +65,7 @@ export default function DashboardPage() {
   const [logMap, setLogMap] = useState<Record<string, LogSummaryEntry>>({});
   const [fbMap, setFbMap] = useState<Record<string, FollowbackSummaryEntry>>({});
   const [entitlement, setEntitlement] = useState<Entitlement | null>(null);
+  const [clientStatus, setClientStatus] = useState<ClientStatus[]>([]);
   const [recentLog, setRecentLog] = useState<RecentSessionLogEntry[]>([]);
   const [planTier, setPlanTier] = useState<string>("free");
   const [tab, setTab] = useState<Tab>("settings");
@@ -160,6 +163,11 @@ export default function DashboardPage() {
     load();
     getEntitlement().then(setEntitlement).catch(() => {});
     getRecentSessionLog(15).then((r) => setRecentLog(r.items)).catch(() => {});
+    getClientStatus().then(setClientStatus).catch(() => {});
+    const interval = setInterval(() => {
+      getClientStatus().then(setClientStatus).catch(() => {});
+    }, 60_000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -228,6 +236,51 @@ export default function DashboardPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      <h2 className="font-semibold text-[#f4f3ee]">Client Status</h2>
+
+      <div className="border border-[#3d3d3a]">
+        {clientStatus.length === 0 ? (
+          <p className="px-4 py-6 text-[#9A968B]">no clients reporting yet.</p>
+        ) : (
+          <table className="w-full">
+            <thead>
+              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
+                <th className="px-2 py-2 font-normal">Client</th>
+                <th className="px-2 py-2 font-normal">Status</th>
+                <th className="px-2 py-2 font-normal">Running On</th>
+                <th className="px-2 py-2 font-normal w-full">Current Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#3d3d3a]">
+              {clientStatus.map((cs) => (
+                <tr key={cs.client_id} className="hover:bg-[#1f1e1d] transition-colors">
+                  <td className="px-2 py-2 text-[#f4f3ee] whitespace-nowrap">{String(cs.client_id).padStart(2, "0")}</td>
+                  <td className="px-2 py-2 whitespace-nowrap">
+                    {cs.connected ? (
+                      <span className="text-status-ok">connected</span>
+                    ) : (
+                      <span className="text-[#9A968B]">
+                        offline{cs.last_heartbeat ? ` — last seen ${new Date(cs.last_heartbeat).toLocaleString()}` : ""}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
+                    {cs.system_type}{cs.ip_address ? ` at ${cs.ip_address}` : ""}
+                  </td>
+                  <td className="px-2 py-2 text-[#9A968B]">
+                    {cs.status === "running" && cs.current_account
+                      ? <span className="text-[#f4f3ee]">running {cs.current_account}</span>
+                      : cs.status === "delay"
+                      ? "session delay"
+                      : "no active accounts"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       <div className="flex items-center gap-4">

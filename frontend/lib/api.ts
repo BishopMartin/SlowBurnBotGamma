@@ -235,6 +235,20 @@ export async function getAccountSourceStats(id: string, period: string = "week")
   return request<{ days: number; items: SourceStat[] }>(`/accounts/${id}/source-stats?period=${period}`);
 }
 
+export interface ClientStatus {
+  client_id: number;
+  system_type: string;
+  ip_address: string;
+  status: string;
+  current_account: string | null;
+  last_heartbeat: string;
+  connected: boolean;
+}
+
+export async function getClientStatus() {
+  return request<ClientStatus[]>("/accounts/client-status");
+}
+
 export async function adminListAccounts() {
   return request<AdminAccount[]>("/admin/accounts");
 }
