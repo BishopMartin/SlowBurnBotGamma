@@ -6,3 +6,6 @@ webdriver-manager>=4.0.2
 pandas>=2.2.0
 requests>=2.32.0
 psutil>=6.0.0
+# OS-level window focus + Escape (Instagram account sheet when Selenium keys miss)
+pyautogui>=0.9.54
+PyGetWindow>=0.0.9

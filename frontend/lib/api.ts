@@ -232,7 +232,7 @@ export interface SourceStat {
 }
 
 export async function getAccountSourceStats(id: string, period: string = "week") {
-  return request<{ items: SourceStat[] }>(`/accounts/${id}/source-stats?period=${period}`);
+  return request<{ days: number; items: SourceStat[] }>(`/accounts/${id}/source-stats?period=${period}`);
 }
 
 export async function adminListAccounts() {

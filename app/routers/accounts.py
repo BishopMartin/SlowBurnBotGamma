@@ -466,7 +466,18 @@ async def get_account_source_stats(
     )
     rows = result.all()
 
+    if period == "all":
+        earliest = await session.execute(
+            select(func.min(FollowTarget.follow_date))
+            .where(FollowTarget.account_id == account_id)
+        )
+        first_date = earliest.scalar()
+        days = max((date.today() - first_date).days, 1) if first_date else 1
+    else:
+        days = {"day": 1, "week": 7, "month": 30}[period]
+
     return {
+        "days": days,
         "items": [
             {
                 "source": row.source,

@@ -13,6 +13,158 @@ def is_bot_debug_enabled():
         return False
 
 
+def _find_browser_window_for_driver(driver):
+    """Best-effort: pygetwindow window that matches Selenium driver.title (foreground target for ESC)."""
+    try:
+        import pygetwindow as gw
+    except ImportError:
+        return None
+    try:
+        dt = (driver.title or "").strip()
+        if dt:
+            for w in gw.getAllWindows():
+                if not w.title:
+                    continue
+                if dt == w.title or dt in w.title or w.title in dt:
+                    return w
+                head = dt.split(" - ")[0].strip()
+                if head and head in w.title:
+                    return w
+        for needle in ("Instagram", "instagram", "Chrome"):
+            wins = gw.getWindowsWithTitle(needle)
+            if wins:
+                return wins[0]
+        for w in gw.getAllWindows():
+            if w.title and "chrome" in w.title.lower():
+                return w
+    except Exception:
+        pass
+    return None
+
+
+def os_focus_browser_and_press_escape(presses=8, pause=0.48, context_label="", driver=None):
+    """
+    Activate the Chrome window at the OS level and send Escape via PyAutoGUI.
+    Selenium send_keys often fails for Instagram overlays when the browser is not focused.
+    """
+    try:
+        import pyautogui
+        import pygetwindow as gw  # noqa: F401 — used via _find_browser_window_for_driver
+    except ImportError:
+        if is_bot_debug_enabled():
+            print(f"-- DEBUG: [{context_label}] pyautogui/pygetwindow missing; OS-level ESC skipped")
+        return False
+
+    win = _find_browser_window_for_driver(driver) if driver else None
+    if not win:
+        try:
+            import pygetwindow as gw
+            for needle in ("Instagram", "instagram", "Chrome"):
+                wins = gw.getWindowsWithTitle(needle)
+                if wins:
+                    win = wins[0]
+                    break
+        except Exception:
+            pass
+    if not win:
+        if is_bot_debug_enabled():
+            print(f"-- DEBUG: [{context_label}] No window found to activate for OS ESC")
+        return False
+
+    try:
+        try:
+            if win.isMinimized:
+                win.restore()
+        except Exception:
+            pass
+        win.activate()
+        time.sleep(0.95)
+        for _ in range(presses):
+            pyautogui.press("esc")
+            time.sleep(pause)
+        if is_bot_debug_enabled():
+            print(
+                f"-- DEBUG: [login][escape][os] presses={presses} window={win.title!r} ({context_label})"
+            )
+        return True
+    except Exception as e:
+        if is_bot_debug_enabled():
+            print(f"-- DEBUG: [{context_label}] OS-level ESC error: {e}")
+        return False
+
+
+def press_escape_to_dismiss_overlays(
+    driver,
+    presses=4,
+    pause=0.45,
+    context_label="",
+    *,
+    os_esc_before=False,
+    os_esc_after=False,
+    os_presses=3,
+):
+    """
+    Dismiss Instagram account / 'Sign in as' sheets. Too many Escape events (especially OS-level
+    PyAutoGUI before AND after Selenium) can reload the page and bring the sheet back — use a
+    single modest OS burst when needed (os_esc_before), avoid os_esc_after unless necessary.
+
+    os_presses: PyAutoGUI Escape count when os_esc_before/os_esc_after is True.
+    presses: Selenium-side rounds (lighter than hammering OS keys repeatedly).
+    """
+    prefix = f"[{context_label}] " if context_label else ""
+    if os_esc_before and os_presses > 0:
+        os_focus_browser_and_press_escape(
+            os_presses, pause, context_label=f"{context_label}_os", driver=driver
+        )
+
+    try:
+        driver.switch_to.default_content()
+    except Exception:
+        pass
+
+    for i in range(presses):
+        try:
+            driver.execute_script(
+                "var b = document.body; if (b) { b.setAttribute('tabindex','-1'); b.focus(); }"
+            )
+        except Exception:
+            pass
+        try:
+            ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+        except Exception:
+            pass
+        try:
+            driver.find_element(By.TAG_NAME, "body").send_keys(Keys.ESCAPE)
+        except Exception:
+            pass
+        try:
+            driver.execute_script(
+                """
+                (function () {
+                  var ev = function (type) {
+                    return new KeyboardEvent(type, {
+                      key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true, cancelable: true
+                    });
+                  };
+                  var t = document.activeElement || document.body;
+                  t.dispatchEvent(ev('keydown'));
+                  t.dispatchEvent(ev('keyup'));
+                })();
+                """
+            )
+        except Exception:
+            pass
+        time.sleep(pause)
+
+    if os_esc_after and os_presses > 0:
+        os_focus_browser_and_press_escape(
+            os_presses, pause, context_label=f"{context_label}_os_after", driver=driver
+        )
+
+    if presses and is_bot_debug_enabled():
+        print(f"-- DEBUG: {prefix}Escape overlay dismissal: {presses} selenium rounds")
+
+
 def dismiss_browser_dialogs(driver, max_attempts=3, wait_between=0.3):
     """
     Check for and dismiss any browser dialogs (alert/confirm/prompt).
@@ -45,6 +197,242 @@ def dismiss_browser_dialogs(driver, max_attempts=3, wait_between=0.3):
         print(f"- [LOGIN]: Dismissed {dialogs_dismissed} browser dialog(s)")
     
     return dialogs_dismissed
+
+
+INSTAGRAM_ACCOUNTS_LOGIN = "https://www.instagram.com/accounts/login/"
+
+
+def navigate_to_instagram_login_if_needed(driver, *, long_initial_settle=True):
+    """
+    Open the credential login URL only when not already there — avoids an extra full
+    reload when check_login and do_login run back-to-back on the same tab.
+    Returns True if driver.get() was skipped (already on /accounts/login/).
+    """
+    try:
+        u = (driver.current_url or "").lower()
+    except Exception:
+        u = ""
+    if "instagram.com/accounts/login" in u:
+        try:
+            WebDriverWait(driver, 15).until(
+                lambda d: d.execute_script("return document.readyState") == "complete"
+            )
+        except Exception:
+            pass
+        time.sleep(2.0 if long_initial_settle else 1.0)
+        if is_bot_debug_enabled():
+            print("- [LOGIN]: already on /accounts/login/ — skipped driver.get()")
+        return True
+    driver.get(INSTAGRAM_ACCOUNTS_LOGIN)
+    WebDriverWait(driver, 22).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+    WebDriverWait(driver, 22).until(
+        lambda d: d.execute_script("return document.readyState") == "complete"
+    )
+    time.sleep(5.0 if long_initial_settle else 2.5)
+    return False
+
+
+def submit_instagram_credentials(driver, password_input, log_name="login"):
+    """
+    Submit the login form. IG often nests the label in a child (e.g. <button><div>Log in</div>),
+    so contains(text(),...) on the button fails; prefer real submit buttons + JS click.
+    """
+    time.sleep(0.45)
+    try:
+        password_input.send_keys(Keys.TAB)
+        time.sleep(0.4)
+    except Exception:
+        pass
+    try:
+        WebDriverWait(driver, 12).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "button[type='submit']"))
+        )
+    except Exception:
+        pass
+    time.sleep(0.35)
+
+    def _disabled(btn):
+        try:
+            v = btn.get_attribute("disabled")
+            return v is not None and str(v).lower() in ("true", "disabled")
+        except Exception:
+            return False
+
+    try:
+        buttons = driver.find_elements(By.CSS_SELECTOR, "button[type='submit']")
+    except Exception:
+        buttons = []
+    for btn in buttons:
+        try:
+            if not btn.is_displayed() or _disabled(btn):
+                continue
+            driver.execute_script(
+                "arguments[0].scrollIntoView({block:'center', inline:'nearest'});", btn
+            )
+            time.sleep(0.45)
+            try:
+                WebDriverWait(driver, 10).until(lambda d: btn.is_enabled())
+            except Exception:
+                pass
+            try:
+                btn.click()
+                if is_bot_debug_enabled():
+                    print(f"- [{log_name}]: [login][debug] submit: native click (type=submit)")
+                return True
+            except Exception:
+                driver.execute_script("arguments[0].click();", btn)
+                if is_bot_debug_enabled():
+                    print(f"- [{log_name}]: [login][debug] submit: JS click (type=submit)")
+                return True
+        except Exception:
+            continue
+
+    tr = "'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'"
+    xpath_buttons = [
+        f"//button[.//span[contains(translate(normalize-space(string(.)), {tr}), 'log in')]]",
+        f"//button[contains(translate(normalize-space(string(.)), {tr}), 'log in')]",
+        f"//div[@role='button'][.//span[contains(translate(normalize-space(string(.)), {tr}), 'log in')]]",
+    ]
+    for xp in xpath_buttons:
+        try:
+            btn = WebDriverWait(driver, 6).until(EC.presence_of_element_located((By.XPATH, xp)))
+            if not btn.is_displayed() or _disabled(btn):
+                continue
+            driver.execute_script(
+                "arguments[0].scrollIntoView({block:'center', inline:'nearest'});", btn
+            )
+            time.sleep(0.4)
+            driver.execute_script("arguments[0].click();", btn)
+            if is_bot_debug_enabled():
+                print(f"- [{log_name}]: [login][debug] submit: xpath / role=button")
+            return True
+        except Exception:
+            continue
+
+    return False
+
+
+def dismiss_instagram_account_picker(driver, context_label="login", max_passes=4):
+    """
+    Instagram often shows an account sheet before the password form (e.g. 'Continue as @user',
+    'Sign in as', saved session). Click through to manual / credential login when those controls exist.
+    Safe no-op when the sheet is not present.
+    """
+    tr = "'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'"
+    # Prefer exact labels first (less false positives than substring on huge containers)
+    exact_labels = [
+        "Use another account",
+        "Log in to an existing account",
+        "Log in to existing account",
+        "Log into another account",
+        "Switch accounts",
+        "Not you?",
+    ]
+    substring_hits = [
+        "use another account",
+        "log in to an existing account",
+        "log into another account",
+    ]
+
+    def _click_el(el):
+        try:
+            clickable = driver.execute_script(
+                """
+                var n = arguments[0];
+                for (var i = 0; i < 10 && n; i++) {
+                    var role = n.getAttribute && n.getAttribute('role');
+                    var tag = n.tagName;
+                    if ((tag === 'BUTTON' || tag === 'A' || role === 'button' || role === 'menuitem') && typeof n.click === 'function')
+                        return n;
+                    n = n.parentElement;
+                }
+                return arguments[0];
+                """,
+                el,
+            )
+            driver.execute_script("arguments[0].click();", clickable)
+            return True
+        except Exception:
+            try:
+                el.click()
+                return True
+            except Exception:
+                return False
+
+    clicked_any = False
+    for _ in range(max_passes):
+        found = False
+        for label in exact_labels:
+            esc = label.replace("'", "\\'")
+            for tag in ("span", "div", "button"):
+                xp = (
+                    f"//{tag}[normalize-space(.)='{esc}']/ancestor::*["
+                    f"@role='button' or self::button or self::a][1]"
+                )
+                try:
+                    els = driver.find_elements(By.XPATH, xp)
+                    for el in els:
+                        if el.is_displayed() and _click_el(el):
+                            print(f"- [LOGIN]: [{context_label}] account picker: clicked {label!r}")
+                            time.sleep(1.6)
+                            found = True
+                            clicked_any = True
+                            break
+                    if found:
+                        break
+                except Exception:
+                    continue
+            if found:
+                break
+
+        if not found:
+            for sub in substring_hits:
+                xp = (
+                    f"//*[self::span or self::div or self::button]"
+                    f"[contains(translate(normalize-space(string(.)), {tr}), '{sub}')]"
+                )
+                try:
+                    for el in driver.find_elements(By.XPATH, xp):
+                        if not el.is_displayed():
+                            continue
+                        if _click_el(el):
+                            print(f"- [LOGIN]: [{context_label}] account picker: matched {sub!r}")
+                            time.sleep(1.6)
+                            found = True
+                            clicked_any = True
+                            break
+                    if found:
+                        break
+                except Exception:
+                    continue
+
+        if not found:
+            for xp in (
+                "//div[@role='dialog']//*[@aria-label='Close' or @aria-label='close']",
+                "//*[@role='dialog']//svg[@aria-label='Close']/ancestor::*[@role='button'][1]",
+            ):
+                try:
+                    for el in driver.find_elements(By.XPATH, xp):
+                        if el.is_displayed() and _click_el(el):
+                            print(f"- [LOGIN]: [{context_label}] account picker: closed via dialog dismiss control")
+                            time.sleep(1.4)
+                            found = True
+                            clicked_any = True
+                            break
+                    if found:
+                        break
+                except Exception:
+                    continue
+
+        if not found:
+            break
+
+    # Light Selenium Escape only (OS burst happens in check_login / do_login — avoids double-reload)
+    press_escape_to_dismiss_overlays(
+        driver, presses=2, pause=0.35, context_label=context_label, os_esc_before=False, os_esc_after=False
+    )
+
+    return clicked_any
 
 
 def check_phone_verification(driver):
@@ -157,9 +545,24 @@ def check_login(driver, account=None):
             moduleErrorsLog += error_msg
             return False, None, moduleErrorsLog
         
-        driver.get("https://www.instagram.com/")
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
-        time.sleep(2)
+        # Same URL as do_login — avoids a second full page load when check then attempts credentials
+        navigate_to_instagram_login_if_needed(driver, long_initial_settle=True)
+        time.sleep(1.0)
+        # One OS Escape burst + few Selenium rounds; repeated OS ESC was reloading IG and re-showing the sheet
+        press_escape_to_dismiss_overlays(
+            driver,
+            presses=4,
+            pause=0.45,
+            context_label="check_login",
+            os_esc_before=True,
+            os_esc_after=False,
+            os_presses=3,
+        )
+        dismiss_instagram_account_picker(driver, context_label="check_login")
+        press_escape_to_dismiss_overlays(
+            driver, presses=2, pause=0.35, context_label="check_login_light", os_esc_before=False
+        )
+        time.sleep(0.8)
         
         # Check for phone verification first
         is_verification_required, verification_reason = check_phone_verification(driver)
@@ -168,8 +571,11 @@ def check_login(driver, account=None):
             moduleErrorsLog += error_msg
             return "VERIFICATION_REQUIRED", None, moduleErrorsLog
         
-        try:  # Method 1 — login form: wait up to 5 seconds for the username field
-            WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.NAME, "username")))
+        try:  # Method 1 — login form: wait for the username field
+            press_escape_to_dismiss_overlays(
+                driver, presses=1, pause=0.35, context_label="check_login_pre_username", os_esc_before=False
+            )
+            WebDriverWait(driver, 12).until(EC.presence_of_element_located((By.NAME, "username")))
             login_fields = driver.find_elements(By.NAME, "username")
             if login_fields:
                 print(f"- [{_acct}]: [login][check] login form detected")
@@ -204,7 +610,7 @@ def check_login(driver, account=None):
         try:  # Method 3 (fallback) — login indicator text; only strings that don't appear on logged-in pages
             login_indicators = ["Trouble logging in?", "Forgot password?",
                                 "Log in to Instagram", "Save login info"]
-            WebDriverWait(driver, 5).until(
+            WebDriverWait(driver, 12).until(
                 lambda d: any(text.lower() in d.page_source.lower() for text in login_indicators)
             )
             print(f"- [{_acct}]: [login][check] login indicators detected")
@@ -246,23 +652,24 @@ def do_login(driver, username, password):
             moduleErrorsLog += error_msg
             return False, None, moduleErrorsLog
         
-        # Navigate to Instagram login page if not already there
+        # Navigate only if not already on /accounts/login/ (check_login usually left us there)
         try:
-            driver.get("https://www.instagram.com/accounts/login/")
-            
-            # Wait for page body to load
-            WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
-            
-            # Wait for page to be fully loaded
-            WebDriverWait(driver, 15).until(
-                lambda d: d.execute_script('return document.readyState') == 'complete'
-            )
-            
-            # Extra wait for dynamic content to render
-            time.sleep(4)
+            skipped_reload = navigate_to_instagram_login_if_needed(driver, long_initial_settle=True)
+            # check_login already dismissed the account sheet; skip Escape here to avoid extra reloads
+            if not skipped_reload:
+                press_escape_to_dismiss_overlays(
+                    driver,
+                    presses=4,
+                    pause=0.45,
+                    context_label="do_login_post_nav",
+                    os_esc_before=True,
+                    os_esc_after=False,
+                    os_presses=3,
+                )
+            dismiss_instagram_account_picker(driver, context_label="do_login")
             
             if is_bot_debug_enabled():
-                print(f"-- DEBUG: Login page loaded, current URL: {driver.current_url}")
+                print(f"-- DEBUG: Login page ready, current URL: {driver.current_url}")
             
         except Exception as error:
             noteError = f"Error navigating to login page: {str(error)}"
@@ -273,51 +680,15 @@ def do_login(driver, username, password):
         
         # Enter username and password
         try:
-            time.sleep(2)  # Wait for page to stabilize
+            time.sleep(3.5)  # Wait for page to stabilize
             
-            # Dismiss any Chrome dialogs with ESC before entering credentials
-            # Must be done BEFORE any clicks since the dialog blocks interaction
-            try:
-                try:
-                    import pyautogui
-                    import pygetwindow as gw
-                    
-                    # Find Chrome window by title and activate it
-                    try:
-                        chrome_windows = gw.getWindowsWithTitle('Instagram')
-                        if not chrome_windows:
-                            chrome_windows = gw.getWindowsWithTitle('Chrome')
-                        
-                        if chrome_windows:
-                            chrome_window = chrome_windows[0]
-                            chrome_window.activate()
-                            time.sleep(0.5)
-                            if is_bot_debug_enabled():
-                                print(f"-- DEBUG: Chrome window activated: {chrome_window.title}")
-                        else:
-                            if is_bot_debug_enabled():
-                                print(f"-- DEBUG: Could not find Chrome window")
-                    except Exception as e:
-                        if is_bot_debug_enabled():
-                            print(f"-- DEBUG: Could not activate window: {e}")
-                    
-                    # Press ESC to dismiss the dialog
-                    if is_bot_debug_enabled():
-                        print(f"-- DEBUG: Pressing ESC to dismiss dialog...")
-                    for i in range(5):
-                        pyautogui.press('esc')
-                        time.sleep(0.4)
-                    if is_bot_debug_enabled():
-                        print(f"-- DEBUG: ESC pressed 5 times")
-                    
-                except ImportError as e:
-                    if is_bot_debug_enabled():
-                        print(f"-- DEBUG: Required library not installed: {e}")
-                
-                time.sleep(1)
-            except Exception as e:
-                if is_bot_debug_enabled():
-                    print(f"-- DEBUG: Error dismissing dialog: {e}")
+            # OS Escape already ran after /accounts/login/ load; more PyAutoGUI ESC here tended to reload IG.
+            press_escape_to_dismiss_overlays(
+                driver, presses=3, pause=0.4, context_label="do_login_before_fields", os_esc_before=False
+            )
+            time.sleep(1.0)
+            
+            dismiss_instagram_account_picker(driver, context_label="do_login_pre_fields")
             
             # Check current URL after ESC to see if page changed
             try:
@@ -327,17 +698,18 @@ def do_login(driver, username, password):
             except Exception as e:
                 print(f"- [LOGIN]: Could not get URL: {e}")
             
-            # Find username field (input[type='text'] is most reliable)
+            # Prefer name=username (avoids matching phone / other text fields)
             loginUsername = None
             username_selectors = [
-                (By.CSS_SELECTOR, "input[type='text']"),
                 (By.CSS_SELECTOR, "input[name='username']"),
-                (By.XPATH, "//input[@type='text']")
+                (By.CSS_SELECTOR, "input[type='text'][autocomplete='username']"),
+                (By.CSS_SELECTOR, "input[type='text']"),
+                (By.XPATH, "//input[@type='text']"),
             ]
             
             for selector_type, selector_value in username_selectors:
                 try:
-                    loginUsername = WebDriverWait(driver, 10).until(
+                    loginUsername = WebDriverWait(driver, 18).until(
                         EC.presence_of_element_located((selector_type, selector_value))
                     )
                     break
@@ -349,18 +721,18 @@ def do_login(driver, username, password):
             
             # Clear and enter username
             loginUsername.click()
-            time.sleep(0.3)
+            time.sleep(0.5)
             
             # Check for dialogs after clicking (clicking can trigger dialogs)
             if dismiss_browser_dialogs(driver, max_attempts=2):
                 # Re-click the field after dismissing dialog
                 loginUsername.click()
-                time.sleep(0.3)
+                time.sleep(0.5)
             
             loginUsername.clear()
-            time.sleep(0.5)
+            time.sleep(0.75)
             loginUsername.send_keys(username)
-            time.sleep(0.5)
+            time.sleep(0.75)
             
             if is_bot_debug_enabled():
                 print(f"-- DEBUG: Username entered successfully")
@@ -375,7 +747,7 @@ def do_login(driver, username, password):
             
             for selector_type, selector_value in password_selectors:
                 try:
-                    loginPassword = WebDriverWait(driver, 10).until(
+                    loginPassword = WebDriverWait(driver, 18).until(
                         EC.presence_of_element_located((selector_type, selector_value))
                     )
                     break
@@ -387,55 +759,37 @@ def do_login(driver, username, password):
             
             # Clear and enter password
             loginPassword.click()
-            time.sleep(0.3)
+            time.sleep(0.5)
             
             # Check for dialogs after clicking password field
             if dismiss_browser_dialogs(driver, max_attempts=2):
                 # Re-click the field after dismissing dialog
                 loginPassword.click()
-                time.sleep(0.3)
+                time.sleep(0.5)
             
             loginPassword.clear()
-            time.sleep(0.5)
+            time.sleep(0.75)
             loginPassword.send_keys(password)
-            time.sleep(0.5)
+            time.sleep(0.75)
             
             if is_bot_debug_enabled():
                 print(f"-- DEBUG: Password entered successfully")
             
-            # Try to find and click the login button
-            login_submitted = False
-            try:
-                login_button_selectors = [
-                    (By.CSS_SELECTOR, "button[type='submit']"),
-                    (By.XPATH, "//button[@type='submit']"),
-                    (By.XPATH, "//button[contains(text(), 'Log in') or contains(text(), 'Log In')]")
-                ]
-                
-                for selector_type, selector_value in login_button_selectors:
-                    try:
-                        loginButton = WebDriverWait(driver, 5).until(
-                            EC.element_to_be_clickable((selector_type, selector_value))
-                        )
-                        time.sleep(0.5)
-                        loginButton.click()
-                        login_submitted = True
-                        break
-                    except Exception:
-                        continue
-            except Exception:
-                pass  # Will use Enter key fallback
-            
-            # Fallback to pressing Enter if button click failed
+            login_submitted = submit_instagram_credentials(driver, loginPassword, log_name=username)
             if not login_submitted:
+                if is_bot_debug_enabled():
+                    print(f"-- DEBUG: [{username}] submit click failed, sending Return on password field")
                 time.sleep(0.5)
-                loginPassword.send_keys(Keys.RETURN)
+                try:
+                    loginPassword.send_keys(Keys.RETURN)
+                except Exception:
+                    pass
             
             # Wait for page to load after login attempt
-            WebDriverWait(driver, 20).until(
+            WebDriverWait(driver, 28).until(
                 lambda d: d.execute_script('return document.readyState') == 'complete'
             )
-            time.sleep(5)  # Give extra time for Instagram to process login
+            time.sleep(7)  # Give extra time for Instagram to process login
             
             # Immediately check for verification after submitting credentials
             if is_bot_debug_enabled():
@@ -468,10 +822,10 @@ def do_login(driver, username, password):
         # Check results of login attempt
         try:
             # Wait for page to fully load
-            WebDriverWait(driver, 10).until(
+            WebDriverWait(driver, 15).until(
                 lambda d: d.execute_script('return document.readyState') == 'complete'
             )
-            time.sleep(3)
+            time.sleep(4.5)
             
             # Handle "Save login info" prompt if it appears after successful login
             try:
@@ -488,13 +842,13 @@ def do_login(driver, username, password):
                     
                     for selector_type, selector_value in not_now_selectors:
                         try:
-                            not_now_button = WebDriverWait(driver, 3).until(
+                            not_now_button = WebDriverWait(driver, 6).until(
                                 EC.element_to_be_clickable((selector_type, selector_value))
                             )
                             not_now_button.click()
                             if is_bot_debug_enabled():
                                 print(f"-- DEBUG: Clicked 'Not now' on save login info prompt")
-                            time.sleep(2)
+                            time.sleep(2.5)
                             break
                         except Exception:
                             continue
@@ -516,13 +870,13 @@ def do_login(driver, username, password):
                     
                     for selector_type, selector_value in not_now_selectors:
                         try:
-                            not_now_button = WebDriverWait(driver, 3).until(
+                            not_now_button = WebDriverWait(driver, 6).until(
                                 EC.element_to_be_clickable((selector_type, selector_value))
                             )
                             not_now_button.click()
                             if is_bot_debug_enabled():
                                 print(f"-- DEBUG: Clicked 'Not now' on notifications prompt")
-                            time.sleep(2)
+                            time.sleep(2.5)
                             break
                         except Exception:
                             continue
@@ -590,31 +944,31 @@ def switch_login(driver, targetAccount):
             ## find and click the "More" button - handle both expanded and collapsed states
             try:
                 # Try to find the Settings SVG and click its parent anchor tag
-                moreButton = WebDriverWait(driver, 5).until(
+                moreButton = WebDriverWait(driver, 8).until(
                     EC.element_to_be_clickable((By.XPATH, "//svg[@aria-label='Settings']/ancestor::a"))
                 )
             except:
                 # Try expanded state (text visible)
-                moreButton = WebDriverWait(driver, 5).until(
+                moreButton = WebDriverWait(driver, 8).until(
                     EC.element_to_be_clickable((By.XPATH, "//span[contains(text(), 'More')]/ancestor::a"))
                 )
             
             moreButton.click()
-            time.sleep(2)
+            time.sleep(3)
             
             ## wait for and click the "Switch accounts" option in the menu
-            switchLink = WebDriverWait(driver, 10).until(
+            switchLink = WebDriverWait(driver, 14).until(
                 EC.element_to_be_clickable((By.XPATH, "//span[contains(text(), 'Switch accounts')]"))
             )
             switchLink.click()
             
-            time.sleep(random.randint(3, 5))
+            time.sleep(random.randint(4, 7))
         except (NoSuchElementException, StaleElementReferenceException, TimeoutException) as e:
             moduleErrorsLog += f"cant find switch account link: {str(e)}"
             return False, None, moduleErrorsLog
         
         try:
-            wait = WebDriverWait(driver, 10)
+            wait = WebDriverWait(driver, 14)
             
             # 1) Use the newest switcher container (menu/dialog/listbox)
             container_xp = "(//div[@role='menu' or @role='dialog' or @role='listbox'])[last()]"
@@ -643,7 +997,7 @@ def switch_login(driver, targetAccount):
                 # Fallback: JS click avoids coordinate hit-tests
                 driver.execute_script("arguments[0].click();", clickable)
             
-            time.sleep(5)
+            time.sleep(6.5)
         
         
         except (NoSuchElementException, StaleElementReferenceException, TimeoutException) as e:
@@ -651,8 +1005,8 @@ def switch_login(driver, targetAccount):
             return False, None, moduleErrorsLog
         
         #### check results of switch attempt
-        WebDriverWait(driver, 15).until(lambda d: d.execute_script("return document.readyState") == "complete")
-        time.sleep(3)
+        WebDriverWait(driver, 20).until(lambda d: d.execute_script("return document.readyState") == "complete")
+        time.sleep(4.5)
         
         # Extract username from page source JSON data
         try:
@@ -724,11 +1078,10 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
             
             # Check if phone verification is required
             if is_logged_in == "VERIFICATION_REQUIRED":
-                print(f"- [{account}]: [login][VERIFICATION] PHONE VERIFICATION CODE REQUESTED")
-                print(f"- [{account}]: [login][VERIFICATION] Instagram is requesting verification code via SMS")
-                # Note: Error will be logged by accountSession.py in log_session_run()
-                
-                # Stop additional login attempts immediately
+                print(
+                    f"- [{account}]: [login][verification] status:[challenge] try:[{attempt}/{login_tries}] "
+                    f"(SMS or security code — session log will record details)"
+                )
                 loginFailureExit = True
                 verification_requested = True
                 break
@@ -744,13 +1097,11 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
                 print(f"- [{account}]: [login][login] status:[attempting] try:[{attempt}/{login_tries}]")
                 is_logged_in, current_user, loginErrors = do_login(driver, account, accountPass)
                 
-                # Check if phone verification is required
                 if is_logged_in == "VERIFICATION_REQUIRED":
-                    print(f"- [{account}]: [login][VERIFICATION] PHONE VERIFICATION CODE REQUESTED")
-                    print(f"- [{account}]: [login][VERIFICATION] Instagram is requesting verification code via SMS")
-                    # Note: Error will be logged by accountSession.py in log_session_run()
-                    
-                    # Stop additional login attempts immediately
+                    print(
+                        f"- [{account}]: [login][verification] status:[challenge] try:[{attempt}/{login_tries}] "
+                        f"(SMS or security code — session log will record details)"
+                    )
                     loginFailureExit = True
                     verification_requested = True
                     break
@@ -777,21 +1128,19 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
                 # Note: Success will be logged by accountSession.py in log_session_run()
                 return True, current_user, False, attempts_made, False
             
-            time.sleep(3 + attempt)
+            time.sleep(4 + attempt)
         
         # Exit if not logged in or in wrong account (or verification still required)
         if account != current_user or not is_logged_in or is_logged_in == "VERIFICATION_REQUIRED":
             loginFailureExit = True
             
-            # Provide specific error message for verification vs regular login failure
             if is_logged_in == "VERIFICATION_REQUIRED":
                 verification_requested = True
-                error_msg = "VERIFICATION_CODE_REQUESTED"
-            else:
-                error_msg = f"Login failure - wrong user: {current_user} or not logged in: {is_logged_in}"
+                # Challenge already summarized above; avoid repeating ERROR line
+                return False, current_user, True, attempts_made, verification_requested
             
-            print(f"- [{account}]: ERROR - {error_msg}")
-            # Note: Error will be logged by accountSession.py in log_session_run()
+            error_msg = f"Login failure - wrong user: {current_user} or not logged in: {is_logged_in}"
+            print(f"- [{account}]: [login] status:[failed] reason:[{error_msg}]")
             return False, current_user, True, attempts_made, verification_requested
         
         # Should not reach here, but return success if we do

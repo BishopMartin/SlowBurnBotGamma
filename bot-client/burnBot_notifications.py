@@ -194,6 +194,46 @@ def send_admin_notification(account, message, subject_prefix="Alert", sms_summar
         return False
 
 
+def _send_with_overrides(account, message, sms_summary, notices_type, email, phone, subject_prefix, apiClient):
+    """Send notification using explicit type/email/phone settings."""
+    try:
+        from burnBot_accountSession_setup import is_bot_debug_enabled
+
+        notif_creds = apiClient.get_notification_credentials() if apiClient else None
+        if not notif_creds:
+            print(f"- [{account}]: [NOTIFICATION] ERROR: Could not fetch notification credentials from API")
+            return False
+
+        subject = f"SlowBurnBot {subject_prefix} - {account}"
+        success = False
+
+        if notices_type in ['text', 'both']:
+            textbelt_key = notif_creds.get('textbelt_key') or ''
+            if not textbelt_key or not phone:
+                print(f"- [{account}]: [NOTIFICATION] ERROR: TextBelt key or phone not set")
+            else:
+                sms_msg = sms_summary if sms_summary else message
+                if len(sms_msg) > 160:
+                    sms_msg = sms_msg[:157] + "..."
+                if send_sms_textbelt(phone, sms_msg, textbelt_key):
+                    success = True
+
+        if notices_type in ['email', 'both']:
+            smtp_server = notif_creds.get('smtp_server') or ''
+            smtp_port = notif_creds.get('smtp_port') or 587
+            smtp_user = notif_creds.get('smtp_user') or ''
+            smtp_password = notif_creds.get('smtp_password') or ''
+            if not email or not smtp_server or not smtp_user or not smtp_password:
+                print(f"- [{account}]: [NOTIFICATION] ERROR: Email or SMTP credentials not set")
+            elif send_email_smtp(email, subject, message, smtp_server, smtp_port, smtp_user, smtp_password):
+                success = True
+
+        return success
+    except Exception as e:
+        print(f"- [{account}]: [NOTIFICATION] Error: {e}")
+        return False
+
+
 def send_login_failure_alert(account, error_message, run_count=0, max_runs=0, apiClient=None):
     """
     Send alert for login failure
@@ -208,13 +248,23 @@ def send_login_failure_alert(account, error_message, run_count=0, max_runs=0, ap
     try:
         # Check if login notifications are enabled
         user_config = apiClient.get_user_config() if apiClient else None
-        if user_config and not user_config.get('notices_login', True):
+        if not user_config or not user_config.get('notices_login', True):
+            return
+
+        # Use login-specific notification settings, fall back to session settings
+        login_type = (user_config.get('login_notices_type') or user_config.get('notices_type') or 'none').strip().lower()
+        login_email = user_config.get('login_notify_email') or user_config.get('notify_email') or ''
+        login_phone = user_config.get('login_notify_phone') or user_config.get('notify_phone') or ''
+
+        if login_type == 'none':
             return
 
         run_info = f"run {run_count}/{max_runs}" if max_runs > 0 else f"run {run_count}"
         formatted_message = f"Login Error ({run_info})\n\nAccount: {account}\nError: {error_message}"
         sms_summary = f"{account} - LOGIN FAILED\n{error_message}\n{run_info}"
-        send_admin_notification(account, formatted_message, subject_prefix="Login Error", sms_summary=sms_summary, apiClient=apiClient)
+
+        # Send using login-specific settings
+        _send_with_overrides(account, formatted_message, sms_summary, login_type, login_email, login_phone, "Login Error", apiClient)
     except Exception as e:
         print(f"- [{account}]: [NOTIFICATION] Failed to send login failure alert: {e}")
 

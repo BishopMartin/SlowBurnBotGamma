@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getAccounts, getAccountSourceStats, Account, SourceStat } from "@/lib/api";
 import { Dropdown } from "@/lib/dropdown";
 
-type SortKey = "source" | "total" | "complete" | "followed_back" | "rate";
+type SortKey = "source" | "total" | "complete" | "followed_back" | "rate" | "fb_daily";
 type SortDir = "asc" | "desc";
 type Period = "day" | "week" | "month" | "all";
 
@@ -27,6 +27,7 @@ export default function AccountStatsPage() {
   const router = useRouter();
   const [account, setAccount] = useState<Account | null>(null);
   const [items, setItems] = useState<SourceStat[]>([]);
+  const [days, setDays] = useState(1);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<Period>("week");
   const [sortKey, setSortKey] = useState<SortKey>("total");
@@ -54,18 +55,24 @@ export default function AccountStatsPage() {
     );
   }
 
+  const fbDaily = (s: SourceStat) => s.followed_back / days;
+
   const sorted = useMemo(() => {
     const list = [...items];
     const dir = sortDir === "asc" ? 1 : -1;
     list.sort((a, b) => {
-      const av = sortKey === "source" ? (a.source ?? "").toLowerCase() : (a[sortKey] ?? -1);
-      const bv = sortKey === "source" ? (b.source ?? "").toLowerCase() : (b[sortKey] ?? -1);
+      const val = (s: SourceStat) =>
+        sortKey === "source" ? (s.source ?? "").toLowerCase()
+        : sortKey === "fb_daily" ? fbDaily(s)
+        : (s[sortKey] ?? -1);
+      const av = val(a);
+      const bv = val(b);
       if (av < bv) return -1 * dir;
       if (av > bv) return 1 * dir;
       return 0;
     });
     return list;
-  }, [items, sortKey, sortDir]);
+  }, [items, sortKey, sortDir, days]);
 
   const totals = useMemo(() => {
     const t = { total: 0, complete: 0, followed_back: 0 };
@@ -74,8 +81,8 @@ export default function AccountStatsPage() {
       t.complete += s.complete;
       t.followed_back += s.followed_back;
     }
-    return { ...t, rate: t.complete ? t.followed_back / t.complete : null };
-  }, [items]);
+    return { ...t, rate: t.complete ? t.followed_back / t.complete : null, fb_daily: t.followed_back / days };
+  }, [items, days]);
 
   useEffect(() => {
     getAccounts()
@@ -90,7 +97,7 @@ export default function AccountStatsPage() {
   useEffect(() => {
     setLoading(true);
     getAccountSourceStats(id, period)
-      .then((res) => setItems(res.items))
+      .then((res) => { setItems(res.items); setDays(res.days ?? 1); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [id, period]);
@@ -117,6 +124,7 @@ export default function AccountStatsPage() {
               <SortTh label="complete" field="complete" />
               <SortTh label="fb yes" field="followed_back" />
               <SortTh label="fb rate" field="rate" />
+              <SortTh label="fb daily" field="fb_daily" />
               <th className="px-2 py-2 font-normal w-full text-right whitespace-nowrap">
                 <span className="inline-flex items-center gap-0">
                   <span className="text-[#9A968B]">{"results:\u00a0 "}</span>
@@ -133,9 +141,9 @@ export default function AccountStatsPage() {
           </thead>
           <tbody className="divide-y divide-[#3d3d3a]">
             {loading ? (
-              <tr><td colSpan={6} className="px-4 py-6 text-[#9A968B]">loading&hellip;</td></tr>
+              <tr><td colSpan={7} className="px-4 py-6 text-[#9A968B]">loading&hellip;</td></tr>
             ) : items.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-6 text-[#9A968B]">no follow data yet.</td></tr>
+              <tr><td colSpan={7} className="px-4 py-6 text-[#9A968B]">no follow data yet.</td></tr>
             ) : (
               sorted.map((s, i) => (
                 <tr key={i} className="hover:bg-[#1f1e1d] transition-colors">
@@ -144,6 +152,7 @@ export default function AccountStatsPage() {
                   <td className="px-4 py-1.5 text-[#9A968B]">{s.complete.toLocaleString()}</td>
                   <td className="px-4 py-1.5 text-[#9A968B]">{s.followed_back.toLocaleString()}</td>
                   <td className="px-4 py-1.5 text-[#9A968B]">{fmtPct(s.rate)}</td>
+                  <td className="px-4 py-1.5 text-[#9A968B]">{fbDaily(s).toFixed(1)}</td>
                   <td></td>
                 </tr>
               ))
@@ -157,6 +166,7 @@ export default function AccountStatsPage() {
                 <td className="px-4 py-2">{totals.complete.toLocaleString()}</td>
                 <td className="px-4 py-2">{totals.followed_back.toLocaleString()}</td>
                 <td className="px-4 py-2">{fmtPct(totals.rate)}</td>
+                <td className="px-4 py-2">{totals.fb_daily.toFixed(1)}</td>
                 <td></td>
               </tr>
             </tfoot>
