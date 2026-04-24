@@ -173,7 +173,6 @@ async def followback_summary(
         .where(
             FT.user_id == user.id,
             FT.follow_date >= since,
-            FT.follow_back.isnot(None),
         )
         .group_by(FT.account_id)
     )

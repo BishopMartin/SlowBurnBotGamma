@@ -156,6 +156,7 @@ export default function AccountsPage() {
   useEffect(() => {
     if (tab === "stats") {
       getFollowbackSummary(statsPeriod).then(setFbMap).catch(() => {});
+      getLogSummary(statsPeriod).then(setLogMap).catch(() => {});
     }
   }, [tab, statsPeriod]);
 
@@ -240,6 +241,7 @@ export default function AccountsPage() {
                 )}
                 {tab === "stats" && (
                   <>
+                    <SortTh label="Likes" field="likes" className="whitespace-nowrap" />
                     <SortTh label="Followed" field="followed" className="whitespace-nowrap" />
                     <SortTh label="Followed Back" field="followed_back" className="whitespace-nowrap" />
                     <SortTh label="FB Rate" field="fb_rate" className="whitespace-nowrap" />
@@ -252,8 +254,6 @@ export default function AccountsPage() {
                     <SortTh label="Ignored" field="ignored" className="whitespace-nowrap" />
                     <SortTh label="Total" field="total" className="whitespace-nowrap" />
                     <SortTh label="Success" field="success" className="whitespace-nowrap" />
-                    <SortTh label="Recent" field="last_25" className="whitespace-nowrap" />
-                    <SortTh label="All" field="all_time" className="whitespace-nowrap" />
                   </>
                 )}
                 <th className="px-2 py-2 font-normal w-full text-right whitespace-nowrap">
@@ -330,6 +330,7 @@ export default function AccountsPage() {
                     )}
                     {tab === "stats" && (
                       <>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(log?.likes)}</td>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtNum(fb?.followed)}</td>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtNum(fb?.followed_back)}</td>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtPct(fb?.rate ?? null)}</td>
@@ -342,8 +343,6 @@ export default function AccountsPage() {
                         <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.ignored)}</td>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.total)}</td>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.success)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtPct(stats?.last_25 ?? null)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtPct(stats?.all_time ?? null)}</td>
                       </>
                     )}
                     <td className="px-2 py-2 text-right">
