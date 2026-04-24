@@ -5,9 +5,12 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import {
   getAccounts,
+  getAccountStats,
   getEntitlement,
   getRecentSessionLog,
+  updateAccount,
   Account,
+  AccountStats,
   Entitlement,
   RecentSessionLogEntry,
   PLAN_LIMITS,
@@ -28,14 +31,31 @@ function fmtTime(iso: string | null): string {
 export default function DashboardPage() {
   const { user } = useAuth();
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [statsMap, setStatsMap] = useState<Record<string, AccountStats>>({});
   const [entitlement, setEntitlement] = useState<Entitlement | null>(null);
   const [recentLog, setRecentLog] = useState<RecentSessionLogEntry[]>([]);
 
   useEffect(() => {
-    getAccounts().then(setAccounts).catch(() => {});
+    getAccounts().then((data) => {
+      setAccounts(data);
+      Promise.all(
+        data.map((a) =>
+          getAccountStats(a.id)
+            .then((s) => [a.id, s] as const)
+            .catch(() => null)
+        )
+      ).then((entries) =>
+        setStatsMap(Object.fromEntries(entries.filter((e): e is [string, AccountStats] => e !== null)))
+      );
+    }).catch(() => {});
     getEntitlement().then(setEntitlement).catch(() => {});
     getRecentSessionLog(15).then((r) => setRecentLog(r.items)).catch(() => {});
   }, []);
+
+  async function handleToggleEnabled(account: Account) {
+    const updated = await updateAccount(account.id, { enabled: !account.enabled }).catch(() => null);
+    if (updated) setAccounts((prev) => prev.map((a) => (a.id === account.id ? updated : a)));
+  }
 
   const activeAccounts = accounts.filter((a) => !a.system_disabled);
   const enabledCount = activeAccounts.filter((a) => a.enabled).length;
@@ -91,24 +111,36 @@ export default function DashboardPage() {
           </div>
         ) : (
           <table className="w-full">
+            <thead>
+              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
+                <th className="px-2 py-2 font-normal">On</th>
+                <th className="px-2 py-2 font-normal">Account</th>
+                <th className="px-2 py-2 font-normal">Client</th>
+                <th className="px-2 py-2 font-normal">Pending</th>
+                <th className="px-2 py-2 font-normal w-full"></th>
+              </tr>
+            </thead>
             <tbody className="divide-y divide-[#3d3d3a]">
               {accounts.slice(0, 5).map((account) => (
-                <tr key={account.id}>
-                  <td className="px-4 py-2 text-[#f4f3ee]">
-                    {account.name}
-                    {account.group_number != null && (
-                      <span className="ml-2 text-[#9A968B]">grp:{account.group_number}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2 text-right">
+                <tr key={account.id} className={`hover:bg-[#1f1e1d] transition-colors ${account.system_disabled ? "text-[#5a5850]" : account.enabled ? "text-[#f4f3ee]" : "text-[#9A968B]"}`}>
+                  <td className="px-2 py-2 whitespace-nowrap">
                     {account.system_disabled ? (
                       <Bracket className="text-[#5a5850]">-</Bracket>
                     ) : (
-                      <Bracket className={account.enabled ? "text-status-ok" : "text-[#9A968B]"}>
-                        {account.enabled ? "on" : "off"}
-                      </Bracket>
+                      <button
+                        onClick={() => handleToggleEnabled(account)}
+                        className="group cursor-pointer transition-colors"
+                      >
+                        <Bracket className={account.enabled ? "text-[#9A968B] group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
+                          {account.enabled ? "x" : "\u00a0"}
+                        </Bracket>
+                      </button>
                     )}
                   </td>
+                  <td className="px-2 py-2 whitespace-nowrap overflow-hidden text-ellipsis" style={{ maxWidth: "20ch" }}>{account.name}</td>
+                  <td className="px-2 py-2 whitespace-nowrap">{account.group_number != null ? String(account.group_number).padStart(2, "0") : "—"}</td>
+                  <td className="px-2 py-2 whitespace-nowrap">{statsMap[account.id]?.pending?.toLocaleString() ?? "----"}</td>
+                  <td></td>
                 </tr>
               ))}
             </tbody>
