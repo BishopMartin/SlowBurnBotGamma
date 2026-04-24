@@ -2,12 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth-context";
 import {
   getAccounts,
   getAccountSettings,
   getAccountStats,
   getLogSummary,
   getFollowbackSummary,
+  getEntitlement,
   createAccount,
   updateAccount,
   Account,
@@ -15,6 +17,7 @@ import {
   AccountStats,
   LogSummaryEntry,
   FollowbackSummaryEntry,
+  PLAN_LIMITS,
 } from "@/lib/api";
 import { scheduleLabel } from "@/lib/format";
 import { Bracket } from "@/lib/bracket";
@@ -41,11 +44,13 @@ type SortDir = "asc" | "desc";
 type Period = "day" | "week" | "month";
 
 export default function AccountsPage() {
+  const { user } = useAuth();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [settingsMap, setSettingsMap] = useState<Record<string, AccountSettings>>({});
   const [statsMap, setStatsMap] = useState<Record<string, AccountStats>>({});
   const [logMap, setLogMap] = useState<Record<string, LogSummaryEntry>>({});
   const [fbMap, setFbMap] = useState<Record<string, FollowbackSummaryEntry>>({});
+  const [planTier, setPlanTier] = useState<string>("free");
   const [tab, setTab] = useState<Tab>("settings");
   const [activityPeriod, setActivityPeriod] = useState<Period>("week");
   const [statsPeriod, setStatsPeriod] = useState<Period>("week");
@@ -54,6 +59,8 @@ export default function AccountsPage() {
   const [newName, setNewName] = useState("");
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(false);
+
+  const maxAccounts = PLAN_LIMITS[planTier] ?? 0;
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -113,6 +120,7 @@ export default function AccountsPage() {
   }
 
   async function load() {
+    getEntitlement().then((e) => setPlanTier(e.plan_tier)).catch(() => {});
     const data = await getAccounts().catch(() => []);
     setAccounts(data);
     const settingsEntries = await Promise.all(
@@ -189,7 +197,7 @@ export default function AccountsPage() {
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <h1 className="font-semibold text-[#f4f3ee] font-mono">
-          Accounts <span className="text-[#9A968B] font-normal">[{String(accounts.length).padStart(2, "0")}/10]</span>
+          Accounts <span className="text-[#9A968B] font-normal">[{String(accounts.length).padStart(2, "0")}/{String(maxAccounts).padStart(2, "0")}]</span>
         </h1>
         <span className="text-[#9A968B] font-mono">--</span>
         <div className="flex items-center gap-2 font-mono text-sm">
@@ -282,16 +290,20 @@ export default function AccountsPage() {
                 const log = logMap[account.id];
                 const fb = fbMap[account.id];
                 return (
-                  <tr key={account.id} className={`hover:bg-[#1f1e1d] transition-colors ${account.enabled ? "text-[#f4f3ee]" : "text-[#9A968B]"}`}>
+                  <tr key={account.id} className={`hover:bg-[#1f1e1d] transition-colors ${account.system_disabled ? "text-[#5a5850]" : account.enabled ? "text-[#f4f3ee]" : "text-[#9A968B]"}`}>
                     <td className="px-2 py-2 whitespace-nowrap">
-                      <button
-                        onClick={() => handleToggleEnabled(account)}
-                        className="group cursor-pointer transition-colors"
-                      >
-                        <Bracket className={account.enabled ? "text-[#9A968B] group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
-                          {account.enabled ? "x" : "\u00a0"}
-                        </Bracket>
-                      </button>
+                      {account.system_disabled ? (
+                        <Bracket className="text-[#5a5850]">-</Bracket>
+                      ) : (
+                        <button
+                          onClick={() => handleToggleEnabled(account)}
+                          className="group cursor-pointer transition-colors"
+                        >
+                          <Bracket className={account.enabled ? "text-[#9A968B] group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
+                            {account.enabled ? "x" : "\u00a0"}
+                          </Bracket>
+                        </button>
+                      )}
                     </td>
                     <td className="px-2 pr-6 py-2 whitespace-nowrap overflow-hidden text-ellipsis" style={{ maxWidth: "20ch" }}>{account.name}</td>
                     {tab === "settings" && (

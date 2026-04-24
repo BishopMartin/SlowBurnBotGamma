@@ -1,7 +1,10 @@
 """Admin-only endpoints."""
+import secrets
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,10 +13,14 @@ from app.crypto import decrypt, encrypt
 from app.database import get_async_session
 from app.models.account import Account
 from app.models.follow_target import FollowTarget
+from app.models.invite_code import InviteCode
 from app.models.subscription import Subscription
 from app.models.system_config import SystemConfig
 from app.models.user import User
+from app.plan_tiers import is_valid_tier
 from app.schemas.admin import NotificationCredentialsRead, NotificationCredentialsUpdate
+from app.services.email import send_invite_email
+from app.services.plan_enforcement import enforce_account_limits
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -123,6 +130,56 @@ async def deactivate_subscription(
     return {"status": sub.status, "plan_tier": sub.plan_tier}
 
 
+class SetTierRequest(BaseModel):
+    plan_tier: str
+
+
+@router.post("/users/{user_id}/set-tier")
+async def set_user_tier(
+    user_id: uuid.UUID,
+    body: SetTierRequest,
+    _: User = Depends(current_superuser),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Set a user's subscription tier and enforce account limits."""
+    if not is_valid_tier(body.plan_tier):
+        raise HTTPException(status_code=400, detail=f"Invalid tier: {body.plan_tier}")
+
+    user_result = await session.execute(select(User).where(User.id == user_id))
+    user = user_result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found.")
+    user.plan_tier = body.plan_tier
+
+    result = await session.execute(
+        select(Subscription).where(Subscription.user_id == user_id)
+    )
+    sub = result.scalar_one_or_none()
+    if sub is None:
+        raise HTTPException(status_code=404, detail="No subscription record found.")
+    sub.plan_tier = body.plan_tier
+    sub.status = "active"
+
+    await enforce_account_limits(user_id, session)
+    await session.commit()
+    return {"plan_tier": sub.plan_tier, "status": sub.status}
+
+
+@router.delete("/accounts/{account_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def admin_delete_account(
+    account_id: uuid.UUID,
+    _: User = Depends(current_superuser),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Delete any user's account (cascading)."""
+    result = await session.execute(select(Account).where(Account.id == account_id))
+    account = result.scalar_one_or_none()
+    if account is None:
+        raise HTTPException(status_code=404, detail="Account not found.")
+    await session.delete(account)
+    await session.commit()
+
+
 @router.get("/accounts", response_model=list[dict])
 async def list_all_accounts(
     _: User = Depends(current_superuser),
@@ -141,6 +198,7 @@ async def list_all_accounts(
             "user_email": email,
             "name": a.name,
             "enabled": a.enabled,
+            "system_disabled": a.system_disabled,
             "group_number": a.group_number,
             "created_at": a.created_at.isoformat(),
         }
@@ -251,3 +309,84 @@ async def update_notification_credentials(
         textbelt_key_set=config.textbelt_key_enc is not None,
         updated_at=config.updated_at,
     )
+
+
+# ---------------------------------------------------------------------------
+# Invite codes
+# ---------------------------------------------------------------------------
+
+class InviteCreateRequest(BaseModel):
+    email: str | None = None
+    free_trial_days: int | None = None
+    plan_tier: str = "crawl"
+    send_email: bool = False
+
+
+def _invite_dict(inv: InviteCode) -> dict:
+    return {
+        "id": str(inv.id),
+        "code": inv.code,
+        "email": inv.email,
+        "free_trial_days": inv.free_trial_days,
+        "plan_tier": inv.plan_tier,
+        "used_by_user_id": str(inv.used_by_user_id) if inv.used_by_user_id else None,
+        "used_at": inv.used_at.isoformat() if inv.used_at else None,
+        "created_at": inv.created_at.isoformat(),
+        "expires_at": inv.expires_at.isoformat() if inv.expires_at else None,
+    }
+
+
+@router.post("/invites")
+async def create_invite(
+    body: InviteCreateRequest,
+    _: User = Depends(current_superuser),
+    session: AsyncSession = Depends(get_async_session),
+):
+    if body.plan_tier and not is_valid_tier(body.plan_tier):
+        raise HTTPException(status_code=400, detail=f"Invalid tier: {body.plan_tier}")
+
+    code = secrets.token_urlsafe(6)[:8].upper()
+    invite = InviteCode(
+        code=code,
+        email=body.email,
+        free_trial_days=body.free_trial_days,
+        plan_tier=body.plan_tier,
+    )
+    session.add(invite)
+    await session.commit()
+    await session.refresh(invite)
+
+    if body.send_email and body.email:
+        try:
+            await send_invite_email(body.email, code, body.free_trial_days, session)
+        except Exception as e:
+            return {**_invite_dict(invite), "email_error": str(e)}
+
+    return _invite_dict(invite)
+
+
+@router.get("/invites")
+async def list_invites(
+    _: User = Depends(current_superuser),
+    session: AsyncSession = Depends(get_async_session),
+):
+    result = await session.execute(
+        select(InviteCode).order_by(InviteCode.created_at.desc())
+    )
+    return [_invite_dict(inv) for inv in result.scalars().all()]
+
+
+@router.delete("/invites/{invite_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_invite(
+    invite_id: uuid.UUID,
+    _: User = Depends(current_superuser),
+    session: AsyncSession = Depends(get_async_session),
+):
+    result = await session.execute(select(InviteCode).where(InviteCode.id == invite_id))
+    invite = result.scalar_one_or_none()
+    if invite is None:
+        raise HTTPException(status_code=404, detail="Invite not found.")
+    if invite.used_by_user_id is not None:
+        raise HTTPException(status_code=400, detail="Cannot revoke an already-used invite.")
+    await session.delete(invite)
+    await session.commit()

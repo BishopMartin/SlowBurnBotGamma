@@ -9,6 +9,7 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
 
 class UserCreate(schemas.BaseUserCreate):
     display_name: str | None = None
+    invite_code: str | None = None
 
 
 class UserUpdate(schemas.BaseUserUpdate):

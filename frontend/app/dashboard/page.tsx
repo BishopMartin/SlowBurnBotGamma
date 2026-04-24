@@ -10,6 +10,7 @@ import {
   Account,
   Entitlement,
   RecentSessionLogEntry,
+  PLAN_LIMITS,
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
 import { formatSessionAction } from "@/lib/format";
@@ -36,7 +37,10 @@ export default function DashboardPage() {
     getRecentSessionLog(15).then((r) => setRecentLog(r.items)).catch(() => {});
   }, []);
 
-  const enabledCount = accounts.filter((a) => a.enabled).length;
+  const activeAccounts = accounts.filter((a) => !a.system_disabled);
+  const enabledCount = activeAccounts.filter((a) => a.enabled).length;
+  const planTier = entitlement?.plan_tier ?? user?.plan_tier ?? "free";
+  const maxAccounts = PLAN_LIMITS[planTier] ?? 0;
 
   return (
     <div className="space-y-6 font-mono">
@@ -55,8 +59,8 @@ export default function DashboardPage() {
               <span className="text-status-bad">inactive</span>
             ),
           },
-          { label: "total accounts", value: String(accounts.length), sub: null },
-          { label: "enabled accounts", value: String(enabledCount), sub: null },
+          { label: "total accounts", value: `${accounts.length}/${maxAccounts}`, sub: null },
+          { label: "enabled accounts", value: `${enabledCount}/${activeAccounts.length}`, sub: null },
         ].map(({ label, value, sub }) => (
           <div
             key={label}
@@ -97,9 +101,13 @@ export default function DashboardPage() {
                     )}
                   </td>
                   <td className="px-4 py-2 text-right">
-                    <Bracket className={account.enabled ? "text-status-ok" : "text-[#9A968B]"}>
-                      {account.enabled ? "on" : "off"}
-                    </Bracket>
+                    {account.system_disabled ? (
+                      <Bracket className="text-[#5a5850]">-</Bracket>
+                    ) : (
+                      <Bracket className={account.enabled ? "text-status-ok" : "text-[#9A968B]"}>
+                        {account.enabled ? "on" : "off"}
+                      </Bracket>
+                    )}
                   </td>
                 </tr>
               ))}

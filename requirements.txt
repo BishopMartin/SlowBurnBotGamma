@@ -8,3 +8,4 @@ stripe==11.3.0
 httpx==0.28.1
 pydantic-settings==2.7.0
 cryptography==44.0.0
+aiosmtplib==3.0.2

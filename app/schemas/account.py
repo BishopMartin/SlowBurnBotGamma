@@ -29,6 +29,7 @@ class AccountRead(BaseModel):
     user_id: uuid.UUID
     name: str
     enabled: bool
+    system_disabled: bool = False
     group_number: int | None
     has_password: bool = False
     proxy_enabled: bool

@@ -6,9 +6,17 @@ import {
   adminSyncSubscription,
   adminActivateSubscription,
   adminDeactivateSubscription,
+  adminSetTier,
   AdminUser,
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
+import { Dropdown } from "@/lib/dropdown";
+
+const TIER_OPTIONS = [
+  { value: "crawl", label: "crawl" },
+  { value: "walk", label: "walk" },
+  { value: "run", label: "run" },
+];
 
 export default function AdminPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -54,6 +62,21 @@ export default function AdminPage() {
     }
   }
 
+  async function handleSetTier(user: AdminUser, tier: string) {
+    if (tier === user.plan_tier) return;
+    setBusy(user.id);
+    setMsg("");
+    try {
+      const res = await adminSetTier(user.id, tier);
+      setMsg(`${user.email} — tier set to ${res.plan_tier}`);
+      await loadUsers();
+    } catch (err: unknown) {
+      setMsg(err instanceof Error ? err.message : "tier change failed.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
     <div className="space-y-4 font-mono">
       <h1 className="font-semibold text-[#f4f3ee]">admin — users</h1>
@@ -66,8 +89,8 @@ export default function AdminPage() {
             <thead>
               <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
                 <th className="px-4 py-2 font-normal">email</th>
-                <th className="px-4 py-2 font-normal">plan</th>
-                <th className="px-4 py-2 font-normal">subscription</th>
+                <th className="px-4 py-2 font-normal">tier</th>
+                <th className="px-4 py-2 font-normal">status</th>
                 <th className="px-4 py-2 font-normal">joined</th>
                 <th className="px-4 py-2 font-normal"></th>
               </tr>
@@ -76,7 +99,18 @@ export default function AdminPage() {
               {users.map((u) => (
                 <tr key={u.id} className="hover:bg-[#1f1e1d] transition-colors">
                   <td className="px-4 py-2 text-[#f4f3ee]">{u.email}</td>
-                  <td className="px-4 py-2 text-[#bfbdb4]">{u.plan_tier}</td>
+                  <td className="px-4 py-2">
+                    <span className="inline-flex items-center gap-0">
+                      <span className="text-[#f4f3ee]">{"["}</span>
+                      <Dropdown
+                        value={u.plan_tier}
+                        onChange={(v) => handleSetTier(u, v)}
+                        options={TIER_OPTIONS}
+                        disabled={busy === u.id}
+                      />
+                      <span className="text-[#f4f3ee]">{"]"}</span>
+                    </span>
+                  </td>
                   <td className="px-4 py-2">
                     <Bracket className={u.subscription_status === "active" ? "text-status-ok" : "text-[#9A968B]"}>
                       {u.subscription_status}
@@ -92,7 +126,7 @@ export default function AdminPage() {
                       className="group disabled:opacity-50 transition-colors"
                     >
                       <Bracket className={u.subscription_status === "active" ? "text-[#9A968B] group-hover:text-[#f4f3ee]" : "text-status-ok group-hover:text-[#f4f3ee]"}>
-                        {busy === u.id ? "…" : u.subscription_status === "active" ? "deactivate" : "activate"}
+                        {busy === u.id ? "..." : u.subscription_status === "active" ? "deactivate" : "activate"}
                       </Bracket>
                     </button>
                     <button
@@ -101,7 +135,7 @@ export default function AdminPage() {
                       className="group disabled:opacity-50 transition-colors"
                     >
                       <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
-                        {busy === u.id ? "…" : "sync stripe"}
+                        {busy === u.id ? "..." : "sync stripe"}
                       </Bracket>
                     </button>
                   </td>

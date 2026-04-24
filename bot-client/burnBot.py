@@ -305,8 +305,9 @@ try:
             account_name = acct.get("name", "")
             account_id = acct.get("id", "")
             is_enabled = acct.get("enabled", False)
+            is_system_disabled = acct.get("system_disabled", False)
 
-            if is_enabled:
+            if is_enabled and not is_system_disabled:
                 enabled_accounts[account_name] = acct
 
             # Fetch settings for schedule data (use cache)
@@ -351,7 +352,9 @@ try:
 
             if account_name not in enabled_accounts:
                 skip_reasons = []
-                if not acct.get("enabled"):
+                if acct.get("system_disabled"):
+                    skip_reasons.append("system-disabled")
+                elif not acct.get("enabled"):
                     skip_reasons.append("disabled")
                 skip_msg = "/".join(skip_reasons) if skip_reasons else "disabled"
                 print(f"[bot]: {account_name} - [{skip_msg}]")

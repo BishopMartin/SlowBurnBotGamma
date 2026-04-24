@@ -2,15 +2,33 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { adminListAccounts, AdminAccount } from "@/lib/api";
+import { adminListAccounts, adminDeleteAccount, AdminAccount } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
 
 export default function AdminAccountsPage() {
   const [accounts, setAccounts] = useState<AdminAccount[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  async function load() {
+    adminListAccounts().then(setAccounts).catch(() => {});
+  }
 
   useEffect(() => {
-    adminListAccounts().then(setAccounts).catch(() => {});
+    load();
   }, []);
+
+  async function handleDelete(account: AdminAccount) {
+    if (!confirm(`Delete account "${account.name}" (${account.user_email})? This cannot be undone.`)) return;
+    setBusy(account.id);
+    try {
+      await adminDeleteAccount(account.id);
+      await load();
+    } catch {
+      // silently fail
+    } finally {
+      setBusy(null);
+    }
+  }
 
   return (
     <div className="space-y-4 font-mono">
@@ -41,16 +59,22 @@ export default function AdminAccountsPage() {
                   <td className="px-4 py-2 text-[#9A968B] text-sm">{a.user_email}</td>
                   <td className="px-4 py-2 text-[#f4f3ee]">{a.name}</td>
                   <td className="px-4 py-2">
-                    <span className="text-[#9A968B]">[</span>
-                    <span className={a.enabled ? "text-status-ok" : "text-status-bad"}>
-                      {a.enabled ? "x" : "\u00a0"}
-                    </span>
-                    <span className="text-[#9A968B]">]</span>
+                    {a.system_disabled ? (
+                      <Bracket className="text-[#5a5850]">-</Bracket>
+                    ) : (
+                      <>
+                        <span className="text-[#9A968B]">[</span>
+                        <span className={a.enabled ? "text-status-ok" : "text-status-bad"}>
+                          {a.enabled ? "x" : "\u00a0"}
+                        </span>
+                        <span className="text-[#9A968B]">]</span>
+                      </>
+                    )}
                   </td>
                   <td className="px-4 py-2 text-[#9A968B]">
                     {a.group_number != null ? String(a.group_number).padStart(2, "0") : "—"}
                   </td>
-                  <td className="px-4 py-2 text-right">
+                  <td className="px-4 py-2 text-right space-x-2">
                     <Link
                       href={`/admin/accounts/${a.id}/follow-targets`}
                       className="group transition-colors"
@@ -59,6 +83,15 @@ export default function AdminAccountsPage() {
                         follow-targets
                       </Bracket>
                     </Link>
+                    <button
+                      onClick={() => handleDelete(a)}
+                      disabled={busy === a.id}
+                      className="group disabled:opacity-50 transition-colors"
+                    >
+                      <Bracket className="text-status-bad group-hover:text-[#f4f3ee]">
+                        {busy === a.id ? "..." : "delete"}
+                      </Bracket>
+                    </button>
                   </td>
                 </tr>
               ))}

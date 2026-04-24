@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { register, login } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -9,10 +9,12 @@ import { Bracket } from "@/lib/bracket";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { refresh } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [inviteCode, setInviteCode] = useState(searchParams.get("code") ?? "");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -22,10 +24,14 @@ export default function RegisterPage() {
       setError("Passwords do not match.");
       return;
     }
+    if (!inviteCode.trim()) {
+      setError("Registration code is required.");
+      return;
+    }
     setError("");
     setLoading(true);
     try {
-      await register(email, password);
+      await register(email, password, undefined, inviteCode.trim());
       await login(email, password);
       await refresh();
       router.push("/dashboard");
@@ -46,6 +52,17 @@ export default function RegisterPage() {
         <div className="text-[#9A968B] mb-4">create account</div>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <div className="text-status-bad">{error}</div>}
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[#9A968B] shrink-0">code</span>
+            <input
+              type="text"
+              placeholder="registration code"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value)}
+              required
+              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] placeholder-[#9A968B] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
+            />
+          </div>
           <div className="flex items-center gap-2">
             <span className="font-mono text-[#9A968B] shrink-0">email</span>
             <input
@@ -88,7 +105,7 @@ export default function RegisterPage() {
               className="group disabled:opacity-50 transition-colors"
             >
               <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
-                {loading ? "creating…" : "create account"}
+                {loading ? "creating..." : "create account"}
               </Bracket>
             </button>
             <Link href="/login" className="text-[#9A968B] hover:text-[#d97757] transition-colors">

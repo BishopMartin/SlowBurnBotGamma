@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import current_active_user
 from app.crypto import encrypt
 from app.database import get_async_session
+from app.plan_tiers import get_max_accounts
 from app.models.account import Account
 from app.models.account_settings import AccountSettings
 from app.models.follow_target import FollowTarget
@@ -73,6 +74,18 @@ async def create_account(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
+    # Enforce account limit for the user's plan tier
+    max_accounts = get_max_accounts(user.plan_tier)
+    count_result = await session.execute(
+        select(func.count()).where(Account.user_id == user.id)
+    )
+    current_count = count_result.scalar_one()
+    if current_count >= max_accounts:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Account limit reached for your plan ({max_accounts} accounts).",
+        )
+
     data = body.model_dump(exclude={"ig_password"})
     if body.ig_password:
         data["ig_password_enc"] = encrypt(body.ig_password)
@@ -235,6 +248,11 @@ async def update_account(
     session: AsyncSession = Depends(get_async_session),
 ):
     account = await _get_owned_account(account_id, user, session)
+    if account.system_disabled:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This account is system-disabled due to plan limits.",
+        )
     data = body.model_dump(exclude_unset=True, exclude={"ig_password"})
     if "ig_password" in body.model_fields_set:
         data["ig_password_enc"] = encrypt(body.ig_password) if body.ig_password else None
@@ -279,7 +297,12 @@ async def upsert_account_settings(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    await _get_owned_account(account_id, user, session)
+    account = await _get_owned_account(account_id, user, session)
+    if account.system_disabled:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This account is system-disabled due to plan limits.",
+        )
     result = await session.execute(
         select(AccountSettings).where(AccountSettings.account_id == account_id)
     )

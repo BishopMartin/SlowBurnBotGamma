@@ -21,6 +21,7 @@ class Account(Base):
     )
     name: Mapped[str] = mapped_column(String(150))  # Instagram handle / internal name
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    system_disabled: Mapped[bool] = mapped_column(Boolean, default=False)
     group_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
     ig_password_enc: Mapped[str | None] = mapped_column(Text, nullable=True)
     proxy_enabled: Mapped[bool] = mapped_column(Boolean, default=False)

@@ -16,6 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { href: "/admin", label: "[users]" },
     { href: "/admin/accounts", label: "[accounts]" },
+    { href: "/admin/invites", label: "[invites]" },
   ];
 
   useEffect(() => {
@@ -82,7 +83,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               const active =
                 item.href === "/admin"
                   ? subNavUsersActive()
-                  : subNavAccountsActive();
+                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
               return (
                 <Link
                   key={item.href}

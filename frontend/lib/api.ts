@@ -44,10 +44,10 @@ export async function login(email: string, password: string) {
   return data;
 }
 
-export async function register(email: string, password: string, displayName?: string) {
+export async function register(email: string, password: string, displayName?: string, inviteCode?: string) {
   return request("/auth/register", {
     method: "POST",
-    body: JSON.stringify({ email, password, display_name: displayName }),
+    body: JSON.stringify({ email, password, display_name: displayName, invite_code: inviteCode }),
   });
 }
 
@@ -91,6 +91,11 @@ export async function saveAccountSettings(id: string, data: Partial<AccountSetti
 // Bot
 export async function getEntitlement() {
   return request<Entitlement>("/bot/entitlement");
+}
+
+// Subscription
+export async function getSubscriptionInfo() {
+  return request<SubscriptionInfo>("/subscription/me");
 }
 
 // Config
@@ -234,10 +239,54 @@ export async function adminListAccounts() {
   return request<AdminAccount[]>("/admin/accounts");
 }
 
+export async function adminSetTier(userId: string, planTier: string) {
+  return request<{ plan_tier: string; status: string }>(`/admin/users/${userId}/set-tier`, {
+    method: "POST",
+    body: JSON.stringify({ plan_tier: planTier }),
+  });
+}
+
+export async function adminDeleteAccount(accountId: string) {
+  return request<void>(`/admin/accounts/${accountId}`, { method: "DELETE" });
+}
+
 export async function adminGetFollowTargets(accountId: string, page: number, pageSize = 100) {
   return request<{ total: number; page: number; page_size: number; items: FollowTarget[] }>(
     `/admin/accounts/${accountId}/follow-targets?page=${page}&page_size=${pageSize}`
   );
+}
+
+// Invites
+export interface InviteCode {
+  id: string;
+  code: string;
+  email: string | null;
+  free_trial_days: number | null;
+  plan_tier: string;
+  used_by_user_id: string | null;
+  used_at: string | null;
+  created_at: string;
+  expires_at: string | null;
+}
+
+export async function adminListInvites() {
+  return request<InviteCode[]>("/admin/invites");
+}
+
+export async function adminCreateInvite(data: {
+  email?: string;
+  free_trial_days?: number;
+  plan_tier?: string;
+  send_email?: boolean;
+}) {
+  return request<InviteCode & { email_error?: string }>("/admin/invites", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function adminDeleteInvite(inviteId: string) {
+  return request<void>(`/admin/invites/${inviteId}`, { method: "DELETE" });
 }
 
 // Types
@@ -255,6 +304,7 @@ export interface Account {
   user_id: string;
   name: string;
   enabled: boolean;
+  system_disabled: boolean;
   group_number: number | null;
   has_password: boolean;
   proxy_enabled: boolean;
@@ -262,6 +312,12 @@ export interface Account {
   created_at: string;
   updated_at: string;
 }
+
+export const PLAN_LIMITS: Record<string, number> = {
+  crawl: 3,
+  walk: 10,
+  run: 25,
+};
 
 export interface ActionBlock {
   enabled: boolean;
@@ -293,6 +349,21 @@ export interface Entitlement {
   active: boolean;
   plan_tier: string;
   current_period_end: string | null;
+}
+
+export interface TierInfo {
+  name: string;
+  price: number;
+  max_accounts: number;
+}
+
+export interface SubscriptionInfo {
+  plan_tier: string;
+  status: string;
+  max_accounts: number;
+  current_accounts: number;
+  current_period_end: string | null;
+  tiers: TierInfo[];
 }
 
 export interface UserConfig {
@@ -339,6 +410,7 @@ export interface AdminAccount {
   user_email: string;
   name: string;
   enabled: boolean;
+  system_disabled: boolean;
   group_number: number | null;
   created_at: string;
 }
