@@ -11,7 +11,6 @@ import {
   getLogSummary,
   getFollowbackSummary,
   getRecentSessionLog,
-  createAccount,
   updateAccount,
   Account,
   AccountSettings,
@@ -71,9 +70,6 @@ export default function DashboardPage() {
   const [statsPeriod, setStatsPeriod] = useState<Period>("week");
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
-  const [newName, setNewName] = useState("");
-  const [error, setError] = useState("");
-  const [adding, setAdding] = useState(false);
 
   const maxAccounts = PLAN_LIMITS[planTier] ?? 0;
 
@@ -182,22 +178,6 @@ export default function DashboardPage() {
   async function handleToggleEnabled(account: Account) {
     const updated = await updateAccount(account.id, { enabled: !account.enabled }).catch(() => null);
     if (updated) setAccounts((prev) => prev.map((a) => (a.id === account.id ? updated : a)));
-  }
-
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newName.trim()) return;
-    setAdding(true);
-    setError("");
-    try {
-      await createAccount({ name: newName.trim(), enabled: false, group_number: 1 });
-      setNewName("");
-      await load();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to create account.");
-    } finally {
-      setAdding(false);
-    }
   }
 
   const activeAccounts = accounts.filter((a) => !a.system_disabled);
@@ -430,36 +410,17 @@ export default function DashboardPage() {
           </table>
         )}
 
-        <div className="border-t border-[#3d3d3a]">
-          <form onSubmit={handleAdd} className="flex items-center gap-2 px-4 py-3">
-            <span className="font-mono text-[#9A968B] shrink-0">Insert New Account:</span>
-            <input
-              type="text"
-              placeholder="Account Name"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] placeholder-[#9A968B] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
-            />
-            <button
-              type="submit"
-              disabled={adding}
-              className="group font-mono disabled:opacity-50 transition-colors shrink-0"
-            >
-              <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">add</Bracket>
-            </button>
-          </form>
-        </div>
       </div>
 
-      {error && <p className="font-mono text-status-bad">{error}</p>}
+      <div className="flex items-center gap-4">
+        <h2 className="font-semibold text-[#f4f3ee]">Recent Activity</h2>
+        <span className="text-[#9A968B]">--</span>
+        <Link href="/dashboard/accounts" className="text-[#d97757] hover:text-[#f4f3ee] transition-colors text-sm">
+          by account →
+        </Link>
+      </div>
 
       <div className="border border-[#3d3d3a]">
-        <div className="flex items-center justify-between border-b border-[#3d3d3a] px-4 py-2 bg-[#1a1918]">
-          <span className="text-[#f4f3ee]">recent activity</span>
-          <Link href="/dashboard/accounts" className="text-[#d97757] hover:text-[#f4f3ee] transition-colors">
-            by account →
-          </Link>
-        </div>
         {recentLog.length === 0 ? (
           <div className="px-4 py-6 text-[#9A968B]">no session log entries yet.</div>
         ) : (
