@@ -19,7 +19,7 @@ class DesktopBuildConfig(BaseModel):
     bot_idle_delay: int = Field(default=5, ge=1, le=120)
     bot_debug: bool = False
     system_user_agent: str = Field(default="", max_length=500)
-    add_arguments: Annotated[list[str], Field(default_factory=list, max_length=20)] = []
+    add_arguments: Annotated[list[str], Field(default_factory=list, max_length=20)]
     api_url: str = Field(default="", max_length=500)
 
     @field_validator("add_arguments")
