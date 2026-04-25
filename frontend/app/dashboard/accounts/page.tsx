@@ -52,6 +52,14 @@ export default function AccountsPage() {
   const [fbMap, setFbMap] = useState<Record<string, FollowbackSummaryEntry>>({});
   const [planTier, setPlanTier] = useState<string>("free");
   const [tab, setTab] = useState<Tab>("settings");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const t = new URLSearchParams(window.location.search).get("tab");
+    if (t === "settings" || t === "activity" || t === "stats" || t === "database") {
+      setTab(t);
+    }
+  }, []);
   const [activityPeriod, setActivityPeriod] = useState<Period>("week");
   const [statsPeriod, setStatsPeriod] = useState<Period>("week");
   const [sortKey, setSortKey] = useState<SortKey>("name");
@@ -196,12 +204,12 @@ export default function AccountsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <h1 className="font-semibold text-[#f4f3ee] font-mono">
           Accounts <span className="text-[#9A968B] font-normal">[{String(accounts.length).padStart(2, "0")}/{String(maxAccounts).padStart(2, "0")}]</span>
         </h1>
         <span className="text-[#9A968B] font-mono">--</span>
-        <div className="flex items-center gap-2 font-mono text-sm">
+        <div className="basis-full sm:basis-auto flex flex-wrap items-center gap-2 font-mono text-sm">
           {tabs.map((t) => (
             <button
               key={t.key}

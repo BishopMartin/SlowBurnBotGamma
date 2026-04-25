@@ -481,7 +481,7 @@ export default function DashboardPage() {
       <div className="flex items-center gap-4">
         <h2 className="font-semibold text-[#f4f3ee]">Recent Activity</h2>
         <span className="text-[#9A968B]">--</span>
-        <Link href="/dashboard/accounts" className="text-[#d97757] hover:text-[#f4f3ee] transition-colors text-sm">
+        <Link href="/dashboard/accounts?tab=activity" className="text-[#d97757] hover:text-[#f4f3ee] transition-colors text-sm">
           by account →
         </Link>
       </div>
