@@ -116,6 +116,7 @@ export default function AccountStatsPage() {
       </div>
 
       <div className="border border-[#3d3d3a]">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
@@ -172,6 +173,7 @@ export default function AccountStatsPage() {
             </tfoot>
           )}
         </table>
+        </div>
       </div>
     </div>
   );

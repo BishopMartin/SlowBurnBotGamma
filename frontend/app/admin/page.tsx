@@ -85,6 +85,7 @@ export default function AdminPage() {
         {users.length === 0 ? (
           <p className="px-4 py-6 text-[#9A968B]">no users found.</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
@@ -143,6 +144,7 @@ export default function AdminPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

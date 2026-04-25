@@ -50,6 +50,7 @@ export default function PlanPage() {
         <div className="border-b border-[#3d3d3a] px-4 py-2 bg-[#1a1918]">
           <span className="text-[#f4f3ee]">available plans</span>
         </div>
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
@@ -89,6 +90,7 @@ export default function PlanPage() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
 
       <p className="text-[#9A968B] text-sm">

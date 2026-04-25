@@ -44,12 +44,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen flex flex-col font-mono">
-      <div className="flex-1 max-w-5xl mx-auto w-full border-x border-[#3d3d3a]">
-        <header className="px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-6">
+      <div className="flex-1 max-w-5xl mx-auto w-full sm:border-x border-[#3d3d3a]">
+        <header className="px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-6 gap-y-1">
             <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
-            <span className="text-[#3d3d3a]">--</span>
-            <nav className="flex gap-1">
+            <span className="hidden sm:inline text-[#3d3d3a]">--</span>
+            <nav className="flex flex-wrap gap-1">
               <Link
                 href="/admin"
                 className={`transition-colors ${
@@ -68,16 +68,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </Link>
             </nav>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#9A968B] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
-            <span className="text-[#E5C07B]">{user.email}</span>
+            <span className="text-[#E5C07B] truncate max-w-[12rem] sm:max-w-none">{user.email}</span>
             <button onClick={handleLogout} className="group transition-colors">
               <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">sign out</Bracket>
             </button>
           </div>
         </header>
-        <main className="px-6 py-6 space-y-4">
-          <nav className="flex gap-4 text-sm border-b border-[#3d3d3a] pb-3">
+        <main className="px-3 sm:px-6 py-6 space-y-4">
+          <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm border-b border-[#3d3d3a] pb-3">
             <span className="text-[#9A968B]">admin:</span>
             {navItems.map((item) => {
               const active =

@@ -93,6 +93,7 @@ export default function AccountDatabasePage() {
         ) : items.length === 0 ? (
           <p className="px-4 py-6 text-[#9A968B]">no records found.</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
@@ -119,6 +120,7 @@ export default function AccountDatabasePage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

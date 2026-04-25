@@ -218,6 +218,7 @@ export default function AccountsPage() {
         {accounts.length === 0 ? (
           <p className="px-4 py-6 font-mono text-[#9A968B]">No accounts yet.</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full font-mono">
             <thead>
               <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
@@ -374,10 +375,11 @@ export default function AccountsPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
 
         <div className="border-t border-[#3d3d3a]">
-          <form onSubmit={handleAdd} className="flex items-center gap-2 px-4 py-3">
+          <form onSubmit={handleAdd} className="flex flex-wrap items-center gap-2 px-4 py-3">
             <span className="font-mono text-[#9A968B] shrink-0">Insert New Account:</span>
             <input
               type="text"

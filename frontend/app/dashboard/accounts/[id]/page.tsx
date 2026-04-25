@@ -312,6 +312,7 @@ export default function AccountDetailPage() {
         {/* Actions */}
         <div className={sectionCls}>
           <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">session actions</div>
+          <div className="overflow-x-auto">
           <table className="w-full font-mono">
             <thead>
               <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
@@ -390,6 +391,7 @@ export default function AccountDetailPage() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Follow Settings */}

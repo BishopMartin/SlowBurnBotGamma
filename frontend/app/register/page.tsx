@@ -115,11 +115,11 @@ function RegisterForm() {
 export default function RegisterPage() {
   return (
     <div className="min-h-screen flex flex-col font-mono">
-      <div className="flex-1 max-w-5xl mx-auto w-full border-x border-[#3d3d3a]">
-        <header className="px-6 py-3">
+      <div className="flex-1 max-w-5xl mx-auto w-full sm:border-x border-[#3d3d3a]">
+        <header className="px-3 sm:px-6 py-3">
           <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
         </header>
-        <main className="px-6 py-6">
+        <main className="px-3 sm:px-6 py-6">
           <Suspense fallback={<div className="text-[#9A968B]">loading...</div>}>
             <RegisterForm />
           </Suspense>
