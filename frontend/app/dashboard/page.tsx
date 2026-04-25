@@ -250,7 +250,8 @@ export default function DashboardPage() {
               <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
                 <th className="px-2 py-2 font-normal">Client</th>
                 <th className="px-2 py-2 font-normal">Status</th>
-                <th className="px-2 py-2 font-normal">Running On</th>
+                <th className="px-2 py-2 font-normal">OS</th>
+                <th className="px-2 py-2 font-normal">IP</th>
                 <th className="px-2 py-2 font-normal w-full">Current Action</th>
               </tr>
             </thead>
@@ -268,7 +269,10 @@ export default function DashboardPage() {
                     )}
                   </td>
                   <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
-                    {cs.system_type}{cs.ip_address ? ` at ${cs.ip_address}` : ""}
+                    {cs.system_type || "----"}
+                  </td>
+                  <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
+                    {cs.ip_address || "----"}
                   </td>
                   <td className="px-2 py-2 text-[#9A968B]">
                     {cs.status === "running" && cs.current_account

@@ -7,6 +7,7 @@ from burnBot_accountSession import accountSession
 from burnBot_accountSession_setup import is_bot_debug_enabled
 from burnBot_apiClient import ApiClient, AuthenticationError, SubscriptionRequiredError
 from burnBot_runCounter import RunCounter
+from burnBot_version import BOT_VERSION
 from datetime import datetime, timedelta
 import math
 import socket
@@ -246,6 +247,8 @@ try:
 
     _p = 0.04  # seconds between each printed line
 
+    print(f"SlowBurnBot - BurnBot Client v {BOT_VERSION}")
+    print()
     print("Bot Settings:")
     print("=" * 60)
     time.sleep(_p); print(f"{'local config file:':<{_w}}[{config_file}]")
@@ -281,6 +284,28 @@ try:
     except Exception:
         _local_ip = ""
     _heartbeat_system_type = _st
+
+    # Background heartbeat: backend marks clients offline after 2 min, but the
+    # main loop's bot_idle_delay can exceed that. Resend last known state every 60s.
+    _hb_lock = threading.Lock()
+    _hb_state = {"status": "idle", "account": None}
+
+    def _send_hb(status, account):
+        with _hb_lock:
+            _hb_state["status"] = status
+            _hb_state["account"] = account
+        apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, status, account)
+
+    def _heartbeat_loop():
+        while not stop_flag.is_set():
+            if stop_flag.wait(60):
+                return
+            with _hb_lock:
+                status = _hb_state["status"]
+                account = _hb_state["account"]
+            apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, status, account)
+
+    threading.Thread(target=_heartbeat_loop, daemon=True).start()
 
     while True:
         current_time = datetime.now().astimezone()
@@ -455,7 +480,7 @@ try:
                         time.sleep(1)
 
                 # Send running heartbeat before session starts
-                apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, "running", account_name)
+                _send_hb("running", account_name)
 
                 # Set account to active
                 threads_active[account_idx].set()
@@ -505,7 +530,7 @@ try:
             _hb_status, _hb_account = "delay", None
         else:
             _hb_status, _hb_account = "idle", None
-        apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, _hb_status, _hb_account)
+        _send_hb(_hb_status, _hb_account)
 
         _delay_label = f"[{current_time.strftime('%I:%M %p')}] delay:"
         if sleep_with_interrupt_check(bot_idle_delay, stop_flag, label=_delay_label):
