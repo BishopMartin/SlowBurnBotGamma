@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth import auth_backend, fastapi_users
-from app.routers import accounts, admin, auth_refresh, bot, config, subscription, webhooks
+from app.routers import accounts, admin, auth_refresh, bot, config, desktop_builds, subscription, webhooks
 from app.schemas.user import UserCreate, UserRead, UserUpdate
 from app.settings import settings
 
@@ -52,6 +52,7 @@ app.include_router(config.router)
 app.include_router(admin.router)
 app.include_router(subscription.router)
 app.include_router(webhooks.router)
+app.include_router(desktop_builds.router)
 
 
 @app.get("/health")

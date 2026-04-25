@@ -19,6 +19,17 @@ class Settings(BaseSettings):
     # CORS (set once Next.js is deployed)
     cors_origins: list[str] = []
 
+    # GitHub Actions — desktop build dispatch
+    github_token: str = ""
+    github_repo: str = ""            # "owner/repo"
+    github_workflow_file: str = "build-desktop.yml"
+    github_webhook_secret: str = ""  # optional; used by webhook receiver
+
+    # Desktop build policy
+    desktop_activation_token_ttl_hours: int = 168  # 7 days
+    desktop_download_expires_hours: int = 72
+    desktop_max_downloads: int = 10
+
     @field_validator("database_url", mode="before")
     @classmethod
     def fix_async_driver(cls, v: str) -> str:

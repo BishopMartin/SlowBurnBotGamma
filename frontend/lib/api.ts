@@ -456,3 +456,62 @@ export interface FollowTarget {
   unfollow_date: string | null;
   follow_back: boolean | null;
 }
+
+// Desktop builds
+export interface DesktopBuildConfig {
+  system_type: "windows";
+  chrome_path: string;
+  chrome_version: string;
+  chrome_user_data_dir_base: string;
+  headless: boolean;
+  detach: boolean;
+  close_browser_session: boolean;
+  close_browser_exit: boolean;
+  bot_idle_delay: number;
+  bot_debug: boolean;
+  system_user_agent: string;
+  add_arguments: string[];
+  api_url: string;
+}
+
+export interface DesktopBuild {
+  id: string;
+  client_id: number;
+  status: "queued" | "running" | "ready" | "failed" | "revoked";
+  build_options: DesktopBuildConfig;
+  github_run_id: string | null;
+  failure_reason: string | null;
+  activated_at: string | null;
+  download_expires_at: string;
+  download_count: number;
+  max_downloads: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DesktopBuildWithToken extends DesktopBuild {
+  activation_token: string;
+}
+
+export async function createDesktopBuild(config: DesktopBuildConfig): Promise<DesktopBuildWithToken> {
+  return request<DesktopBuildWithToken>("/desktop-builds", {
+    method: "POST",
+    body: JSON.stringify({ config }),
+  });
+}
+
+export async function listDesktopBuilds(): Promise<DesktopBuild[]> {
+  return request<DesktopBuild[]>("/desktop-builds");
+}
+
+export async function getDesktopBuild(id: string): Promise<DesktopBuild> {
+  return request<DesktopBuild>(`/desktop-builds/${id}`);
+}
+
+export function getDesktopBuildDownloadUrl(id: string): string {
+  return `${API_URL}/desktop-builds/${id}/download`;
+}
+
+export async function revokeDesktopBuild(id: string): Promise<DesktopBuild> {
+  return request<DesktopBuild>(`/desktop-builds/${id}/revoke`, { method: "POST" });
+}

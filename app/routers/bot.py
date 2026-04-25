@@ -1,6 +1,7 @@
 """Exe-facing endpoints — called by the compiled SlowBurnBot client."""
+import hashlib
 import uuid
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
@@ -17,6 +18,7 @@ from app.deps import (
 from app.models.account import Account
 from app.models.account_settings import AccountSettings
 from app.models.activity_log import ActivityLog
+from app.models.desktop_build import DesktopBuild
 from app.models.follow_target import FollowTarget
 from app.models.ignore_handle import IgnoreHandle
 from app.models.client_heartbeat import ClientHeartbeat
@@ -38,6 +40,7 @@ from app.schemas.bot import (
     RunCountRead,
     SessionLogCreate,
 )
+from app.schemas.desktop_build import DesktopActivateRequest
 from app.services.notifications import NotificationError, send_email, send_sms
 
 router = APIRouter(prefix="/bot", tags=["bot"])
@@ -289,7 +292,39 @@ async def post_heartbeat(
     hb.ip_address = body.ip_address
     hb.status = body.status
     hb.current_account = body.current_account
-    from datetime import datetime, timezone
     hb.last_heartbeat = datetime.now(timezone.utc)
     await session.commit()
     return {"ok": True}
+
+
+@router.post("/desktop/activate")
+async def activate_desktop_build(
+    body: DesktopActivateRequest,
+    session: AsyncSession = Depends(get_async_session),
+):
+    """
+    One-time activation handshake called by the EXE on first launch.
+    No JWT required — validated by the baked activation token instead.
+    """
+    build = await session.scalar(
+        select(DesktopBuild).where(
+            DesktopBuild.user_id == body.user_id,
+            DesktopBuild.client_id == body.client_id,
+            DesktopBuild.status == "ready",
+        )
+    )
+    if build is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Build not found.")
+
+    token_hash = hashlib.sha256(body.activation_token.encode()).hexdigest()
+    if build.activation_token_hash != token_hash:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid activation token.")
+
+    if build.activation_token_expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail="Activation token expired.")
+
+    if build.activated_at is None:
+        build.activated_at = datetime.now(timezone.utc)
+        await session.commit()
+
+    return {"activated": True, "client_id": build.client_id}
