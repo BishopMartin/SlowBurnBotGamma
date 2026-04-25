@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { getAccounts, getAccountDatabase, Account, FollowTarget } from "@/lib/api";
+import { getAccounts, getAccountDatabase, downloadAccountDatabaseCsv, Account, FollowTarget } from "@/lib/api";
 
 const PAGE_SIZE = 100;
 
@@ -26,6 +26,19 @@ export default function AccountDatabasePage() {
   const [loading, setLoading] = useState(true);
   const [sortKey, setSortKey] = useState<SortKey>("followed");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExport() {
+    if (!account) return;
+    setExporting(true);
+    try {
+      await downloadAccountDatabaseCsv(id, account.name);
+    } catch {
+      // swallow — link will simply not download
+    } finally {
+      setExporting(false);
+    }
+  }
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -124,27 +137,38 @@ export default function AccountDatabasePage() {
         )}
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center gap-4 text-sm">
+      <div className="flex items-center gap-4 text-sm flex-wrap">
+        {totalPages > 1 && (
+          <>
+            <button
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+              className="disabled:opacity-30 text-[#9A968B] hover:text-[#f4f3ee] transition-colors"
+            >
+              [prev]
+            </button>
+            <span className="text-[#9A968B]">
+              page {page} / {totalPages}
+            </span>
+            <button
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className="disabled:opacity-30 text-[#9A968B] hover:text-[#f4f3ee] transition-colors"
+            >
+              [next]
+            </button>
+          </>
+        )}
+        {total > 0 && (
           <button
-            disabled={page <= 1}
-            onClick={() => setPage((p) => p - 1)}
-            className="disabled:opacity-30 text-[#9A968B] hover:text-[#f4f3ee] transition-colors"
+            onClick={handleExport}
+            disabled={exporting}
+            className="ml-auto disabled:opacity-30 text-[#9A968B] hover:text-[#f4f3ee] transition-colors"
           >
-            [prev]
+            {exporting ? "[exporting…]" : "[download csv]"}
           </button>
-          <span className="text-[#9A968B]">
-            page {page} / {totalPages}
-          </span>
-          <button
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-            className="disabled:opacity-30 text-[#9A968B] hover:text-[#f4f3ee] transition-colors"
-          >
-            [next]
-          </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

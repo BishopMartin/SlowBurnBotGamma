@@ -155,6 +155,24 @@ export async function getAccountDatabase(id: string, page: number, pageSize = 10
   );
 }
 
+export async function downloadAccountDatabaseCsv(id: string, accountName: string) {
+  const token = getToken();
+  const headers: Record<string, string> = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(`${API_URL}/accounts/${id}/database/export`, { headers });
+  if (!res.ok) throw new Error("Export failed");
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  const safeName = accountName.replace(/[^a-zA-Z0-9_-]/g, "_") || "account";
+  a.download = `${safeName}_database.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 export async function getAccountLog(id: string, page: number, pageSize = 100, sort = "date", sortDir = "desc") {
   return request<{ total: number; page: number; page_size: number; items: SessionLogEntry[] }>(
     `/accounts/${id}/log?page=${page}&page_size=${pageSize}&sort=${sort}&sort_dir=${sortDir}`

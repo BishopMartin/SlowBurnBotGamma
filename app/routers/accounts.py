@@ -1,8 +1,11 @@
 """Account CRUD — dashboard use."""
+import csv
+import io
 import uuid
 from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import Response
 from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -404,6 +407,43 @@ async def get_account_database(
             for t in targets
         ],
     }
+
+
+@router.get("/{account_id}/database/export")
+async def export_account_database(
+    account_id: uuid.UUID,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    account = await _get_owned_account(account_id, user, session)
+
+    result = await session.execute(
+        select(FollowTarget)
+        .where(FollowTarget.account_id == account_id)
+        .order_by(FollowTarget.follow_date.desc().nullslast(), FollowTarget.target_handle)
+    )
+    targets = result.scalars().all()
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["handle", "source", "status", "follow_date", "unfollow_date", "follow_back"])
+    for t in targets:
+        writer.writerow([
+            t.target_handle,
+            t.source or "",
+            t.status,
+            t.follow_date.isoformat() if t.follow_date else "",
+            t.unfollow_date.isoformat() if t.unfollow_date else "",
+            "yes" if t.follow_back is True else "no" if t.follow_back is False else "",
+        ])
+
+    safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in account.name) or "account"
+    filename = f"{safe_name}_database.csv"
+    return Response(
+        content=buf.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/{account_id}/stats", response_model=dict)
