@@ -30,7 +30,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: "/dashboard", label: "overview" },
     { href: "/dashboard/accounts", label: "accounts" },
     { href: "/dashboard/config", label: "config" },
-    { href: "/dashboard/desktop", label: "desktop" },
+    { href: "/dashboard/desktop", label: "client" },
     ...(user.is_superuser ? [{ href: "/admin", label: "admin" }] : []),
   ];
 
@@ -42,7 +42,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen flex flex-col font-mono">
       <div className="flex-1 max-w-5xl mx-auto w-full sm:border-x border-[#3d3d3a]">
-        <header className="px-3 sm:px-6 py-3 flex flex-col-reverse gap-y-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-3">
+        <header className="px-3 sm:px-6 pt-2 pb-3 flex flex-col gap-y-1">
+          {/* Top row: user info, right-aligned */}
+          <div className="flex items-center justify-end gap-3 sm:gap-4">
+            <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#9A968B] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
+            <span className="text-[#E5C07B] truncate max-w-[12rem] sm:max-w-none">{user.email}</span>
+            <div className="flex gap-1">
+              <Link href="/dashboard/plan" className={`group transition-colors ${pathname.startsWith("/dashboard/plan") ? "text-[#d97757]" : ""}`}>
+                <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">plan</Bracket>
+              </Link>
+              <button onClick={handleLogout} className="group transition-colors">
+                <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">sign out</Bracket>
+              </button>
+            </div>
+          </div>
+          {/* Bottom row: logo + nav */}
           <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-6 gap-y-1">
             <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
             <span className="hidden sm:inline text-[#3d3d3a]">--</span>
@@ -61,18 +75,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </Link>
               ))}
             </nav>
-          </div>
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-            <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#9A968B] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
-            <span className="text-[#E5C07B] truncate max-w-[12rem] sm:max-w-none">{user.email}</span>
-            <div className="flex gap-1">
-              <Link href="/dashboard/plan" className={`group transition-colors ${pathname.startsWith("/dashboard/plan") ? "text-[#d97757]" : ""}`}>
-                <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">plan</Bracket>
-              </Link>
-              <button onClick={handleLogout} className="group transition-colors">
-                <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">sign out</Bracket>
-              </button>
-            </div>
           </div>
         </header>
         <main className="px-3 sm:px-6 py-6">{children}</main>
