@@ -1,0 +1,13 @@
+{
+  "terminal.integrated.profiles.linux": {
+    "Project tmux": {
+      "path": "bash",
+      "args": [
+        "--rcfile",
+        "${workspaceFolder}/.vscode/tmux-bashrc",
+        "-i"
+      ]
+    }
+  },
+  "terminal.integrated.defaultProfile.linux": "Project tmux"
+}
