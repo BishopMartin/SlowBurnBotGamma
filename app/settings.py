@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     # Stripe (optional until Phase 3)
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
+    stripe_price_crawl: str = ""
+    stripe_price_walk: str = ""
+    stripe_price_run: str = ""
 
     # CORS (set once Next.js is deployed)
     cors_origins: list[str] = []

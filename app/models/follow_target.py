@@ -24,7 +24,11 @@ class FollowTarget(Base):
     )
     target_handle: Mapped[str] = mapped_column(String(150))
     source: Mapped[str | None] = mapped_column(String(255), nullable=True)  # e.g. "bucket[followers]"
-    status: Mapped[str] = mapped_column(String(50), default="pending")  # pending/done/skipped
+    # Vocabulary set by the bot client:
+    #   following  — bot has followed this handle, awaiting unfollow
+    #   done       — bot has unfollowed (terminal)
+    #   skipped    — bot chose not to follow (terminal)
+    status: Mapped[str] = mapped_column(String(50), default="following")
     follow_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     unfollow_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     follow_back: Mapped[bool | None] = mapped_column(Boolean, nullable=True)

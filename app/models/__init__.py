@@ -10,6 +10,7 @@ from app.models.user_config import UserConfig
 from app.models.system_config import SystemConfig
 from app.models.invite_code import InviteCode
 from app.models.client_heartbeat import ClientHeartbeat
+from app.models.processed_stripe_event import ProcessedStripeEvent
 
 __all__ = [
     "User",
@@ -24,4 +25,5 @@ __all__ = [
     "SystemConfig",
     "InviteCode",
     "ClientHeartbeat",
+    "ProcessedStripeEvent",
 ]

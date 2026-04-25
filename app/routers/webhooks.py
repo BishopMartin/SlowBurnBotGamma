@@ -4,10 +4,13 @@ import logging
 import stripe
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_async_session
+from app.models.processed_stripe_event import ProcessedStripeEvent
 from app.models.subscription import Subscription
+from app.services.stripe_sync import apply_stripe_subscription
 from app.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -21,42 +24,6 @@ HANDLED_EVENTS = {
     "invoice.payment_succeeded",
     "invoice.payment_failed",
 }
-
-
-async def _upsert_subscription(session: AsyncSession, stripe_sub) -> None:
-    """Update our subscriptions table from a Stripe subscription object."""
-    from datetime import datetime, timezone
-
-    result = await session.execute(
-        select(Subscription).where(
-            Subscription.stripe_subscription_id == stripe_sub.id
-        )
-    )
-    sub = result.scalar_one_or_none()
-
-    if sub is None:
-        # Try to find by customer id
-        result = await session.execute(
-            select(Subscription).where(
-                Subscription.stripe_customer_id == stripe_sub.customer
-            )
-        )
-        sub = result.scalar_one_or_none()
-
-    if sub is None:
-        logger.warning("Stripe webhook: no subscription found for %s", stripe_sub.id)
-        return
-
-    sub.stripe_subscription_id = stripe_sub.id
-    sub.stripe_customer_id = stripe_sub.customer
-    sub.status = stripe_sub.status
-    sub.current_period_start = datetime.fromtimestamp(
-        stripe_sub.current_period_start, tz=timezone.utc
-    )
-    sub.current_period_end = datetime.fromtimestamp(
-        stripe_sub.current_period_end, tz=timezone.utc
-    )
-    await session.commit()
 
 
 @router.post("/stripe")
@@ -78,11 +45,25 @@ async def stripe_webhook(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid signature.")
 
     event_type = event["type"]
+    event_id = event["id"]
 
     if event_type not in HANDLED_EVENTS:
         return {"received": True}
 
-    logger.info("Stripe event: %s id=%s", event_type, event["id"])
+    # Claim the event id for idempotency.  Flush only — if the row is a
+    # duplicate the PK conflict raises immediately and we short-circuit.
+    # Otherwise the claim is pending in this transaction; processing below
+    # commits both the claim and any DB updates atomically, so a transient
+    # failure rolls back the claim and Stripe's retry can land cleanly.
+    session.add(ProcessedStripeEvent(event_id=event_id))
+    try:
+        await session.flush()
+    except IntegrityError:
+        await session.rollback()
+        logger.info("Stripe event %s already processed; skipping.", event_id)
+        return {"received": True, "duplicate": True}
+
+    logger.info("Stripe event: %s id=%s", event_type, event_id)
 
     try:
         if event_type in (
@@ -90,7 +71,14 @@ async def stripe_webhook(
             "customer.subscription.updated",
             "customer.subscription.deleted",
         ):
-            await _upsert_subscription(session, event["data"]["object"])
+            await apply_stripe_subscription(session, event["data"]["object"])
+
+        elif event_type == "invoice.payment_succeeded":
+            stripe_sub_id = event["data"]["object"].get("subscription")
+            if stripe_sub_id and settings.stripe_secret_key:
+                stripe.api_key = settings.stripe_secret_key
+                stripe_sub = stripe.Subscription.retrieve(stripe_sub_id)
+                await apply_stripe_subscription(session, stripe_sub)
 
         elif event_type == "invoice.payment_failed":
             stripe_sub_id = event["data"]["object"].get("subscription")
@@ -103,10 +91,17 @@ async def stripe_webhook(
                 sub = result.scalar_one_or_none()
                 if sub:
                     sub.status = "past_due"
-                    await session.commit()
 
+        await session.commit()
+
+    except IntegrityError:
+        # Concurrent duplicate raced us at commit time; another worker won.
+        await session.rollback()
+        logger.info("Stripe event %s already processed; skipping.", event_id)
+        return {"received": True, "duplicate": True}
     except Exception:
-        logger.exception("Error processing Stripe event %s", event["id"])
+        await session.rollback()
+        logger.exception("Error processing Stripe event %s", event_id)
         raise HTTPException(status_code=500, detail="Webhook processing error.")
 
     return {"received": True}

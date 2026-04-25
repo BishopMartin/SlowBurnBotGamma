@@ -21,6 +21,7 @@ from app.plan_tiers import is_valid_tier
 from app.schemas.admin import NotificationCredentialsRead, NotificationCredentialsUpdate
 from app.services.email import send_invite_email
 from app.services.plan_enforcement import enforce_account_limits
+from app.services.stripe_sync import apply_stripe_subscription
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -73,34 +74,49 @@ async def sync_subscription(
         raise HTTPException(status_code=404, detail="No Stripe subscription on record.")
 
     stripe_sub = stripe_lib.Subscription.retrieve(sub.stripe_subscription_id)
-    sub.status = stripe_sub.status
-    sub.current_period_end = stripe_sub.current_period_end
+    await apply_stripe_subscription(session, stripe_sub)
     await session.commit()
-    return {"status": sub.status}
+    return {"status": sub.status, "plan_tier": sub.plan_tier}
+
+
+class ActivateSubscriptionRequest(BaseModel):
+    plan_tier: str | None = None
 
 
 @router.post("/users/{user_id}/activate")
 async def activate_subscription(
     user_id: uuid.UUID,
+    body: ActivateSubscriptionRequest | None = None,
     _: User = Depends(current_superuser),
     session: AsyncSession = Depends(get_async_session),
 ):
-    """Admin-activate a user's subscription (set status=active, plan_tier=pro)."""
+    """Admin-activate a user's subscription. Tier comes from the request body
+    if provided; otherwise the existing Subscription.plan_tier is used. Either
+    way the resulting tier must be a valid PLAN_TIERS key."""
     result = await session.execute(
         select(Subscription).where(Subscription.user_id == user_id)
     )
     sub = result.scalar_one_or_none()
     if sub is None:
         raise HTTPException(status_code=404, detail="No subscription record found.")
-    sub.status = "active"
-    sub.plan_tier = "pro"
 
-    # Also update the user's plan_tier field to stay in sync
+    requested_tier = body.plan_tier if body else None
+    target_tier = requested_tier or sub.plan_tier
+    if not is_valid_tier(target_tier):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot activate: tier '{target_tier}' is not valid. Set a tier first.",
+        )
+
+    sub.status = "active"
+    sub.plan_tier = target_tier
+
     user_result = await session.execute(select(User).where(User.id == user_id))
     user = user_result.scalar_one_or_none()
     if user:
-        user.plan_tier = "pro"
+        user.plan_tier = target_tier
 
+    await enforce_account_limits(user_id, session)
     await session.commit()
     return {"status": sub.status, "plan_tier": sub.plan_tier}
 
@@ -111,7 +127,8 @@ async def deactivate_subscription(
     _: User = Depends(current_superuser),
     session: AsyncSession = Depends(get_async_session),
 ):
-    """Admin-deactivate a user's subscription."""
+    """Admin-deactivate a user's subscription. Status flips to inactive but
+    plan_tier is preserved so reactivation can use the prior tier."""
     result = await session.execute(
         select(Subscription).where(Subscription.user_id == user_id)
     )
@@ -119,13 +136,13 @@ async def deactivate_subscription(
     if sub is None:
         raise HTTPException(status_code=404, detail="No subscription record found.")
     sub.status = "inactive"
-    sub.plan_tier = "free"
 
     user_result = await session.execute(select(User).where(User.id == user_id))
     user = user_result.scalar_one_or_none()
     if user:
         user.plan_tier = "free"
 
+    await enforce_account_limits(user_id, session)
     await session.commit()
     return {"status": sub.status, "plan_tier": sub.plan_tier}
 

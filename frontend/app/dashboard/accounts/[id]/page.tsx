@@ -79,6 +79,8 @@ export default function AccountDetailPage() {
   const [editingEnd, setEditingEnd] = useState<string | null>(null);
   const [editingPw, setEditingPw] = useState(false);
   const [pwValue, setPwValue] = useState("");
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     getAccounts().then((list) => {
@@ -87,12 +89,20 @@ export default function AccountDetailPage() {
       setAccount(found);
     });
     getAccountSettings(id)
-      .then((s) => { setSettings(s); setActions(pad4(s.actions)); })
-      .catch(() => {});
+      .then((s) => { setSettings(s); setActions(pad4(s.actions)); setSettingsLoaded(true); })
+      .catch((err: unknown) => {
+        setLoadError(err instanceof Error ? err.message : "failed to load settings.");
+      });
   }, [id, router]);
 
   async function handleSaveSettings(e: React.FormEvent) {
     e.preventDefault();
+    if (!settingsLoaded) {
+      // Block save if the initial fetch failed — the local state holds defaults,
+      // not the user's real settings, and saving would overwrite them.
+      setMsg("cannot save — settings failed to load. reload the page first.");
+      return;
+    }
     setSaving(true);
     setMsg("");
     try {
@@ -434,11 +444,16 @@ export default function AccountDetailPage() {
 
         {/* Save / Delete */}
         <div className="flex items-center gap-6">
-          <button type="submit" disabled={saving} className="group disabled:opacity-50 transition-colors">
+          <button
+            type="submit"
+            disabled={saving || !settingsLoaded}
+            className="group disabled:opacity-50 transition-colors"
+          >
             <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
               {saving ? "saving…" : "save settings"}
             </Bracket>
           </button>
+          {loadError && <span className="text-status-bad">{loadError}</span>}
           {msg && <span className="text-status-ok">{msg}</span>}
           <button type="button" onClick={handleDelete} className="group transition-colors ml-auto">
             <Bracket className="text-[#9A968B] group-hover:text-status-bad">delete account</Bracket>

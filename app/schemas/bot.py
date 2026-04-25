@@ -2,7 +2,7 @@
 import uuid
 from datetime import date, datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class SessionLogCreate(BaseModel):
@@ -83,12 +83,11 @@ class BotUserConfigRead(BaseModel):
     notify_phone: str | None = None
 
 
-class NotificationCredentialsForBot(BaseModel):
-    smtp_server: str
-    smtp_port: int
-    smtp_user: str | None = None
-    smtp_password: str | None = None
-    textbelt_key: str | None = None
+class BotNotifyRequest(BaseModel):
+    channel: str = Field(pattern=r"^(email|sms)$")
+    to: str = Field(min_length=1, max_length=320)
+    subject: str | None = Field(default=None, max_length=200)
+    body: str = Field(min_length=1, max_length=4000)
 
 
 class HeartbeatCreate(BaseModel):

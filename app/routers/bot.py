@@ -9,7 +9,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import current_active_user
 from app.crypto import decrypt
 from app.database import get_async_session
-from app.deps import get_active_subscription, require_active_subscription
+from app.deps import (
+    get_active_subscription,
+    is_subscription_entitled,
+    require_active_subscription,
+)
 from app.models.account import Account
 from app.models.account_settings import AccountSettings
 from app.models.activity_log import ActivityLog
@@ -19,10 +23,10 @@ from app.models.client_heartbeat import ClientHeartbeat
 from app.models.session_log import SessionLog
 from app.models.subscription import Subscription
 from app.models.user import User
-from app.models.system_config import SystemConfig
 from app.models.user_config import UserConfig
 from app.schemas.bot import (
     ActivityLogCreate,
+    BotNotifyRequest,
     BotUserConfigRead,
     CredentialsRead,
     EntitlementRead,
@@ -31,10 +35,10 @@ from app.schemas.bot import (
     FollowTargetUpdate,
     HeartbeatCreate,
     IgnoreHandlesRead,
-    NotificationCredentialsForBot,
     RunCountRead,
     SessionLogCreate,
 )
+from app.services.notifications import NotificationError, send_email, send_sms
 
 router = APIRouter(prefix="/bot", tags=["bot"])
 
@@ -59,7 +63,7 @@ async def check_entitlement(
     if subscription is None:
         return EntitlementRead(active=False, plan_tier="free")
     return EntitlementRead(
-        active=subscription.status == "active",
+        active=is_subscription_entitled(subscription),
         plan_tier=subscription.plan_tier,
         current_period_end=subscription.current_period_end,
     )
@@ -83,23 +87,33 @@ async def get_bot_config(
     return config
 
 
-@router.get("/notification-credentials", response_model=NotificationCredentialsForBot)
-async def get_bot_notification_credentials(
+@router.post("/notify")
+async def post_bot_notify(
+    body: BotNotifyRequest,
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
+    _: Subscription = Depends(require_active_subscription),
 ):
-    """Return decrypted SMTP/TextBelt credentials for the exe."""
-    result = await session.execute(select(SystemConfig))
-    config = result.scalar_one_or_none()
-    if config is None:
-        return NotificationCredentialsForBot(smtp_server="", smtp_port=587)
-    return NotificationCredentialsForBot(
-        smtp_server=config.smtp_server or "",
-        smtp_port=config.smtp_port or 587,
-        smtp_user=config.smtp_user,
-        smtp_password=decrypt(config.smtp_password_enc) if config.smtp_password_enc else None,
-        textbelt_key=decrypt(config.textbelt_key_enc) if config.textbelt_key_enc else None,
-    )
+    """Dispatch a notification on behalf of the bot.
+
+    The bot describes the event (channel + recipient + content); the backend
+    holds the SMTP/TextBelt credentials and does the actual send.
+    """
+    try:
+        if body.channel == "email":
+            await send_email(
+                to=body.to,
+                subject=body.subject or "SlowBurnBot",
+                body=body.body,
+                session=session,
+            )
+        else:
+            await send_sms(to=body.to, body=body.body, session=session)
+    except NotificationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e)
+        )
+    return {"ok": True}
 
 
 @router.get("/settings/{account_id}")

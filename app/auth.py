@@ -9,7 +9,7 @@ from fastapi_users.authentication import (
     JWTStrategy,
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
-from sqlalchemy import select
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_async_session
@@ -17,7 +17,6 @@ from app.models.user import User
 from app.settings import settings
 
 ACCESS_TOKEN_LIFETIME = 3600  # 1 hour
-REFRESH_TOKEN_LIFETIME = 86400 * 30  # 30 days
 
 
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
@@ -58,44 +57,68 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         from app.models.invite_code import InviteCode
         from app.database import async_session_maker
 
-        async with async_session_maker() as session:
-            # Look up the invite code from the request body
-            invite = None
-            if request:
-                try:
-                    body = await request.json()
-                    code_str = body.get("invite_code")
-                    if code_str:
-                        result = await session.execute(
-                            select(InviteCode).where(InviteCode.code == code_str)
-                        )
-                        invite = result.scalar_one_or_none()
-                except Exception:
-                    pass
+        # Pull the invite code off the request body, if any.
+        code_str: str | None = None
+        if request:
+            try:
+                body = await request.json()
+                raw = body.get("invite_code")
+                if isinstance(raw, str) and raw.strip():
+                    code_str = raw.strip()
+            except Exception:
+                pass
 
-            # Default subscription values
+        async with async_session_maker() as session:
+            invite: InviteCode | None = None
+
+            if code_str:
+                # Atomic claim: only succeeds if the invite is still unclaimed.
+                # Wins the race against any concurrent registration with the
+                # same code; the loser's super().create() user is deleted
+                # below and the request fails.
+                claim_stmt = (
+                    update(InviteCode)
+                    .where(
+                        InviteCode.code == code_str,
+                        InviteCode.used_by_user_id.is_(None),
+                    )
+                    .values(
+                        used_by_user_id=user.id,
+                        used_at=datetime.now(timezone.utc),
+                    )
+                    .returning(InviteCode)
+                )
+                claimed = await session.execute(claim_stmt)
+                invite = claimed.scalar_one_or_none()
+
+                if invite is None:
+                    # Either the code never existed or another registration
+                    # claimed it first.  Roll back the user that fastapi-users
+                    # already committed before raising.
+                    await session.execute(
+                        delete(User).where(User.id == user.id)
+                    )
+                    await session.commit()
+                    raise HTTPException(
+                        status_code=400,
+                        detail="This registration code has already been used.",
+                    )
+
             sub_status = "inactive"
             plan_tier = "free"
             period_end = None
 
-            if invite:
-                # Mark invite as used
-                invite.used_by_user_id = user.id
-                invite.used_at = datetime.now(timezone.utc)
+            if invite and invite.free_trial_days:
+                sub_status = "trialing"
+                plan_tier = invite.plan_tier
+                period_end = datetime.now(timezone.utc) + timedelta(days=invite.free_trial_days)
 
-                if invite.free_trial_days:
-                    sub_status = "trialing"
-                    plan_tier = invite.plan_tier
-                    period_end = datetime.now(timezone.utc) + timedelta(days=invite.free_trial_days)
-
-                    # Update user's plan_tier too
-                    from app.models.user import User as UserModel
-                    user_result = await session.execute(
-                        select(UserModel).where(UserModel.id == user.id)
-                    )
-                    db_user = user_result.scalar_one_or_none()
-                    if db_user:
-                        db_user.plan_tier = plan_tier
+                user_result = await session.execute(
+                    select(User).where(User.id == user.id)
+                )
+                db_user = user_result.scalar_one_or_none()
+                if db_user:
+                    db_user.plan_tier = plan_tier
 
             subscription = Subscription(
                 user_id=user.id,
