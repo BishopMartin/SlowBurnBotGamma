@@ -1,6 +1,6 @@
 # Code Review Issues — Round 2
 
-Items remaining after the first round of fixes (see `code-review-issues.md` for the original list). Critical and High items in the first review have all shipped; what's left is mostly hardening, cleanup, and gaps that need separate workstreams.
+Items remaining after the first round of fixes (see `plan_code-review-issues.md` for the original list). Critical and High items in the first review have all shipped; what's left is mostly hardening, cleanup, and gaps that need separate workstreams.
 
 ## High
 
@@ -50,5 +50,5 @@ Items remaining after the first round of fixes (see `code-review-issues.md` for 
 
 ## Notes
 
-- All four Critical items and most High items from `code-review-issues.md` are resolved (notification secrets, trial entitlement, plan-tier consistency, Chrome-kill indent, invite-code race, heartbeats Alembic, admin Stripe timestamps, follow-target vocabulary, account settings save guard, JWT refresh wording cleanup, webhook idempotency + `invoice.payment_succeeded`, proxy header allowlists, INI plaintext creds → keyring).
+- All four Critical items and most High items from `plan_code-review-issues.md` are resolved (notification secrets, trial entitlement, plan-tier consistency, Chrome-kill indent, invite-code race, heartbeats Alembic, admin Stripe timestamps, follow-target vocabulary, account settings save guard, JWT refresh wording cleanup, webhook idempotency + `invoice.payment_succeeded`, proxy header allowlists, INI plaintext creds → keyring).
 - Items above are primarily *hardening* and *operational maturity* rather than correctness bugs in the live paths.

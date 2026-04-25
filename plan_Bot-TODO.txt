@@ -1,0 +1,14 @@
+client changes
+- Add notification sent info to the client output
+- add linux executable
+- add setting for headless mode? no browser windows showing..
+
+Address issues in plan_code-review-issues-2.md 
+
+Create seperate Linux executable
+- assume headless?
+- CLI tool?
+
+
+
+
