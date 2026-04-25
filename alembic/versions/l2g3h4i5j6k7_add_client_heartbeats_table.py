@@ -23,7 +23,6 @@ def upgrade() -> None:
             postgresql.UUID(as_uuid=True),
             sa.ForeignKey("users.id", ondelete="CASCADE"),
             nullable=False,
-            index=True,
         ),
         sa.Column("client_id", sa.Integer(), nullable=False),
         sa.Column("system_type", sa.String(50), nullable=False, server_default=""),
@@ -45,6 +44,12 @@ def upgrade() -> None:
         sa.UniqueConstraint(
             "user_id", "client_id", name="uq_client_heartbeat_user_client"
         ),
+        if_not_exists=True,
+    )
+    op.create_index(
+        "ix_client_heartbeats_user_id",
+        "client_heartbeats",
+        ["user_id"],
         if_not_exists=True,
     )
 
