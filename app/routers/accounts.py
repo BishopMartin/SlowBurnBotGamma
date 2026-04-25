@@ -75,23 +75,25 @@ async def get_client_status(
     session: AsyncSession = Depends(get_async_session),
 ):
     """Return heartbeat rows for all clients belonging to this user."""
-    from datetime import datetime, timezone
+    cutoff = func.now() - timedelta(minutes=2)
     result = await session.execute(
-        select(ClientHeartbeat)
+        select(
+            ClientHeartbeat,
+            (ClientHeartbeat.last_heartbeat >= cutoff).label("connected"),
+        )
         .where(ClientHeartbeat.user_id == user.id)
         .order_by(ClientHeartbeat.client_id)
     )
-    now = datetime.now(timezone.utc)
-    rows = result.scalars().all()
+    rows = result.all()
     return [
         {
-            "client_id": r.client_id,
-            "system_type": r.system_type,
-            "ip_address": r.ip_address,
-            "status": r.status,
-            "current_account": r.current_account,
-            "last_heartbeat": r.last_heartbeat.isoformat() if r.last_heartbeat else None,
-            "connected": (now - r.last_heartbeat).total_seconds() < 120 if r.last_heartbeat else False,
+            "client_id": r.ClientHeartbeat.client_id,
+            "system_type": r.ClientHeartbeat.system_type,
+            "ip_address": r.ClientHeartbeat.ip_address,
+            "status": r.ClientHeartbeat.status,
+            "current_account": r.ClientHeartbeat.current_account,
+            "last_heartbeat": r.ClientHeartbeat.last_heartbeat.isoformat() if r.ClientHeartbeat.last_heartbeat else None,
+            "connected": bool(r.connected),
         }
         for r in rows
     ]

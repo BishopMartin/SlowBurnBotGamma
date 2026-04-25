@@ -354,6 +354,7 @@ try:
         print("=" * 60)
 
         # Show status for all accounts, trigger active ones if it's time to run
+        _any_account_waiting = False  # Track if any account is in-schedule and waiting
         for acct in all_accounts:
             account_name = acct.get("name", "")
             account_id = acct.get("id", "")
@@ -495,14 +496,15 @@ try:
                 schedule_max = account_schedules.get(account_name, {}).get('max', 0) or 0
                 run_info = f"[{run_count}/{int(schedule_max)}]" if schedule_max > 0 else f"[{run_count}]"
                 print(f"[bot]: {account_name} - [waiting] {run_info} - {minutes_remaining}m until next run")
+                _any_account_waiting = True
 
         print("=" * 60)
 
         # Send heartbeat — determine overall client status
-        if not enabled_accounts:
-            _hb_status, _hb_account = "idle", None
-        else:
+        if _any_account_waiting:
             _hb_status, _hb_account = "delay", None
+        else:
+            _hb_status, _hb_account = "idle", None
         apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, _hb_status, _hb_account)
 
         _delay_label = f"[{current_time.strftime('%I:%M %p')}] delay:"

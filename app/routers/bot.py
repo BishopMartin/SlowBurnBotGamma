@@ -275,6 +275,7 @@ async def post_heartbeat(
     hb.ip_address = body.ip_address
     hb.status = body.status
     hb.current_account = body.current_account
-    hb.last_heartbeat = func.now()
+    from datetime import datetime, timezone
+    hb.last_heartbeat = datetime.now(timezone.utc)
     await session.commit()
     return {"ok": True}

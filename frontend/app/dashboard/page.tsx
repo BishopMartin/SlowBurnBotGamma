@@ -238,6 +238,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      <div className="space-y-2">
       <h2 className="font-semibold text-[#f4f3ee]">Client Status</h2>
 
       <div className="border border-[#3d3d3a]">
@@ -282,7 +283,9 @@ export default function DashboardPage() {
           </table>
         )}
       </div>
+      </div>
 
+      <div className="space-y-2">
       <div className="flex items-center gap-4">
         <h2 className="font-semibold text-[#f4f3ee]">
           Accounts <span className="text-[#9A968B] font-normal">[{String(accounts.length).padStart(2, "0")}/{String(maxAccounts).padStart(2, "0")}]</span>
@@ -464,7 +467,9 @@ export default function DashboardPage() {
         )}
 
       </div>
+      </div>
 
+      <div className="space-y-2">
       <div className="flex items-center gap-4">
         <h2 className="font-semibold text-[#f4f3ee]">Recent Activity</h2>
         <span className="text-[#9A968B]">--</span>
@@ -539,6 +544,7 @@ export default function DashboardPage() {
             </table>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
