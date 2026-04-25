@@ -8,6 +8,7 @@ import { Bracket } from "@/lib/bracket";
 export default function AdminAccountsPage() {
   const [accounts, setAccounts] = useState<AdminAccount[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function load() {
     adminListAccounts().then(setAccounts).catch(() => {});
@@ -20,11 +21,12 @@ export default function AdminAccountsPage() {
   async function handleDelete(account: AdminAccount) {
     if (!confirm(`Delete account "${account.name}" (${account.user_email})? This cannot be undone.`)) return;
     setBusy(account.id);
+    setError(null);
     try {
       await adminDeleteAccount(account.id);
       await load();
-    } catch {
-      // silently fail
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "delete failed");
     } finally {
       setBusy(null);
     }
@@ -38,6 +40,8 @@ export default function AdminAccountsPage() {
           [{String(accounts.length).padStart(2, "0")}]
         </span>
       </h1>
+
+      {error && <p className="text-status-bad text-sm">{error}</p>}
 
       <div className="border border-[#3d3d3a]">
         {accounts.length === 0 ? (

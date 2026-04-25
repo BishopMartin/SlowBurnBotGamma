@@ -34,7 +34,15 @@ class Account(Base):
     )
 
     user: Mapped["User"] = relationship(back_populates="accounts")
-    settings: Mapped["AccountSettings | None"] = relationship(back_populates="account")
-    session_logs: Mapped[list["SessionLog"]] = relationship(back_populates="account")
-    activity_logs: Mapped[list["ActivityLog"]] = relationship(back_populates="account")
-    follow_targets: Mapped[list["FollowTarget"]] = relationship(back_populates="account")
+    settings: Mapped["AccountSettings | None"] = relationship(
+        back_populates="account", cascade="all, delete-orphan", passive_deletes=True
+    )
+    session_logs: Mapped[list["SessionLog"]] = relationship(
+        back_populates="account", cascade="all, delete-orphan", passive_deletes=True
+    )
+    activity_logs: Mapped[list["ActivityLog"]] = relationship(
+        back_populates="account", cascade="all, delete-orphan", passive_deletes=True
+    )
+    follow_targets: Mapped[list["FollowTarget"]] = relationship(
+        back_populates="account", cascade="all, delete-orphan", passive_deletes=True
+    )
