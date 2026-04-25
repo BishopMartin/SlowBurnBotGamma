@@ -45,7 +45,7 @@ def upgrade() -> None:
         sa.UniqueConstraint(
             "user_id", "client_id", name="uq_client_heartbeat_user_client"
         ),
-        checkfirst=True,
+        if_not_exists=True,
     )
 
 
