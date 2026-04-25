@@ -64,12 +64,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-4">
             <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#9A968B] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
             <span className="text-[#E5C07B]">{user.email}</span>
-            <Link href="/dashboard/plan" className={`group transition-colors ${pathname.startsWith("/dashboard/plan") ? "text-[#d97757]" : ""}`}>
-              <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">plan</Bracket>
-            </Link>
-            <button onClick={handleLogout} className="group transition-colors">
-              <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">sign out</Bracket>
-            </button>
+            <div className="flex gap-1">
+              <Link href="/dashboard/plan" className={`group transition-colors ${pathname.startsWith("/dashboard/plan") ? "text-[#d97757]" : ""}`}>
+                <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">plan</Bracket>
+              </Link>
+              <button onClick={handleLogout} className="group transition-colors">
+                <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">sign out</Bracket>
+              </button>
+            </div>
           </div>
         </header>
         <main className="px-6 py-6">{children}</main>
