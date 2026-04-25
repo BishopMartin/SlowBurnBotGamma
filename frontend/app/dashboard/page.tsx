@@ -292,12 +292,12 @@ export default function DashboardPage() {
       </div>
 
       <div className="space-y-2">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <h2 className="font-semibold text-[#f4f3ee]">
           Accounts <span className="text-[#9A968B] font-normal">[{String(accounts.length).padStart(2, "0")}/{String(maxAccounts).padStart(2, "0")}]</span>
         </h2>
         <span className="text-[#9A968B]">--</span>
-        <div className="flex items-center gap-2 text-sm">
+        <div className="basis-full sm:basis-auto flex flex-wrap items-center gap-2 text-sm">
           {tabs.map((t) => (
             <button
               key={t.key}
