@@ -77,8 +77,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
         <main className="px-3 sm:px-6 py-6 space-y-4">
-          <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm border-b border-[#3d3d3a] pb-3">
-            <span className="text-[#9A968B]">admin:</span>
+          <nav className="flex flex-wrap gap-1 text-sm border-b border-[#3d3d3a] pb-3 items-center">
+            <span className="text-[#9A968B] mr-2">admin:</span>
             {navItems.map((item) => {
               const active =
                 item.href === "/admin"
