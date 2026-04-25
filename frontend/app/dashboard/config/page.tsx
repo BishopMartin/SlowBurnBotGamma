@@ -174,7 +174,7 @@ export default function ConfigPage() {
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">notifications</div>
 
-        <div className="px-4 py-3 text-sm grid gap-y-3" style={{ gridTemplateColumns: "auto auto auto auto 1fr" }}>
+        <div className="px-4 py-3 text-sm flex flex-col gap-y-3 sm:grid sm:gap-y-3 sm:[grid-template-columns:auto_auto_auto_auto_1fr]">
           <span className="inline-flex items-center gap-1 pr-5">
             <button
               type="button"
@@ -228,7 +228,7 @@ export default function ConfigPage() {
             <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
 
-          <span />
+          <span className="hidden sm:block" />
 
           <span className="inline-flex items-center gap-1 pr-5">
             <button
@@ -283,7 +283,7 @@ export default function ConfigPage() {
             <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
 
-          <span />
+          <span className="hidden sm:block" />
         </div>
       </div>
 
