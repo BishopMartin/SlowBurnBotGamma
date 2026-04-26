@@ -120,7 +120,6 @@ async def create_desktop_build(
         activation_token_expires_at=now
         + timedelta(hours=settings.desktop_activation_token_ttl_hours),
         download_expires_at=now + timedelta(hours=settings.desktop_download_expires_hours),
-        max_downloads=settings.desktop_max_downloads,
     )
     session.add(build)
     await session.commit()
@@ -195,11 +194,6 @@ async def download_desktop_build(
             status_code=status.HTTP_410_GONE,
             detail="Download link has expired.",
         )
-    if build.download_count >= build.max_downloads:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Download limit reached.",
-        )
     if not build.github_run_id or not build.artifact_name:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -210,7 +204,6 @@ async def download_desktop_build(
         build.github_run_id, build.artifact_name
     )
 
-    build.download_count += 1
     if not build.artifact_sha256:
         build.artifact_sha256 = sha256
         build.file_size_bytes = len(exe_bytes)

@@ -208,13 +208,12 @@ export default function ClientPage() {
                   <th className="px-4 py-2 font-normal">client</th>
                   <th className="px-4 py-2 font-normal">status</th>
                   <th className="px-4 py-2 font-normal">config</th>
-                  <th className="px-4 py-2 font-normal">downloads</th>
                   <th className="px-4 py-2 font-normal"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#3d3d3a]">
                 {builds.map((build) => {
-                  const canDownload = build.status === "ready" && !isExpired(build) && build.download_count < build.max_downloads;
+                  const canDownload = build.status === "ready" && !isExpired(build);
                   const expired = build.status === "ready" && isExpired(build);
                   const cfg = build.build_options as DesktopBuildConfig;
                   return (
@@ -228,11 +227,6 @@ export default function ClientPage() {
                         <span className={statusColor(build.status)}>{build.status}</span>
                       </td>
                       <td className="px-4 py-3 text-[#9A968B] text-xs">{configSummary(cfg)}</td>
-                      <td className="px-4 py-3 text-[#9A968B] text-sm">
-                        {build.status === "ready" ? (
-                          expired ? <span className="text-status-bad">expired</span> : <span>{build.download_count}/{build.max_downloads}</span>
-                        ) : <span>----</span>}
-                      </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex gap-2 justify-end items-center">
                           {canDownload && (
