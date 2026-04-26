@@ -95,13 +95,11 @@ export default function AccountLogPage() {
   return (
     <div className="space-y-4 font-mono">
       <div className="flex items-center gap-2 flex-wrap text-sm">
-        <Link href="/dashboard/accounts" className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">← accounts</Link>
-        <span className="text-[#3d3d3a]">/</span>
-        <Link href={`/dashboard/accounts/${id}`} className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">settings</Link>
-        <span className="text-[#3d3d3a]">/</span>
+        <Link href="/dashboard/accounts" className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">accounts</Link>
+        <span className="text-[#3d3d3a]">-</span>
+        <Link href="/dashboard/accounts?tab=activity" className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">activity</Link>
+        <span className="text-[#3d3d3a]">-</span>
         <span className="text-[#f4f3ee]">{account.name}</span>
-        <span className="text-[#3d3d3a]">/</span>
-        <span className="text-[#9A968B]">log</span>
         <span className="text-[#9A968B] ml-auto">[{total.toLocaleString()} entries]</span>
       </div>
 
