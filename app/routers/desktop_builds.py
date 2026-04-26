@@ -96,9 +96,9 @@ async def create_desktop_build(
     _: Subscription = Depends(require_active_subscription),
 ):
     """Configure and request a new per-customer Windows EXE build."""
-    # Resolve api_url: use client-supplied value or fall back to the server's own URL
+    # Resolve api_url: use client-supplied value or fall back to the server's PUBLIC_API_URL
     config = body.config
-    api_url = config.api_url.rstrip("/") if config.api_url else ""
+    api_url = (config.api_url or settings.public_api_url).rstrip("/")
 
     # Allocate next client_id for this user
     max_cid = await session.scalar(

@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     # CORS (set once Next.js is deployed)
     cors_origins: list[str] = []
 
+    # Public-facing API base URL (used as fallback when a desktop build config
+    # omits api_url — baked into the EXE so it knows where to call home)
+    public_api_url: str = ""
+
     # GitHub Actions — desktop build dispatch
     github_token: str = ""
     github_repo: str = ""            # "owner/repo"
