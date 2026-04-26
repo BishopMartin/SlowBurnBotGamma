@@ -311,10 +311,12 @@ export default function ClientPage() {
             <BracketInput label="user data dir" value={config.chrome_user_data_dir_base} onChange={(v) => setField("chrome_user_data_dir_base", v)} width="16ch" placeholder="\PortableChrome\" />
           </div>
 
-          {/* Headless + detach */}
+          {/* Headless + detach + close on session end + close on exit */}
           <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
             <BracketCheckbox label="headless" checked={config.headless} onChange={(v) => setField("headless", v)} />
             <BracketCheckbox label="detach" checked={config.detach} onChange={(v) => setField("detach", v)} />
+            <BracketCheckbox label="close on session end" checked={config.close_browser_session} onChange={(v) => setField("close_browser_session", v)} />
+            <BracketCheckbox label="close on exit" checked={config.close_browser_exit} onChange={(v) => setField("close_browser_exit", v)} />
           </div>
 
           {/* Idle delay + debug */}
