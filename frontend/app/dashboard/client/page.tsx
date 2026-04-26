@@ -217,9 +217,8 @@ export default function ClientPage() {
                         {new Date(build.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </td>
                       <td className="px-4 py-3 text-[#f4f3ee]">#{build.client_id}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <span className={statusColor(build.status)}>{build.status}</span>
-                        {build.failure_reason && <div className="text-[#9A968B] text-xs">{build.failure_reason}</div>}
                       </td>
                       <td className="px-4 py-3 text-[#9A968B] text-xs">{configSummary(cfg)}</td>
                       <td className="px-4 py-3 text-[#9A968B] text-sm">
