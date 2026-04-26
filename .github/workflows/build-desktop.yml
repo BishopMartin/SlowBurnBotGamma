@@ -5,7 +5,8 @@
 #
 # The backend PAT (GITHUB_TOKEN in Railway) is never exposed here.
 
-name: build-${{ inputs.build_id }}
+name: build-desktop
+run-name: build-${{ inputs.build_id }}
 
 on:
   workflow_dispatch:
