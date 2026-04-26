@@ -30,7 +30,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: "/dashboard", label: "overview" },
     { href: "/dashboard/accounts", label: "accounts" },
     { href: "/dashboard/config", label: "config" },
-    { href: "/dashboard/desktop", label: "client" },
+    { href: "/dashboard/client", label: "client" },
     ...(user.is_superuser ? [{ href: "/admin", label: "admin" }] : []),
   ];
 
