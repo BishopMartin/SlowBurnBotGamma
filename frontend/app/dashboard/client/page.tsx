@@ -12,7 +12,6 @@ import {
   DesktopBuildWithToken,
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
-import { NumberInput } from "@/lib/number-input";
 
 const DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36";
 
@@ -321,20 +320,8 @@ export default function ClientPage() {
             <BracketCheckbox label="close on exit" checked={config.close_browser_exit} onChange={(v) => setField("close_browser_exit", v)} />
           </div>
 
-          {/* Idle delay + debug */}
-          <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
-            <span className="inline-flex items-center gap-0 pr-5">
-              <span className="text-[#9A968B]">idle delay (min): </span>
-              <span className="text-[#f4f3ee]">[</span>
-              {" "}
-              <NumberInput value={config.bot_idle_delay} onChange={(v) => setField("bot_idle_delay", v)} max={99} maxLength={2} />
-              {" "}
-              <span className="text-[#f4f3ee]">]</span>
-            </span>
-            <BracketCheckbox label="debug" checked={config.bot_debug} onChange={(v) => setField("bot_debug", v)} />
-          </div>
 
-          {submitError && <div className="text-status-bad">{submitError}</div>}
+{submitError && <div className="text-status-bad">{submitError}</div>}
 
           <div className="flex items-center gap-3 pt-1">
             <button
