@@ -459,6 +459,7 @@ export interface FollowTarget {
 
 // Desktop builds
 export interface DesktopBuildConfig {
+  client_name: string;
   system_type: "windows";
   chrome_path: string;
   chrome_version: string;

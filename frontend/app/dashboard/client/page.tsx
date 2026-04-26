@@ -18,6 +18,7 @@ import { BracketCheckbox } from "@/lib/bracket-checkbox";
 const DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36";
 
 const DEFAULT_CONFIG: DesktopBuildConfig = {
+  client_name: "",
   system_type: "windows",
   chrome_path: "\\PortableChrome\\chrome.exe",
   chrome_version: "143",
@@ -211,6 +212,7 @@ export default function ClientPage() {
                 <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
                   <th className="px-4 py-2 font-normal">requested</th>
                   <th className="px-4 py-2 font-normal">client</th>
+                  <th className="px-4 py-2 font-normal">name</th>
                   <th className="px-4 py-2 font-normal">status</th>
                   <th className="px-4 py-2 font-normal">browser</th>
                   <th className="px-4 py-2 font-normal">version</th>
@@ -231,6 +233,7 @@ export default function ClientPage() {
                           {new Date(build.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </td>
                         <td className="px-4 py-3 text-[#f4f3ee]">#{build.client_id}</td>
+                        <td className="px-4 py-3 text-[#9A968B] text-xs whitespace-nowrap">{cfg.client_name || "—"}</td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className={statusColor(build.status)}>{build.status}</span>
                         </td>
@@ -239,7 +242,7 @@ export default function ClientPage() {
                         <td className="px-4 py-3 text-right">
                           <div className="flex gap-2 justify-end items-center">
                             <button onClick={() => toggleSettings(build.id)} className="group cursor-pointer transition-colors text-sm">
-                              <Bracket className={showSettings ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>settings</Bracket>
+                              <Bracket className={showSettings ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>view</Bracket>
                             </button>
                             {canDownload && (
                               <button onClick={() => handleDownload(build.id)} disabled={downloading === build.id} className="group cursor-pointer transition-colors text-sm disabled:opacity-40">
@@ -264,7 +267,7 @@ export default function ClientPage() {
                       </tr>
                       {showSettings && (
                         <tr key={`${build.id}-settings`} className="border-t border-[#3d3d3a] bg-[#1a1918]">
-                          <td colSpan={6} className="px-4 py-3 text-xs text-[#9A968B]">
+                          <td colSpan={7} className="px-4 py-3 text-xs text-[#9A968B]">
                             <div className="flex flex-wrap gap-x-6 gap-y-1">
                               <span><span className="text-[#3d3d3a]">chrome path:</span> <span className="text-[#f4f3ee]">{cfg.chrome_path || "—"}</span></span>
                               <span><span className="text-[#3d3d3a]">user data dir:</span> <span className="text-[#f4f3ee]">{cfg.chrome_user_data_dir_base || "—"}</span></span>
@@ -289,11 +292,14 @@ export default function ClientPage() {
       {/* Generate new client */}
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918]">
-          <span className="text-[#f4f3ee]">
-            generate new client
-            <span className="text-[#9A968B] ml-2">
-              -- client id: <span className="text-[#f4f3ee]">[</span><span className="text-[#E5C07B]">{String(nextClientId).padStart(2, "0")}</span><span className="text-[#f4f3ee]">]</span>
+          <span className="flex items-center gap-x-4 flex-wrap gap-y-1">
+            <span className="text-[#f4f3ee]">
+              generate new client
+              <span className="text-[#9A968B] ml-2">
+                -- client id: <span className="text-[#f4f3ee]">[</span><span className="text-[#E5C07B]">{String(nextClientId).padStart(2, "0")}</span><span className="text-[#f4f3ee]">]</span>
+              </span>
             </span>
+            <BracketInput label="client name" value={config.client_name} onChange={(v) => setField("client_name", v.slice(0, 15))} width="15ch" placeholder="my laptop" />
           </span>
         </div>
 

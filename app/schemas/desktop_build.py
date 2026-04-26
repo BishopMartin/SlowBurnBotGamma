@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, field_validator
 class DesktopBuildConfig(BaseModel):
     """Customer-configurable settings baked into the EXE — no secrets."""
 
+    client_name: str = Field(default="", max_length=15)
     system_type: Literal["windows"] = "windows"
     chrome_path: str = Field(..., min_length=1, max_length=500)
     chrome_version: str = Field(default="", max_length=20)
