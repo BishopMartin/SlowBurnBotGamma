@@ -220,75 +220,6 @@ export default function ClientPage() {
         </div>
       )}
 
-      {/* Generate new client */}
-      <div className={sectionCls}>
-        <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918] flex items-center justify-between">
-          <span className="text-[#f4f3ee]">generate new client</span>
-          <button onClick={() => setShowWizard((v) => !v)} className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-sm">
-            <Bracket>{showWizard ? "close" : "configure"}</Bracket>
-          </button>
-        </div>
-
-        {showWizard && (
-          <div className="px-4 py-3 flex flex-col gap-y-3 text-sm">
-
-            {/* Client ID (read-only) */}
-            <div className="flex items-center gap-0">
-              <span className="text-[#9A968B]">client id: </span>
-              <span className="text-[#f4f3ee]">[</span>
-              <span className="text-[#E5C07B] px-0 w-8 text-center">{String(nextClientId).padStart(2, "0")}</span>
-              <span className="text-[#f4f3ee]">]</span>
-            </div>
-
-            {/* Version + chrome path + user data dir */}
-            <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
-              <BracketInput label="portable chrome version" value={config.chrome_version} onChange={(v) => setField("chrome_version", v)} width="5ch" placeholder="143" />
-              <BracketInput label="chrome path" value={config.chrome_path} onChange={(v) => setField("chrome_path", v)} width="26ch" placeholder="\PortableChrome\chrome.exe" />
-              <BracketInput label="user data dir" value={config.chrome_user_data_dir_base} onChange={(v) => setField("chrome_user_data_dir_base", v)} width="16ch" placeholder="\PortableChrome\" />
-            </div>
-
-            {/* User agent */}
-            <div className="flex items-center flex-wrap">
-              <BracketInput label="user agent" value={config.system_user_agent} onChange={(v) => setField("system_user_agent", v)} width="52ch" />
-            </div>
-
-            {/* Headless + detach + close on session end + close on exit */}
-            <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
-              <BracketCheckbox label="headless" checked={config.headless} onChange={(v) => setField("headless", v)} />
-              <BracketCheckbox label="detach" checked={config.detach} onChange={(v) => setField("detach", v)} />
-              <BracketCheckbox label="close on session end" checked={config.close_browser_session} onChange={(v) => setField("close_browser_session", v)} />
-              <BracketCheckbox label="close on exit" checked={config.close_browser_exit} onChange={(v) => setField("close_browser_exit", v)} />
-            </div>
-
-            {/* Idle delay + debug */}
-            <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
-              <span className="inline-flex items-center gap-0 pr-5">
-                <span className="text-[#9A968B]">idle delay (min): </span>
-                <span className="text-[#f4f3ee]">[</span>
-                <NumberInput value={config.bot_idle_delay} onChange={(v) => setField("bot_idle_delay", v)} max={120} maxLength={3} />
-                <span className="text-[#f4f3ee]">]</span>
-              </span>
-              <BracketCheckbox label="debug" checked={config.bot_debug} onChange={(v) => setField("bot_debug", v)} />
-            </div>
-
-            {submitError && <div className="text-status-bad">{submitError}</div>}
-
-            <div className="flex items-center gap-3 pt-1">
-              <button
-                onClick={handleSubmit}
-                disabled={submitting || !config.chrome_path.trim()}
-                className="group disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
-                  {submitting ? "requesting…" : "request build"}
-                </Bracket>
-              </button>
-              <span className="text-[#9A968B] text-xs">Build takes ~5–10 min.</span>
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Build history */}
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918]">
@@ -353,6 +284,77 @@ export default function ClientPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+      </div>
+
+      {/* Generate new client */}
+      <div className={sectionCls}>
+        <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918] flex items-center justify-between">
+          <span className="text-[#f4f3ee]">
+            generate new client
+            {!showWizard && (
+              <span className="text-[#9A968B] ml-2">
+                -- client id: <span className="text-[#f4f3ee]">[</span><span className="text-[#E5C07B]">{String(nextClientId).padStart(2, "0")}</span><span className="text-[#f4f3ee]">]</span>
+              </span>
+            )}
+          </span>
+          <button onClick={() => setShowWizard((v) => !v)} className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-sm">
+            <Bracket>{showWizard ? "close" : "configure"}</Bracket>
+          </button>
+        </div>
+
+        {showWizard && (
+          <div className="px-4 py-3 flex flex-col gap-y-3 text-sm">
+
+            {/* Client ID in header row */}
+            <div className="flex items-center gap-0 text-[#9A968B]">
+              client id: <span className="text-[#f4f3ee] ml-1">[</span><span className="text-[#E5C07B] w-8 text-center">{String(nextClientId).padStart(2, "0")}</span><span className="text-[#f4f3ee]">]</span>
+            </div>
+
+            {/* Portable chrome version + user agent */}
+            <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
+              <BracketInput label="portable chrome version" value={config.chrome_version} onChange={(v) => setField("chrome_version", v)} width="5ch" placeholder="143" />
+              <BracketInput label="user agent" value={config.system_user_agent} onChange={(v) => setField("system_user_agent", v)} width="52ch" />
+            </div>
+
+            {/* Chrome path + user data dir */}
+            <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
+              <BracketInput label="chrome path" value={config.chrome_path} onChange={(v) => setField("chrome_path", v)} width="26ch" placeholder="\PortableChrome\chrome.exe" />
+              <BracketInput label="user data dir" value={config.chrome_user_data_dir_base} onChange={(v) => setField("chrome_user_data_dir_base", v)} width="16ch" placeholder="\PortableChrome\" />
+            </div>
+
+            {/* Headless + detach */}
+            <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
+              <BracketCheckbox label="headless" checked={config.headless} onChange={(v) => setField("headless", v)} />
+              <BracketCheckbox label="detach" checked={config.detach} onChange={(v) => setField("detach", v)} />
+            </div>
+
+            {/* Idle delay + debug */}
+            <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
+              <span className="inline-flex items-center gap-0 pr-5">
+                <span className="text-[#9A968B]">idle delay (min): </span>
+                <span className="text-[#f4f3ee]">[</span>
+                <NumberInput value={config.bot_idle_delay} onChange={(v) => setField("bot_idle_delay", v)} max={120} maxLength={3} />
+                <span className="text-[#f4f3ee]">]</span>
+              </span>
+              <BracketCheckbox label="debug" checked={config.bot_debug} onChange={(v) => setField("bot_debug", v)} />
+            </div>
+
+            {submitError && <div className="text-status-bad">{submitError}</div>}
+
+            <div className="flex items-center gap-3 pt-1">
+              <button
+                onClick={handleSubmit}
+                disabled={submitting || !config.chrome_path.trim()}
+                className="group disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
+                  {submitting ? "requesting…" : "request build"}
+                </Bracket>
+              </button>
+              <span className="text-[#9A968B] text-xs">Build takes ~5–10 min.</span>
+            </div>
           </div>
         )}
       </div>
