@@ -145,11 +145,12 @@ export default function AccountDetailPage() {
     <div className="space-y-6 font-mono">
 
       {/* Header */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <Link href="/dashboard/accounts" className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">
-          ← accounts
-        </Link>
-        <span className="text-[#f4f3ee] font-semibold">{account.name}</span>
+      <div className="flex items-center gap-2 flex-wrap text-sm">
+        <Link href="/dashboard/accounts" className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">← accounts</Link>
+        <span className="text-[#3d3d3a]">/</span>
+        <span className="text-[#9A968B]">settings</span>
+        <span className="text-[#3d3d3a]">/</span>
+        <span className="text-[#f4f3ee]">{account.name}</span>
       </div>
 
       <form onSubmit={handleSaveSettings} className="space-y-4">
