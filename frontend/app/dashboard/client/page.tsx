@@ -11,7 +11,6 @@ import {
   DesktopBuildConfig,
   DesktopBuildWithToken,
 } from "@/lib/api";
-import { Bracket } from "@/lib/bracket";
 import { BracketInput } from "@/lib/bracket-input";
 import { BracketCheckbox } from "@/lib/bracket-checkbox";
 
@@ -179,11 +178,11 @@ export default function ClientPage() {
           <div className="text-[#9A968B] text-sm">Activation token (shown once — copy it now):</div>
           <div className="flex items-center gap-3 flex-wrap">
             <code className="text-[#E5C07B] break-all text-xs">{justCreated.activation_token}</code>
-            <button onClick={() => copyToken(justCreated.activation_token)} className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-xs">
-              <Bracket>{copied ? "copied!" : "copy"}</Bracket>
+            <button onClick={() => copyToken(justCreated.activation_token)} className="cursor-pointer text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-xs">
+              [{copied ? "copied!" : "copy"}]
             </button>
-            <button onClick={() => setJustCreated(null)} className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-xs ml-auto">
-              <Bracket>dismiss</Bracket>
+            <button onClick={() => setJustCreated(null)} className="cursor-pointer text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-xs ml-auto">
+              [dismiss]
             </button>
           </div>
         </div>
@@ -237,19 +236,17 @@ export default function ClientPage() {
                         <div className="flex gap-2 justify-end items-center">
                           {canDownload && (
                             <button onClick={() => handleDownload(build.id)} disabled={downloading === build.id} className="cursor-pointer text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-sm disabled:opacity-40">
-                              <Bracket>{downloading === build.id ? "…" : "download"}</Bracket>
+                              [{downloading === build.id ? "…" : "download"}]
                             </button>
                           )}
                           {build.status !== "revoked" && build.status !== "failed" && (
                             <button
                               onClick={() => handleRevoke(build.id)}
                               disabled={revoking === build.id}
-                              className="cursor-pointer transition-colors text-sm disabled:opacity-40"
+                              className={`cursor-pointer transition-colors text-sm disabled:opacity-40 ${confirmRevoke === build.id ? "text-status-bad hover:text-status-bad-hover" : "text-[#9A968B] hover:text-status-bad"}`}
                               onBlur={() => setConfirmRevoke(null)}
                             >
-                              <Bracket className={confirmRevoke === build.id ? "text-status-bad" : "text-[#9A968B] hover:text-status-bad"}>
-                                {revoking === build.id ? "…" : confirmRevoke === build.id ? "confirm?" : "revoke"}
-                              </Bracket>
+                              [{revoking === build.id ? "…" : confirmRevoke === build.id ? "confirm?" : "revoke"}]
                             </button>
                           )}
                         </div>
@@ -296,11 +293,9 @@ export default function ClientPage() {
         <button
           onClick={handleSubmit}
           disabled={submitting || !config.chrome_path.trim()}
-          className="group disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="cursor-pointer text-[#d97757] hover:text-[#f4f3ee] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
-            {submitting ? "requesting…" : "request build"}
-          </Bracket>
+          [{submitting ? "requesting…" : "request build"}]
         </button>
         <span className="text-[#9A968B] text-xs">Build takes ~5–10 min.</span>
         {submitError && <span className="text-status-bad">{submitError}</span>}
