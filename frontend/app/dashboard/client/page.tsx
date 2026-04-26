@@ -59,6 +59,7 @@ function BracketInput({ label, value, onChange, width = "20ch", placeholder = "-
     <span className="inline-flex items-center gap-0 pr-5">
       <span className="text-[#9A968B]">{label}: </span>
       <span className="text-[#f4f3ee]">[</span>
+      {" "}
       <input
         type="text"
         value={value}
@@ -67,6 +68,7 @@ function BracketInput({ label, value, onChange, width = "20ch", placeholder = "-
         style={{ width }}
         className={INPUT_CLS}
       />
+      {" "}
       <span className="text-[#f4f3ee]">]</span>
     </span>
   );
@@ -324,7 +326,9 @@ export default function ClientPage() {
             <span className="inline-flex items-center gap-0 pr-5">
               <span className="text-[#9A968B]">idle delay (min): </span>
               <span className="text-[#f4f3ee]">[</span>
-              <NumberInput value={config.bot_idle_delay} onChange={(v) => setField("bot_idle_delay", v)} max={120} maxLength={3} />
+              {" "}
+              <NumberInput value={config.bot_idle_delay} onChange={(v) => setField("bot_idle_delay", v)} max={99} maxLength={2} />
+              {" "}
               <span className="text-[#f4f3ee]">]</span>
             </span>
             <BracketCheckbox label="debug" checked={config.bot_debug} onChange={(v) => setField("bot_debug", v)} />
