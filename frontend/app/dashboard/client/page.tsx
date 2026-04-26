@@ -283,21 +283,21 @@ export default function ClientPage() {
             <BracketCheckbox label="close on exit" checked={config.close_browser_exit} onChange={(v) => setField("close_browser_exit", v)} />
           </div>
 
-          {submitError && <div className="text-status-bad">{submitError}</div>}
-
-          <div className="flex items-center gap-3 pt-1">
-            <button
-              onClick={handleSubmit}
-              disabled={submitting || !config.chrome_path.trim()}
-              className="group disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
-                {submitting ? "requesting…" : "request build"}
-              </Bracket>
-            </button>
-            <span className="text-[#9A968B] text-xs">Build takes ~5–10 min.</span>
-          </div>
         </div>
+      </div>
+
+      <div className="flex items-center gap-3 font-mono text-sm">
+        <button
+          onClick={handleSubmit}
+          disabled={submitting || !config.chrome_path.trim()}
+          className="group disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
+            {submitting ? "requesting…" : "request build"}
+          </Bracket>
+        </button>
+        <span className="text-[#9A968B] text-xs">Build takes ~5–10 min.</span>
+        {submitError && <span className="text-status-bad">{submitError}</span>}
       </div>
 
       {/* Getting started */}

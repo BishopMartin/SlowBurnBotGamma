@@ -387,19 +387,18 @@ export default function AccountsPage() {
           </div>
         )}
 
-        <div className="border-t border-[#3d3d3a]">
-          <form onSubmit={handleAdd} className="flex flex-wrap items-center gap-3 px-4 py-3 font-mono text-sm">
-            <BracketInput label="new account" value={newName} onChange={setNewName} placeholder="----" width="24ch" />
-            <button
-              type="submit"
-              disabled={adding}
-              className="group font-mono disabled:opacity-50 transition-colors"
-            >
-              <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">add</Bracket>
-            </button>
-          </form>
-        </div>
       </div>
+
+      <form onSubmit={handleAdd} className="flex flex-wrap items-center gap-3 font-mono text-sm">
+        <BracketInput label="new account" value={newName} onChange={setNewName} placeholder="----" width="24ch" />
+        <button
+          type="submit"
+          disabled={adding}
+          className="group font-mono disabled:opacity-50 transition-colors"
+        >
+          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">add</Bracket>
+        </button>
+      </form>
 
       {error && <p className="font-mono text-status-bad">{error}</p>}
     </div>
