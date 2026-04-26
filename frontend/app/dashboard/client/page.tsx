@@ -15,7 +15,7 @@ import { Bracket } from "@/lib/bracket";
 import { NumberInput } from "@/lib/number-input";
 import { Dropdown } from "@/lib/dropdown";
 
-const INPUT_CLASS = "bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0";
+const DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36";
 
 const DEFAULT_CONFIG: DesktopBuildConfig = {
   system_type: "windows",
@@ -28,7 +28,7 @@ const DEFAULT_CONFIG: DesktopBuildConfig = {
   close_browser_exit: false,
   bot_idle_delay: 5,
   bot_debug: false,
-  system_user_agent: "",
+  system_user_agent: DEFAULT_USER_AGENT,
   add_arguments: [],
   api_url: "",
 };
@@ -37,6 +37,9 @@ const BOOL_OPTIONS = [
   { value: "false", label: "no" },
   { value: "true", label: "yes" },
 ];
+
+const sectionCls = "border border-[#3d3d3a]";
+const INPUT_CLS = "bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0";
 
 function boolVal(v: boolean): string { return v ? "true" : "false"; }
 function parseBool(v: string): boolean { return v === "true"; }
@@ -56,6 +59,39 @@ function configSummary(cfg: DesktopBuildConfig): string {
   if (cfg.chrome_path.toLowerCase().includes("portable")) parts.push("portable chrome");
   if (cfg.bot_debug) parts.push("debug");
   return parts.length ? parts.join(", ") : "default";
+}
+
+function BracketInput({ label, value, onChange, width = "20ch", placeholder = "----" }: {
+  label: string; value: string; onChange: (v: string) => void; width?: string; placeholder?: string;
+}) {
+  return (
+    <span className="inline-flex items-center gap-0 pr-5">
+      <span className="text-[#9A968B]">{label}: </span>
+      <span className="text-[#f4f3ee]">[</span>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={{ width }}
+        className={INPUT_CLS}
+      />
+      <span className="text-[#f4f3ee]">]</span>
+    </span>
+  );
+}
+
+function BracketDropdown({ label, value, onChange }: {
+  label: string; value: string; onChange: (v: string) => void;
+}) {
+  return (
+    <span className="inline-flex items-center gap-0 pr-5">
+      <span className="text-[#9A968B]">{label}: </span>
+      <span className="text-[#f4f3ee]">[</span>
+      <Dropdown value={value} options={BOOL_OPTIONS} onChange={onChange} />
+      <span className="text-[#f4f3ee]">]</span>
+    </span>
+  );
 }
 
 export default function ClientPage() {
@@ -180,15 +216,12 @@ export default function ClientPage() {
               <Bracket>dismiss</Bracket>
             </button>
           </div>
-          <div className="text-[#9A968B] text-xs">
-            The token is baked into your EXE automatically — you don&apos;t need to enter it manually.
-          </div>
         </div>
       )}
 
       {/* Generate new client */}
-      <div className="border border-[#3d3d3a]">
-        <div className="border-b border-[#3d3d3a] px-4 py-2 bg-[#1a1918] flex items-center justify-between">
+      <div className={sectionCls}>
+        <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918] flex items-center justify-between">
           <span className="text-[#f4f3ee]">generate new client</span>
           <button onClick={() => setShowWizard((v) => !v)} className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-sm">
             <Bracket>{showWizard ? "close" : "configure"}</Bracket>
@@ -196,106 +229,68 @@ export default function ClientPage() {
         </div>
 
         {showWizard && (
-          <div className="px-4 py-4 space-y-4">
-            <div className="grid gap-3">
-              <WizardRow label="chrome path">
-                <input
-                  type="text"
-                  value={config.chrome_path}
-                  onChange={(e) => setField("chrome_path", e.target.value)}
-                  placeholder="\PortableChrome\chrome.exe"
-                  style={{ width: "28ch" }}
-                  className={INPUT_CLASS}
-                />
-              </WizardRow>
+          <div className="px-4 py-3 flex flex-col gap-y-3 text-sm">
 
-              <WizardRow label="user data dir">
-                <input
-                  type="text"
-                  value={config.chrome_user_data_dir_base}
-                  onChange={(e) => setField("chrome_user_data_dir_base", e.target.value)}
-                  placeholder="\PortableChrome\"
-                  style={{ width: "20ch" }}
-                  className={INPUT_CLASS}
-                />
-              </WizardRow>
+            {/* Chrome path + version */}
+            <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
+              <BracketInput label="chrome path" value={config.chrome_path} onChange={(v) => setField("chrome_path", v)} width="26ch" placeholder="\PortableChrome\chrome.exe" />
+              <BracketInput label="version" value={config.chrome_version} onChange={(v) => setField("chrome_version", v)} width="5ch" placeholder="143" />
+            </div>
 
-              <WizardRow label="chrome version">
-                <input
-                  type="text"
-                  value={config.chrome_version}
-                  onChange={(e) => setField("chrome_version", e.target.value)}
-                  placeholder="143"
-                  style={{ width: "6ch" }}
-                  className={INPUT_CLASS}
-                />
-              </WizardRow>
+            {/* User data dir */}
+            <div className="flex items-center flex-wrap">
+              <BracketInput label="user data dir" value={config.chrome_user_data_dir_base} onChange={(v) => setField("chrome_user_data_dir_base", v)} width="20ch" placeholder="\PortableChrome\" />
+            </div>
 
-              <WizardRow label="headless">
-                <Dropdown value={boolVal(config.headless)} options={BOOL_OPTIONS} onChange={(v) => setField("headless", parseBool(v))} />
-              </WizardRow>
+            {/* Headless + detach */}
+            <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
+              <BracketDropdown label="headless" value={boolVal(config.headless)} onChange={(v) => setField("headless", parseBool(v))} />
+              <BracketDropdown label="detach" value={boolVal(config.detach)} onChange={(v) => setField("detach", parseBool(v))} />
+            </div>
 
-              <WizardRow label="detach">
-                <Dropdown value={boolVal(config.detach)} options={BOOL_OPTIONS} onChange={(v) => setField("detach", parseBool(v))} />
-              </WizardRow>
+            {/* Close browser on session end + exit */}
+            <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
+              <BracketDropdown label="close on session end" value={boolVal(config.close_browser_session)} onChange={(v) => setField("close_browser_session", parseBool(v))} />
+              <BracketDropdown label="close on exit" value={boolVal(config.close_browser_exit)} onChange={(v) => setField("close_browser_exit", parseBool(v))} />
+            </div>
 
-              <WizardRow label="close browser on session end">
-                <Dropdown value={boolVal(config.close_browser_session)} options={BOOL_OPTIONS} onChange={(v) => setField("close_browser_session", parseBool(v))} />
-              </WizardRow>
-
-              <WizardRow label="close browser on exit">
-                <Dropdown value={boolVal(config.close_browser_exit)} options={BOOL_OPTIONS} onChange={(v) => setField("close_browser_exit", parseBool(v))} />
-              </WizardRow>
-
-              <WizardRow label="idle delay (min)">
+            {/* Idle delay + debug */}
+            <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
+              <span className="inline-flex items-center gap-0 pr-5">
+                <span className="text-[#9A968B]">idle delay (min): </span>
+                <span className="text-[#f4f3ee]">[</span>
                 <NumberInput value={config.bot_idle_delay} onChange={(v) => setField("bot_idle_delay", v)} max={120} maxLength={3} />
-              </WizardRow>
-
-              <WizardRow label="debug mode">
-                <Dropdown value={boolVal(config.bot_debug)} options={BOOL_OPTIONS} onChange={(v) => setField("bot_debug", parseBool(v))} />
-              </WizardRow>
-
-              <WizardRow label="user agent">
-                <input
-                  type="text"
-                  value={config.system_user_agent}
-                  onChange={(e) => setField("system_user_agent", e.target.value)}
-                  placeholder="----"
-                  style={{ width: "28ch" }}
-                  className={INPUT_CLASS}
-                />
-              </WizardRow>
+                <span className="text-[#f4f3ee]">]</span>
+              </span>
+              <BracketDropdown label="debug" value={boolVal(config.bot_debug)} onChange={(v) => setField("bot_debug", parseBool(v))} />
             </div>
 
-            <div className="border border-[#3d3d3a] px-3 py-2 text-xs text-[#9A968B] space-y-1">
-              <div className="text-[#f4f3ee] mb-1">build summary</div>
-              <div>chrome: <span className="text-[#f4f3ee]">{config.chrome_path || "----"}</span></div>
-              <div>user data: <span className="text-[#f4f3ee]">{config.chrome_user_data_dir_base || "----"}</span></div>
-              <div>version: <span className="text-[#f4f3ee]">{config.chrome_version || "----"}</span></div>
-              <div>headless: <span className="text-[#f4f3ee]">{config.headless ? "yes" : "no"}</span></div>
-              <div>idle delay: <span className="text-[#f4f3ee]">{config.bot_idle_delay} min</span></div>
-              <div className="text-[#9A968B] mt-1">No INI file required. Login credentials are not baked into the EXE.</div>
+            {/* User agent */}
+            <div className="flex items-center flex-wrap">
+              <BracketInput label="user agent" value={config.system_user_agent} onChange={(v) => setField("system_user_agent", v)} width="52ch" />
             </div>
 
-            {submitError && <div className="text-status-bad text-sm">{submitError}</div>}
+            {submitError && <div className="text-status-bad">{submitError}</div>}
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 pt-1">
               <button
                 onClick={handleSubmit}
                 disabled={submitting || !config.chrome_path.trim()}
-                className="text-[#f4f3ee] hover:text-[#d97757] transition-colors disabled:text-[#3d3d3a] disabled:cursor-not-allowed"
+                className="group disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                <Bracket>{submitting ? "requesting…" : "request build"}</Bracket>
+                <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
+                  {submitting ? "requesting…" : "request build"}
+                </Bracket>
               </button>
-              <span className="text-[#9A968B] text-xs">Build takes ~5–10 min. You&apos;ll see the status below.</span>
+              <span className="text-[#9A968B] text-xs">Build takes ~5–10 min.</span>
             </div>
           </div>
         )}
       </div>
 
       {/* Build history */}
-      <div className="border border-[#3d3d3a]">
-        <div className="border-b border-[#3d3d3a] px-4 py-2 bg-[#1a1918]">
+      <div className={sectionCls}>
+        <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918]">
           <span className="text-[#f4f3ee]">builds</span>
         </div>
 
@@ -362,27 +357,16 @@ export default function ClientPage() {
       </div>
 
       {/* Getting started */}
-      <div className="border border-[#3d3d3a]">
-        <div className="border-b border-[#3d3d3a] px-4 py-2 bg-[#1a1918]">
+      <div className={sectionCls}>
+        <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918]">
           <span className="text-[#f4f3ee]">getting started</span>
         </div>
         <div className="px-4 py-4 space-y-2 text-sm text-[#9A968B]">
           <p><span className="text-[#f4f3ee]">1.</span> Download <code className="text-[#E5C07B]">SlowBurnBot.exe</code> when your build is ready.</p>
-          <p><span className="text-[#f4f3ee]">2.</span> Run the EXE on Windows — no <code className="text-[#E5C07B]">burnBot_config.ini</code> required.</p>
-          <p><span className="text-[#f4f3ee]">3.</span> Log in with your dashboard credentials on first launch.</p>
-          <p><span className="text-[#f4f3ee]">4.</span> The EXE contacts the server once to activate, then runs normally.</p>
-          <p className="text-[#3d3d3a] text-xs pt-2">Secrets (passwords, API keys) are never baked into the EXE.</p>
+          <p><span className="text-[#f4f3ee]">2.</span> Run the EXE on Windows and log in with your dashboard credentials.</p>
+          <p><span className="text-[#f4f3ee]">3.</span> The client activates on first launch and runs normally from there.</p>
         </div>
       </div>
-    </div>
-  );
-}
-
-function WizardRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-4 flex-wrap">
-      <span className="text-[#9A968B] w-44 shrink-0 pt-0.5">{label}</span>
-      <div className="flex items-center gap-2 flex-wrap">{children}</div>
     </div>
   );
 }
