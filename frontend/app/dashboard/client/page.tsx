@@ -64,6 +64,8 @@ export default function ClientPage() {
   const [justCreated, setJustCreated] = useState<DesktopBuildWithToken | null>(null);
   const [copied, setCopied] = useState(false);
   const [revoking, setRevoking] = useState<string | null>(null);
+  const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -118,39 +120,44 @@ export default function ClientPage() {
   }
 
   async function handleRevoke(buildId: string) {
-    if (!confirm("Revoke this build? The EXE will no longer be downloadable.")) return;
+    if (confirmRevoke !== buildId) { setConfirmRevoke(buildId); return; }
+    setConfirmRevoke(null);
     setRevoking(buildId);
     try {
       const updated = await revokeDesktopBuild(buildId);
       setBuilds((prev) => prev.map((b) => (b.id === buildId ? updated : b)));
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Revoke failed.");
+      setSubmitError(e instanceof Error ? e.message : "Revoke failed.");
     } finally {
       setRevoking(null);
     }
   }
 
-  function handleDownload(buildId: string) {
+  async function handleDownload(buildId: string) {
+    setDownloading(buildId);
     const token = localStorage.getItem("token");
     const url = getDesktopBuildDownloadUrl(buildId);
-    fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-      .then(async (res) => {
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body?.detail ?? `Download failed: ${res.status}`);
-        }
-        const blob = await res.blob();
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        const build = builds.find((b) => b.id === buildId);
-        a.download = `SlowBurnBot-client${build?.client_id ?? ""}.exe`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(a.href);
-        await load();
-      })
-      .catch((e) => alert(e.message));
+    try {
+      const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.detail ?? `Download failed: ${res.status}`);
+      }
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      const build = builds.find((b) => b.id === buildId);
+      a.download = `SlowBurnBot-client${build?.client_id ?? ""}.exe`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      await load();
+    } catch (e: unknown) {
+      setSubmitError(e instanceof Error ? e.message : "Download failed.");
+    } finally {
+      setDownloading(null);
+    }
   }
 
   function copyToken(token: string) {
@@ -227,15 +234,22 @@ export default function ClientPage() {
                         ) : <span>----</span>}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <div className="flex gap-2 justify-end">
+                        <div className="flex gap-2 justify-end items-center">
                           {canDownload && (
-                            <button onClick={() => handleDownload(build.id)} className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-sm">
-                              <Bracket>download</Bracket>
+                            <button onClick={() => handleDownload(build.id)} disabled={downloading === build.id} className="cursor-pointer text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-sm disabled:opacity-40">
+                              <Bracket>{downloading === build.id ? "…" : "download"}</Bracket>
                             </button>
                           )}
                           {build.status !== "revoked" && build.status !== "failed" && (
-                            <button onClick={() => handleRevoke(build.id)} disabled={revoking === build.id} className="text-[#9A968B] hover:text-status-bad transition-colors text-sm disabled:text-[#3d3d3a]">
-                              <Bracket>{revoking === build.id ? "…" : "revoke"}</Bracket>
+                            <button
+                              onClick={() => handleRevoke(build.id)}
+                              disabled={revoking === build.id}
+                              className="cursor-pointer transition-colors text-sm disabled:opacity-40"
+                              onBlur={() => setConfirmRevoke(null)}
+                            >
+                              <Bracket className={confirmRevoke === build.id ? "text-status-bad" : "text-[#9A968B] hover:text-status-bad"}>
+                                {revoking === build.id ? "…" : confirmRevoke === build.id ? "confirm?" : "revoke"}
+                              </Bracket>
                             </button>
                           )}
                         </div>
