@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getUserConfig, updateUserConfig, getIgnoreHandles, updateIgnoreHandles, UserConfig } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
+import { BracketCheckbox } from "@/lib/bracket-checkbox";
 import { BracketInput } from "@/lib/bracket-input";
 import { Dropdown } from "@/lib/dropdown";
 import { NumberInput } from "@/lib/number-input";
@@ -118,44 +119,9 @@ export default function ConfigPage() {
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">session settings</div>
 
         <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
-          <span className="inline-flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setLikeSuggested(!likeSuggested)}
-              className="group cursor-pointer transition-colors"
-            >
-              <Bracket className={likeSuggested ? "text-status-ok group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
-                {likeSuggested ? "x" : "\u00a0"}
-              </Bracket>
-            </button>
-            <span className="text-[#9A968B]">Like Suggested</span>
-          </span>
-
-          <span className="inline-flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setLikeSponsored(!likeSponsored)}
-              className="group cursor-pointer transition-colors"
-            >
-              <Bracket className={likeSponsored ? "text-status-ok group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
-                {likeSponsored ? "x" : "\u00a0"}
-              </Bracket>
-            </button>
-            <span className="text-[#9A968B]">Like Sponsored</span>
-          </span>
-
-          <span className="inline-flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setSkipLoginCheck(!skipLoginCheck)}
-              className="group cursor-pointer transition-colors"
-            >
-              <Bracket className={skipLoginCheck ? "text-status-ok group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
-                {skipLoginCheck ? "x" : "\u00a0"}
-              </Bracket>
-            </button>
-            <span className="text-[#9A968B]">Skip Login Check</span>
-          </span>
+          <BracketCheckbox label="Like Suggested" checked={likeSuggested} onChange={setLikeSuggested} />
+          <BracketCheckbox label="Like Sponsored" checked={likeSponsored} onChange={setLikeSponsored} />
+          <BracketCheckbox label="Skip Login Check" checked={skipLoginCheck} onChange={setSkipLoginCheck} />
 
           <span className="inline-flex items-center gap-0">
             <span className="text-[#9A968B]">{"login tries: "}</span>
@@ -176,18 +142,7 @@ export default function ConfigPage() {
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">notifications</div>
 
         <div className="px-4 py-3 text-sm flex flex-col gap-y-3 sm:grid sm:gap-y-3 sm:[grid-template-columns:auto_auto_auto_auto_1fr]">
-          <span className="inline-flex items-center gap-1 pr-5">
-            <button
-              type="button"
-              onClick={() => setNoticesSession(!noticesSession)}
-              className="group cursor-pointer transition-colors"
-            >
-              <Bracket className={noticesSession ? "text-status-ok group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
-                {noticesSession ? "x" : "\u00a0"}
-              </Bracket>
-            </button>
-            <span className="text-[#9A968B] whitespace-nowrap">Session Notifications</span>
-          </span>
+          <BracketCheckbox label="Session Notifications" checked={noticesSession} onChange={setNoticesSession} />
 
           <span className="inline-flex items-center gap-0 pr-5">
             <span className="text-[#9A968B]">{"type: "}</span>
@@ -207,18 +162,7 @@ export default function ConfigPage() {
 
           <span className="hidden sm:block" />
 
-          <span className="inline-flex items-center gap-1 pr-5">
-            <button
-              type="button"
-              onClick={() => setNoticesLogin(!noticesLogin)}
-              className="group cursor-pointer transition-colors"
-            >
-              <Bracket className={noticesLogin ? "text-status-ok group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
-                {noticesLogin ? "x" : "\u00a0"}
-              </Bracket>
-            </button>
-            <span className="text-[#9A968B] whitespace-nowrap">Login Issue Notifications</span>
-          </span>
+          <BracketCheckbox label="Login Issue Notifications" checked={noticesLogin} onChange={setNoticesLogin} />
 
           <span className="inline-flex items-center gap-0 pr-5">
             <span className="text-[#9A968B]">{"type: "}</span>
@@ -244,18 +188,7 @@ export default function ConfigPage() {
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">universal ignore</div>
 
         <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
-          <span className="inline-flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setSkipPrivate(!skipPrivate)}
-              className="group cursor-pointer transition-colors"
-            >
-              <Bracket className={skipPrivate ? "text-status-ok group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
-                {skipPrivate ? "x" : "\u00a0"}
-              </Bracket>
-            </button>
-            <span className="text-[#9A968B]">Skip Private Accounts</span>
-          </span>
+          <BracketCheckbox label="Skip Private Accounts" checked={skipPrivate} onChange={setSkipPrivate} />
         </div>
 
         <div className="px-4 py-3 border-t border-[#3d3d3a] text-sm">

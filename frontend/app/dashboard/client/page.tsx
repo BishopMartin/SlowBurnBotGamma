@@ -13,6 +13,7 @@ import {
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
 import { BracketInput } from "@/lib/bracket-input";
+import { BracketCheckbox } from "@/lib/bracket-checkbox";
 
 const DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36";
 
@@ -51,22 +52,6 @@ function configSummary(cfg: DesktopBuildConfig): string {
   return parts.length ? parts.join(", ") : "default";
 }
 
-function BracketCheckbox({ label, checked, onChange }: {
-  label: string; checked: boolean; onChange: (v: boolean) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(!checked)}
-      className="inline-flex items-center gap-1 pr-5 cursor-pointer group"
-    >
-      <span className="text-[#f4f3ee]">[</span>
-      <span className={`font-mono w-3 text-center ${checked ? "text-[#d97757]" : "text-[#3d3d3a]"}`}>{checked ? "x" : " "}</span>
-      <span className="text-[#f4f3ee]">]</span>
-      <span className="text-[#9A968B] group-hover:text-[#f4f3ee] transition-colors">{label}</span>
-    </button>
-  );
-}
 
 export default function ClientPage() {
   const [builds, setBuilds] = useState<DesktopBuild[]>([]);
@@ -286,20 +271,19 @@ export default function ClientPage() {
 
           {/* Chrome path + user data dir */}
           <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
-            <BracketInput label="chrome path" value={config.chrome_path} onChange={(v) => setField("chrome_path", v)} width="26ch" placeholder="\PortableChrome\chrome.exe" />
-            <BracketInput label="user data dir" value={config.chrome_user_data_dir_base} onChange={(v) => setField("chrome_user_data_dir_base", v)} width="16ch" placeholder="\PortableChrome\" />
+            <BracketInput label="chrome path" value={config.chrome_path} onChange={(v) => setField("chrome_path", v)} width="36ch" placeholder="\PortableChrome\chrome.exe" />
+            <BracketInput label="user data dir" value={config.chrome_user_data_dir_base} onChange={(v) => setField("chrome_user_data_dir_base", v)} width="24ch" placeholder="\PortableChrome\" />
           </div>
 
           {/* Headless + detach + close on session end + close on exit */}
-          <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
+          <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
             <BracketCheckbox label="headless" checked={config.headless} onChange={(v) => setField("headless", v)} />
             <BracketCheckbox label="detach" checked={config.detach} onChange={(v) => setField("detach", v)} />
             <BracketCheckbox label="close on session end" checked={config.close_browser_session} onChange={(v) => setField("close_browser_session", v)} />
             <BracketCheckbox label="close on exit" checked={config.close_browser_exit} onChange={(v) => setField("close_browser_exit", v)} />
           </div>
 
-
-{submitError && <div className="text-status-bad">{submitError}</div>}
+          {submitError && <div className="text-status-bad">{submitError}</div>}
 
           <div className="flex items-center gap-3 pt-1">
             <button
