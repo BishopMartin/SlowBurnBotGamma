@@ -15,11 +15,13 @@ import { Bracket } from "@/lib/bracket";
 import { NumberInput } from "@/lib/number-input";
 import { Dropdown } from "@/lib/dropdown";
 
+const INPUT_CLASS = "bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0";
+
 const DEFAULT_CONFIG: DesktopBuildConfig = {
   system_type: "windows",
-  chrome_path: "PortableChrome\\chrome.exe",
-  chrome_version: "",
-  chrome_user_data_dir_base: "PortableChrome",
+  chrome_path: "\\PortableChrome\\chrome.exe",
+  chrome_version: "143",
+  chrome_user_data_dir_base: "\\PortableChrome\\",
   headless: false,
   detach: false,
   close_browser_session: false,
@@ -36,12 +38,8 @@ const BOOL_OPTIONS = [
   { value: "true", label: "yes" },
 ];
 
-function boolVal(v: boolean): string {
-  return v ? "true" : "false";
-}
-function parseBool(v: string): boolean {
-  return v === "true";
-}
+function boolVal(v: boolean): string { return v ? "true" : "false"; }
+function parseBool(v: string): boolean { return v === "true"; }
 
 function statusColor(status: string): string {
   if (status === "ready") return "text-status-ok";
@@ -49,13 +47,8 @@ function statusColor(status: string): string {
   return "text-[#E5C07B]";
 }
 
-function isActive(build: DesktopBuild): boolean {
-  return build.status === "queued" || build.status === "running";
-}
-
-function isExpired(build: DesktopBuild): boolean {
-  return new Date(build.download_expires_at) < new Date();
-}
+function isActive(b: DesktopBuild) { return b.status === "queued" || b.status === "running"; }
+function isExpired(b: DesktopBuild) { return new Date(b.download_expires_at) < new Date(); }
 
 function configSummary(cfg: DesktopBuildConfig): string {
   const parts: string[] = [];
@@ -65,19 +58,17 @@ function configSummary(cfg: DesktopBuildConfig): string {
   return parts.length ? parts.join(", ") : "default";
 }
 
-export default function DesktopPage() {
+export default function ClientPage() {
   const [builds, setBuilds] = useState<DesktopBuild[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [showWizard, setShowWizard] = useState(false);
   const [config, setConfig] = useState<DesktopBuildConfig>(DEFAULT_CONFIG);
-  const [addArgsText, setAddArgsText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [justCreated, setJustCreated] = useState<DesktopBuildWithToken | null>(null);
   const [copied, setCopied] = useState(false);
-
   const [revoking, setRevoking] = useState<string | null>(null);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -94,25 +85,15 @@ export default function DesktopPage() {
     }
   }
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
-  // Poll individual in-flight builds every 10s
   useEffect(() => {
-    const activeBuilds = builds.filter(isActive);
-    if (activeBuilds.length === 0) {
-      if (pollRef.current) clearInterval(pollRef.current);
-      return;
-    }
+    const active = builds.filter(isActive);
+    if (active.length === 0) { if (pollRef.current) clearInterval(pollRef.current); return; }
     if (pollRef.current) clearInterval(pollRef.current);
     pollRef.current = setInterval(async () => {
-      const updated = await Promise.all(
-        activeBuilds.map((b) => getDesktopBuild(b.id).catch(() => b))
-      );
-      setBuilds((prev) =>
-        prev.map((b) => updated.find((u) => u.id === b.id) ?? b)
-      );
+      const updated = await Promise.all(active.map((b) => getDesktopBuild(b.id).catch(() => b)));
+      setBuilds((prev) => prev.map((b) => updated.find((u) => u.id === b.id) ?? b));
     }, 10_000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [builds]);
@@ -125,18 +106,10 @@ export default function DesktopPage() {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const finalConfig: DesktopBuildConfig = {
-        ...config,
-        add_arguments: addArgsText
-          .split("\n")
-          .map((s) => s.trim())
-          .filter(Boolean),
-      };
-      const result = await createDesktopBuild(finalConfig);
+      const result = await createDesktopBuild(config);
       setJustCreated(result);
       setShowWizard(false);
       setConfig(DEFAULT_CONFIG);
-      setAddArgsText("");
       await load();
     } catch (e: unknown) {
       setSubmitError(e instanceof Error ? e.message : "Build request failed.");
@@ -161,8 +134,6 @@ export default function DesktopPage() {
   function handleDownload(buildId: string) {
     const token = localStorage.getItem("token");
     const url = getDesktopBuildDownloadUrl(buildId);
-    // Open in same tab so the auth'd request fires with the fetch interceptor
-    // Instead, use a temp anchor with Authorization via fetch + blob
     fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
       .then(async (res) => {
         if (!res.ok) {
@@ -178,7 +149,6 @@ export default function DesktopPage() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(a.href);
-        // Refresh to update download_count
         await load();
       })
       .catch((e) => alert(e.message));
@@ -193,29 +163,20 @@ export default function DesktopPage() {
 
   return (
     <div className="space-y-6 font-mono">
-      <h1 className="font-semibold text-[#f4f3ee]">Desktop Client</h1>
+      <h1 className="font-semibold text-[#f4f3ee]">Client</h1>
 
-      {/* One-time token display after a successful build request */}
       {justCreated && (
         <div className="border border-[#d97757] px-4 py-4 space-y-2">
           <div className="text-[#f4f3ee]">
             Build requested — <span className="text-status-ok">client {justCreated.client_id}</span> queued.
           </div>
-          <div className="text-[#9A968B] text-sm">
-            Activation token (shown once — copy it now):
-          </div>
+          <div className="text-[#9A968B] text-sm">Activation token (shown once — copy it now):</div>
           <div className="flex items-center gap-3 flex-wrap">
             <code className="text-[#E5C07B] break-all text-xs">{justCreated.activation_token}</code>
-            <button
-              onClick={() => copyToken(justCreated.activation_token)}
-              className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-xs"
-            >
+            <button onClick={() => copyToken(justCreated.activation_token)} className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-xs">
               <Bracket>{copied ? "copied!" : "copy"}</Bracket>
             </button>
-            <button
-              onClick={() => setJustCreated(null)}
-              className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-xs ml-auto"
-            >
+            <button onClick={() => setJustCreated(null)} className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-xs ml-auto">
               <Bracket>dismiss</Bracket>
             </button>
           </div>
@@ -225,14 +186,11 @@ export default function DesktopPage() {
         </div>
       )}
 
-      {/* Build wizard */}
+      {/* Generate new client */}
       <div className="border border-[#3d3d3a]">
         <div className="border-b border-[#3d3d3a] px-4 py-2 bg-[#1a1918] flex items-center justify-between">
-          <span className="text-[#f4f3ee]">new build</span>
-          <button
-            onClick={() => setShowWizard((v) => !v)}
-            className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-sm"
-          >
+          <span className="text-[#f4f3ee]">generate new client</span>
+          <button onClick={() => setShowWizard((v) => !v)} className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-sm">
             <Bracket>{showWizard ? "close" : "configure"}</Bracket>
           </button>
         </div>
@@ -245,8 +203,9 @@ export default function DesktopPage() {
                   type="text"
                   value={config.chrome_path}
                   onChange={(e) => setField("chrome_path", e.target.value)}
-                  placeholder="PortableChrome\chrome.exe"
-                  className="bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] outline-none focus:border-[#d97757] transition-colors w-full max-w-xs placeholder-[#9A968B]"
+                  placeholder="\PortableChrome\chrome.exe"
+                  style={{ width: "28ch" }}
+                  className={INPUT_CLASS}
                 />
               </WizardRow>
 
@@ -255,8 +214,9 @@ export default function DesktopPage() {
                   type="text"
                   value={config.chrome_user_data_dir_base}
                   onChange={(e) => setField("chrome_user_data_dir_base", e.target.value)}
-                  placeholder="PortableChrome"
-                  className="bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] outline-none focus:border-[#d97757] transition-colors w-full max-w-xs placeholder-[#9A968B]"
+                  placeholder="\PortableChrome\"
+                  style={{ width: "20ch" }}
+                  className={INPUT_CLASS}
                 />
               </WizardRow>
 
@@ -265,58 +225,34 @@ export default function DesktopPage() {
                   type="text"
                   value={config.chrome_version}
                   onChange={(e) => setField("chrome_version", e.target.value)}
-                  placeholder="e.g. 143"
-                  className="bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] outline-none focus:border-[#d97757] transition-colors w-24 placeholder-[#9A968B]"
+                  placeholder="143"
+                  style={{ width: "6ch" }}
+                  className={INPUT_CLASS}
                 />
               </WizardRow>
 
               <WizardRow label="headless">
-                <Dropdown
-                  value={boolVal(config.headless)}
-                  options={BOOL_OPTIONS}
-                  onChange={(v) => setField("headless", parseBool(v))}
-                />
+                <Dropdown value={boolVal(config.headless)} options={BOOL_OPTIONS} onChange={(v) => setField("headless", parseBool(v))} />
               </WizardRow>
 
               <WizardRow label="detach">
-                <Dropdown
-                  value={boolVal(config.detach)}
-                  options={BOOL_OPTIONS}
-                  onChange={(v) => setField("detach", parseBool(v))}
-                />
+                <Dropdown value={boolVal(config.detach)} options={BOOL_OPTIONS} onChange={(v) => setField("detach", parseBool(v))} />
               </WizardRow>
 
               <WizardRow label="close browser on session end">
-                <Dropdown
-                  value={boolVal(config.close_browser_session)}
-                  options={BOOL_OPTIONS}
-                  onChange={(v) => setField("close_browser_session", parseBool(v))}
-                />
+                <Dropdown value={boolVal(config.close_browser_session)} options={BOOL_OPTIONS} onChange={(v) => setField("close_browser_session", parseBool(v))} />
               </WizardRow>
 
               <WizardRow label="close browser on exit">
-                <Dropdown
-                  value={boolVal(config.close_browser_exit)}
-                  options={BOOL_OPTIONS}
-                  onChange={(v) => setField("close_browser_exit", parseBool(v))}
-                />
+                <Dropdown value={boolVal(config.close_browser_exit)} options={BOOL_OPTIONS} onChange={(v) => setField("close_browser_exit", parseBool(v))} />
               </WizardRow>
 
               <WizardRow label="idle delay (min)">
-                <NumberInput
-                  value={config.bot_idle_delay}
-                  onChange={(v) => setField("bot_idle_delay", v)}
-                  max={120}
-                  maxLength={3}
-                />
+                <NumberInput value={config.bot_idle_delay} onChange={(v) => setField("bot_idle_delay", v)} max={120} maxLength={3} />
               </WizardRow>
 
               <WizardRow label="debug mode">
-                <Dropdown
-                  value={boolVal(config.bot_debug)}
-                  options={BOOL_OPTIONS}
-                  onChange={(v) => setField("bot_debug", parseBool(v))}
-                />
+                <Dropdown value={boolVal(config.bot_debug)} options={BOOL_OPTIONS} onChange={(v) => setField("bot_debug", parseBool(v))} />
               </WizardRow>
 
               <WizardRow label="user agent">
@@ -324,41 +260,24 @@ export default function DesktopPage() {
                   type="text"
                   value={config.system_user_agent}
                   onChange={(e) => setField("system_user_agent", e.target.value)}
-                  placeholder="leave blank for default"
-                  className="bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] outline-none focus:border-[#d97757] transition-colors w-full max-w-xs placeholder-[#9A968B]"
+                  placeholder="----"
+                  style={{ width: "28ch" }}
+                  className={INPUT_CLASS}
                 />
-              </WizardRow>
-
-              <WizardRow label="chrome flags">
-                <textarea
-                  value={addArgsText}
-                  onChange={(e) => setAddArgsText(e.target.value)}
-                  placeholder={"--disable-extensions\n--no-sandbox"}
-                  rows={3}
-                  className="bg-transparent border border-[#3d3d3a] text-[#f4f3ee] outline-none focus:border-[#d97757] transition-colors w-full max-w-xs placeholder-[#9A968B] text-xs p-1 resize-y"
-                />
-                <span className="text-[#9A968B] text-xs">one per line</span>
               </WizardRow>
             </div>
 
-            {/* Read-only summary */}
             <div className="border border-[#3d3d3a] px-3 py-2 text-xs text-[#9A968B] space-y-1">
               <div className="text-[#f4f3ee] mb-1">build summary</div>
               <div>chrome: <span className="text-[#f4f3ee]">{config.chrome_path || "----"}</span></div>
               <div>user data: <span className="text-[#f4f3ee]">{config.chrome_user_data_dir_base || "----"}</span></div>
+              <div>version: <span className="text-[#f4f3ee]">{config.chrome_version || "----"}</span></div>
               <div>headless: <span className="text-[#f4f3ee]">{config.headless ? "yes" : "no"}</span></div>
               <div>idle delay: <span className="text-[#f4f3ee]">{config.bot_idle_delay} min</span></div>
-              {addArgsText.trim() && (
-                <div>flags: <span className="text-[#f4f3ee]">{addArgsText.trim().split("\n").filter(Boolean).length} custom arg(s)</span></div>
-              )}
-              <div className="text-[#9A968B] mt-1">
-                No INI file required. Login credentials are not baked into the EXE.
-              </div>
+              <div className="text-[#9A968B] mt-1">No INI file required. Login credentials are not baked into the EXE.</div>
             </div>
 
-            {submitError && (
-              <div className="text-status-bad text-sm">{submitError}</div>
-            )}
+            {submitError && <div className="text-status-bad text-sm">{submitError}</div>}
 
             <div className="flex items-center gap-3">
               <button
@@ -368,9 +287,7 @@ export default function DesktopPage() {
               >
                 <Bracket>{submitting ? "requesting…" : "request build"}</Bracket>
               </button>
-              <span className="text-[#9A968B] text-xs">
-                Build takes ~5–10 min. You&apos;ll see the status below.
-              </span>
+              <span className="text-[#9A968B] text-xs">Build takes ~5–10 min. You&apos;ll see the status below.</span>
             </div>
           </div>
         )}
@@ -382,17 +299,9 @@ export default function DesktopPage() {
           <span className="text-[#f4f3ee]">builds</span>
         </div>
 
-        {loading && (
-          <div className="px-4 py-4 text-[#9A968B]">loading...</div>
-        )}
-
-        {!loading && error && (
-          <div className="px-4 py-4 text-status-bad">{error}</div>
-        )}
-
-        {!loading && !error && builds.length === 0 && (
-          <div className="px-4 py-4 text-[#9A968B]">No builds yet.</div>
-        )}
+        {loading && <div className="px-4 py-4 text-[#9A968B]">loading...</div>}
+        {!loading && error && <div className="px-4 py-4 text-status-bad">{error}</div>}
+        {!loading && !error && builds.length === 0 && <div className="px-4 py-4 text-[#9A968B]">No builds yet.</div>}
 
         {!loading && !error && builds.length > 0 && (
           <div className="overflow-x-auto">
@@ -409,10 +318,7 @@ export default function DesktopPage() {
               </thead>
               <tbody className="divide-y divide-[#3d3d3a]">
                 {builds.map((build) => {
-                  const canDownload =
-                    build.status === "ready" &&
-                    !isExpired(build) &&
-                    build.download_count < build.max_downloads;
+                  const canDownload = build.status === "ready" && !isExpired(build) && build.download_count < build.max_downloads;
                   const expired = build.status === "ready" && isExpired(build);
                   const cfg = build.build_options as DesktopBuildConfig;
                   return (
@@ -424,38 +330,23 @@ export default function DesktopPage() {
                       <td className="px-4 py-3 text-[#f4f3ee]">#{build.client_id}</td>
                       <td className="px-4 py-3">
                         <span className={statusColor(build.status)}>{build.status}</span>
-                        {build.failure_reason && (
-                          <div className="text-[#9A968B] text-xs">{build.failure_reason}</div>
-                        )}
+                        {build.failure_reason && <div className="text-[#9A968B] text-xs">{build.failure_reason}</div>}
                       </td>
                       <td className="px-4 py-3 text-[#9A968B] text-xs">{configSummary(cfg)}</td>
                       <td className="px-4 py-3 text-[#9A968B] text-sm">
                         {build.status === "ready" ? (
-                          expired ? (
-                            <span className="text-status-bad">expired</span>
-                          ) : (
-                            <span>{build.download_count}/{build.max_downloads}</span>
-                          )
-                        ) : (
-                          <span>----</span>
-                        )}
+                          expired ? <span className="text-status-bad">expired</span> : <span>{build.download_count}/{build.max_downloads}</span>
+                        ) : <span>----</span>}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex gap-2 justify-end">
                           {canDownload && (
-                            <button
-                              onClick={() => handleDownload(build.id)}
-                              className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-sm"
-                            >
+                            <button onClick={() => handleDownload(build.id)} className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-sm">
                               <Bracket>download</Bracket>
                             </button>
                           )}
                           {build.status !== "revoked" && build.status !== "failed" && (
-                            <button
-                              onClick={() => handleRevoke(build.id)}
-                              disabled={revoking === build.id}
-                              className="text-[#9A968B] hover:text-status-bad transition-colors text-sm disabled:text-[#3d3d3a]"
-                            >
+                            <button onClick={() => handleRevoke(build.id)} disabled={revoking === build.id} className="text-[#9A968B] hover:text-status-bad transition-colors text-sm disabled:text-[#3d3d3a]">
                               <Bracket>{revoking === build.id ? "…" : "revoke"}</Bracket>
                             </button>
                           )}
@@ -470,7 +361,7 @@ export default function DesktopPage() {
         )}
       </div>
 
-      {/* Post-download instructions */}
+      {/* Getting started */}
       <div className="border border-[#3d3d3a]">
         <div className="border-b border-[#3d3d3a] px-4 py-2 bg-[#1a1918]">
           <span className="text-[#f4f3ee]">getting started</span>
@@ -490,7 +381,7 @@ export default function DesktopPage() {
 function WizardRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-start gap-4 flex-wrap">
-      <span className="text-[#9A968B] w-40 shrink-0 pt-0.5">{label}</span>
+      <span className="text-[#9A968B] w-44 shrink-0 pt-0.5">{label}</span>
       <div className="flex items-center gap-2 flex-wrap">{children}</div>
     </div>
   );
