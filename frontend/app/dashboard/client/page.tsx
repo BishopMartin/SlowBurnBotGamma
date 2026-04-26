@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createDesktopBuild,
   listDesktopBuilds,
@@ -13,7 +13,6 @@ import {
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
 import { NumberInput } from "@/lib/number-input";
-import { Dropdown } from "@/lib/dropdown";
 
 const DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36";
 
@@ -33,16 +32,8 @@ const DEFAULT_CONFIG: DesktopBuildConfig = {
   api_url: "",
 };
 
-const BOOL_OPTIONS = [
-  { value: "false", label: "no" },
-  { value: "true", label: "yes" },
-];
-
 const sectionCls = "border border-[#3d3d3a]";
 const INPUT_CLS = "bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0";
-
-function boolVal(v: boolean): string { return v ? "true" : "false"; }
-function parseBool(v: string): boolean { return v === "true"; }
 
 function statusColor(status: string): string {
   if (status === "ready") return "text-status-ok";
@@ -81,16 +72,20 @@ function BracketInput({ label, value, onChange, width = "20ch", placeholder = "-
   );
 }
 
-function BracketDropdown({ label, value, onChange }: {
-  label: string; value: string; onChange: (v: string) => void;
+function BracketCheckbox({ label, checked, onChange }: {
+  label: string; checked: boolean; onChange: (v: boolean) => void;
 }) {
   return (
-    <span className="inline-flex items-center gap-0 pr-5">
-      <span className="text-[#9A968B]">{label}: </span>
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className="inline-flex items-center gap-1 pr-5 cursor-pointer group"
+    >
       <span className="text-[#f4f3ee]">[</span>
-      <Dropdown value={value} options={BOOL_OPTIONS} onChange={onChange} />
+      <span className={`font-mono w-3 text-center ${checked ? "text-[#d97757]" : "text-[#3d3d3a]"}`}>{checked ? "x" : " "}</span>
       <span className="text-[#f4f3ee]">]</span>
-    </span>
+      <span className="text-[#9A968B] group-hover:text-[#f4f3ee] transition-colors">{label}</span>
+    </button>
   );
 }
 
@@ -108,6 +103,12 @@ export default function ClientPage() {
   const [revoking, setRevoking] = useState<string | null>(null);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const nextClientId = useMemo(() => {
+    if (builds.length === 0) return 1;
+    const max = Math.max(...builds.map((b) => b.client_id));
+    return max >= 99 ? 1 : max + 1;
+  }, [builds]);
 
   async function load() {
     try {
@@ -231,27 +232,32 @@ export default function ClientPage() {
         {showWizard && (
           <div className="px-4 py-3 flex flex-col gap-y-3 text-sm">
 
-            {/* Chrome path + version */}
+            {/* Client ID (read-only) */}
+            <div className="flex items-center gap-0">
+              <span className="text-[#9A968B]">client id: </span>
+              <span className="text-[#f4f3ee]">[</span>
+              <span className="text-[#E5C07B] px-0 w-8 text-center">{String(nextClientId).padStart(2, "0")}</span>
+              <span className="text-[#f4f3ee]">]</span>
+            </div>
+
+            {/* Version + chrome path + user data dir */}
             <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
+              <BracketInput label="portable chrome version" value={config.chrome_version} onChange={(v) => setField("chrome_version", v)} width="5ch" placeholder="143" />
               <BracketInput label="chrome path" value={config.chrome_path} onChange={(v) => setField("chrome_path", v)} width="26ch" placeholder="\PortableChrome\chrome.exe" />
-              <BracketInput label="version" value={config.chrome_version} onChange={(v) => setField("chrome_version", v)} width="5ch" placeholder="143" />
+              <BracketInput label="user data dir" value={config.chrome_user_data_dir_base} onChange={(v) => setField("chrome_user_data_dir_base", v)} width="16ch" placeholder="\PortableChrome\" />
             </div>
 
-            {/* User data dir */}
+            {/* User agent */}
             <div className="flex items-center flex-wrap">
-              <BracketInput label="user data dir" value={config.chrome_user_data_dir_base} onChange={(v) => setField("chrome_user_data_dir_base", v)} width="20ch" placeholder="\PortableChrome\" />
+              <BracketInput label="user agent" value={config.system_user_agent} onChange={(v) => setField("system_user_agent", v)} width="52ch" />
             </div>
 
-            {/* Headless + detach */}
+            {/* Headless + detach + close on session end + close on exit */}
             <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
-              <BracketDropdown label="headless" value={boolVal(config.headless)} onChange={(v) => setField("headless", parseBool(v))} />
-              <BracketDropdown label="detach" value={boolVal(config.detach)} onChange={(v) => setField("detach", parseBool(v))} />
-            </div>
-
-            {/* Close browser on session end + exit */}
-            <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
-              <BracketDropdown label="close on session end" value={boolVal(config.close_browser_session)} onChange={(v) => setField("close_browser_session", parseBool(v))} />
-              <BracketDropdown label="close on exit" value={boolVal(config.close_browser_exit)} onChange={(v) => setField("close_browser_exit", parseBool(v))} />
+              <BracketCheckbox label="headless" checked={config.headless} onChange={(v) => setField("headless", v)} />
+              <BracketCheckbox label="detach" checked={config.detach} onChange={(v) => setField("detach", v)} />
+              <BracketCheckbox label="close on session end" checked={config.close_browser_session} onChange={(v) => setField("close_browser_session", v)} />
+              <BracketCheckbox label="close on exit" checked={config.close_browser_exit} onChange={(v) => setField("close_browser_exit", v)} />
             </div>
 
             {/* Idle delay + debug */}
@@ -262,12 +268,7 @@ export default function ClientPage() {
                 <NumberInput value={config.bot_idle_delay} onChange={(v) => setField("bot_idle_delay", v)} max={120} maxLength={3} />
                 <span className="text-[#f4f3ee]">]</span>
               </span>
-              <BracketDropdown label="debug" value={boolVal(config.bot_debug)} onChange={(v) => setField("bot_debug", parseBool(v))} />
-            </div>
-
-            {/* User agent */}
-            <div className="flex items-center flex-wrap">
-              <BracketInput label="user agent" value={config.system_user_agent} onChange={(v) => setField("system_user_agent", v)} width="52ch" />
+              <BracketCheckbox label="debug" checked={config.bot_debug} onChange={(v) => setField("bot_debug", v)} />
             </div>
 
             {submitError && <div className="text-status-bad">{submitError}</div>}
