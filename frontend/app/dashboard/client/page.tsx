@@ -66,6 +66,15 @@ export default function ClientPage() {
   const [revoking, setRevoking] = useState<string | null>(null);
   const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [expandedSettings, setExpandedSettings] = useState<Set<string>>(new Set());
+
+  function toggleSettings(id: string) {
+    setExpandedSettings((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -208,47 +217,70 @@ export default function ClientPage() {
                   <th className="px-4 py-2 font-normal">client</th>
                   <th className="px-4 py-2 font-normal">status</th>
                   <th className="px-4 py-2 font-normal">config</th>
-                  <th className="px-4 py-2 font-normal"></th>
+                  <th className="px-4 py-2 font-normal w-full"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#3d3d3a]">
+              <tbody>
                 {builds.map((build) => {
                   const canDownload = build.status === "ready" && !isExpired(build);
                   const expired = build.status === "ready" && isExpired(build);
                   const cfg = build.build_options as DesktopBuildConfig;
+                  const showSettings = expandedSettings.has(build.id);
                   return (
-                    <tr key={build.id} className="hover:bg-[#1f1e1d] transition-colors">
-                      <td className="px-4 py-3 text-[#9A968B] text-sm whitespace-nowrap">
-                        {new Date(build.created_at).toLocaleDateString()}{" "}
-                        {new Date(build.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                      </td>
-                      <td className="px-4 py-3 text-[#f4f3ee]">#{build.client_id}</td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={statusColor(build.status)}>{build.status}</span>
-                      </td>
-                      <td className="px-4 py-3 text-[#9A968B] text-xs">{configSummary(cfg)}</td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex gap-2 justify-end items-center">
-                          {canDownload && (
-                            <button onClick={() => handleDownload(build.id)} disabled={downloading === build.id} className="group cursor-pointer transition-colors text-sm disabled:opacity-40">
-                              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{downloading === build.id ? "…" : "download"}</Bracket>
+                    <>
+                      <tr key={build.id} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors">
+                        <td className="px-4 py-3 text-[#9A968B] text-sm whitespace-nowrap">
+                          {new Date(build.created_at).toLocaleDateString()}{" "}
+                          {new Date(build.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </td>
+                        <td className="px-4 py-3 text-[#f4f3ee]">#{build.client_id}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={statusColor(build.status)}>{build.status}</span>
+                        </td>
+                        <td className="px-4 py-3 text-[#9A968B] text-xs">{configSummary(cfg)}</td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex gap-2 justify-end items-center">
+                            <button onClick={() => toggleSettings(build.id)} className="group cursor-pointer transition-colors text-sm">
+                              <Bracket className={showSettings ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>settings</Bracket>
                             </button>
-                          )}
-                          {build.status !== "revoked" && build.status !== "failed" && (
-                            <button
-                              onClick={() => handleRevoke(build.id)}
-                              disabled={revoking === build.id}
-                              className="group cursor-pointer transition-colors text-sm disabled:opacity-40"
-                              onBlur={() => setConfirmRevoke(null)}
-                            >
-                              <Bracket className={confirmRevoke === build.id ? "text-status-bad group-hover:text-status-bad-hover" : "text-[#9A968B] group-hover:text-status-bad"}>
-                                {revoking === build.id ? "…" : confirmRevoke === build.id ? "confirm?" : "revoke"}
-                              </Bracket>
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
+                            {canDownload && (
+                              <button onClick={() => handleDownload(build.id)} disabled={downloading === build.id} className="group cursor-pointer transition-colors text-sm disabled:opacity-40">
+                                <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{downloading === build.id ? "…" : "download"}</Bracket>
+                              </button>
+                            )}
+                            {expired && <span className="text-status-bad text-xs">expired</span>}
+                            {build.status !== "revoked" && build.status !== "failed" && (
+                              <button
+                                onClick={() => handleRevoke(build.id)}
+                                disabled={revoking === build.id}
+                                className="group cursor-pointer transition-colors text-sm disabled:opacity-40"
+                                onBlur={() => setConfirmRevoke(null)}
+                              >
+                                <Bracket className={confirmRevoke === build.id ? "text-status-bad group-hover:text-status-bad-hover" : "text-[#9A968B] group-hover:text-status-bad"}>
+                                  {revoking === build.id ? "…" : confirmRevoke === build.id ? "confirm?" : "revoke"}
+                                </Bracket>
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                      {showSettings && (
+                        <tr key={`${build.id}-settings`} className="border-t border-[#3d3d3a] bg-[#1a1918]">
+                          <td colSpan={5} className="px-4 py-3 text-xs text-[#9A968B]">
+                            <div className="flex flex-wrap gap-x-6 gap-y-1">
+                              <span><span className="text-[#3d3d3a]">chrome version:</span> <span className="text-[#f4f3ee]">{cfg.chrome_version || "—"}</span></span>
+                              <span><span className="text-[#3d3d3a]">chrome path:</span> <span className="text-[#f4f3ee]">{cfg.chrome_path || "—"}</span></span>
+                              <span><span className="text-[#3d3d3a]">user data dir:</span> <span className="text-[#f4f3ee]">{cfg.chrome_user_data_dir_base || "—"}</span></span>
+                              <span><span className="text-[#3d3d3a]">headless:</span> <span className="text-[#f4f3ee]">{cfg.headless ? "yes" : "no"}</span></span>
+                              <span><span className="text-[#3d3d3a]">detach:</span> <span className="text-[#f4f3ee]">{cfg.detach ? "yes" : "no"}</span></span>
+                              <span><span className="text-[#3d3d3a]">close on session:</span> <span className="text-[#f4f3ee]">{cfg.close_browser_session ? "yes" : "no"}</span></span>
+                              <span><span className="text-[#3d3d3a]">close on exit:</span> <span className="text-[#f4f3ee]">{cfg.close_browser_exit ? "yes" : "no"}</span></span>
+                              <span><span className="text-[#3d3d3a]">user agent:</span> <span className="text-[#f4f3ee]">{cfg.system_user_agent || "—"}</span></span>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   );
                 })}
               </tbody>
