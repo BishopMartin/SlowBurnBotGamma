@@ -261,8 +261,8 @@ export default function AccountDetailPage() {
                 onChange={(e) => setEditingStart(e.target.value)}
                 onBlur={() => { setSettings((s) => ({ ...s, schedule_start: parseTime(editingStart ?? "") })); setEditingStart(null); }}
                 placeholder="10:00 AM"
-                style={{ width: "8ch" }}
-                className="bg-transparent text-[#f4f3ee] outline-none font-mono min-w-0 px-0"
+                style={{ width: "8ch", paddingLeft: "1ch", paddingRight: "1ch" }}
+                className="bg-transparent text-[#f4f3ee] outline-none font-mono min-w-0"
               />
               <span className="text-[#f4f3ee]">{"]"}</span>
             </span>
@@ -277,8 +277,8 @@ export default function AccountDetailPage() {
                 onChange={(e) => setEditingEnd(e.target.value)}
                 onBlur={() => { setSettings((s) => ({ ...s, schedule_end: parseTime(editingEnd ?? "") })); setEditingEnd(null); }}
                 placeholder="10:00 PM"
-                style={{ width: "8ch" }}
-                className="bg-transparent text-[#f4f3ee] outline-none font-mono min-w-0 px-0"
+                style={{ width: "8ch", paddingLeft: "1ch", paddingRight: "1ch" }}
+                className="bg-transparent text-[#f4f3ee] outline-none font-mono min-w-0"
               />
               <span className="text-[#f4f3ee]">{"]"}</span>
             </span>
