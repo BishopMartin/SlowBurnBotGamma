@@ -396,8 +396,8 @@ export default function DashboardPage() {
                           onClick={() => handleToggleEnabled(account)}
                           className="group cursor-pointer transition-colors"
                         >
-                          <Bracket className={account.enabled ? "text-[#9A968B] group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
-                            {account.enabled ? "x" : "\u00a0"}
+                          <Bracket className={account.enabled ? "text-status-ok group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
+                            {account.enabled ? "x" : " "}
                           </Bracket>
                         </button>
                       )}
