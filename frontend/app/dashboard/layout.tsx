@@ -42,9 +42,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen flex flex-col font-mono">
       <div className="flex-1 max-w-5xl mx-auto w-full sm:border-x border-[#3d3d3a]">
-        <header className="px-3 sm:px-6 pt-2 pb-3 flex flex-col gap-y-1">
-          {/* Top row: user info, right-aligned */}
-          <div className="flex items-center justify-end gap-3 sm:gap-4">
+        <header className="px-3 sm:px-6 pt-2 pb-3 flex flex-wrap items-center gap-x-3 sm:gap-x-6 gap-y-1">
+          <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
+          <span className="hidden sm:inline text-[#3d3d3a]">--</span>
+          <nav className="flex flex-wrap gap-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`transition-colors ${
+                  isNavActive(item.href)
+                    ? "text-[#d97757]"
+                    : "text-[#9A968B] hover:text-white"
+                }`}
+              >
+                <span className="text-[#f4f3ee]">[</span>{item.label}<span className="text-[#f4f3ee]">]</span>
+              </Link>
+            ))}
+          </nav>
+          <div className="flex items-center gap-3 sm:gap-4 ml-auto">
             <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#9A968B] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
             <span className="text-[#E5C07B] truncate max-w-[12rem] sm:max-w-none">{user.email}</span>
             <div className="flex gap-1">
@@ -52,29 +68,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">plan</Bracket>
               </Link>
               <button onClick={handleLogout} className="group transition-colors">
-                <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">sign out</Bracket>
+                <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">log out</Bracket>
               </button>
             </div>
-          </div>
-          {/* Bottom row: logo + nav */}
-          <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-6 gap-y-1">
-            <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
-            <span className="hidden sm:inline text-[#3d3d3a]">--</span>
-            <nav className="flex flex-wrap gap-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`transition-colors ${
-                    isNavActive(item.href)
-                      ? "text-[#d97757]"
-                      : "text-[#9A968B] hover:text-white"
-                  }`}
-                >
-                  <span className="text-[#f4f3ee]">[</span>{item.label}<span className="text-[#f4f3ee]">]</span>
-                </Link>
-              ))}
-            </nav>
           </div>
         </header>
         <main className="px-3 sm:px-6 py-6">{children}</main>
