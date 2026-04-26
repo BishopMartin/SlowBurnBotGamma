@@ -12,6 +12,7 @@ import {
   DesktopBuildWithToken,
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
+import { BracketInput } from "@/lib/bracket-input";
 
 const DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36";
 
@@ -32,7 +33,6 @@ const DEFAULT_CONFIG: DesktopBuildConfig = {
 };
 
 const sectionCls = "border border-[#3d3d3a]";
-const INPUT_CLS = "bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0";
 
 function statusColor(status: string): string {
   if (status === "ready") return "text-status-ok";
@@ -49,28 +49,6 @@ function configSummary(cfg: DesktopBuildConfig): string {
   if (cfg.chrome_path.toLowerCase().includes("portable")) parts.push("portable chrome");
   if (cfg.bot_debug) parts.push("debug");
   return parts.length ? parts.join(", ") : "default";
-}
-
-function BracketInput({ label, value, onChange, width = "20ch", placeholder = "----" }: {
-  label: string; value: string; onChange: (v: string) => void; width?: string; placeholder?: string;
-}) {
-  return (
-    <span className="inline-flex items-center gap-0 pr-5">
-      <span className="text-[#9A968B]">{label}: </span>
-      <span className="text-[#f4f3ee]">[</span>
-      {" "}
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        style={{ width }}
-        className={INPUT_CLS}
-      />
-      {" "}
-      <span className="text-[#f4f3ee]">]</span>
-    </span>
-  );
 }
 
 function BracketCheckbox({ label, checked, onChange }: {

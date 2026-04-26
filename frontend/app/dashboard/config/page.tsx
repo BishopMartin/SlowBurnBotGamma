@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getUserConfig, updateUserConfig, getIgnoreHandles, updateIgnoreHandles, UserConfig } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
+import { BracketInput } from "@/lib/bracket-input";
 import { Dropdown } from "@/lib/dropdown";
 import { NumberInput } from "@/lib/number-input";
 
@@ -200,33 +201,9 @@ export default function ConfigPage() {
             <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
 
-          <span className="inline-flex items-center gap-0 pr-5">
-            <span className="text-[#9A968B]">{"email: "}</span>
-            <span className="text-[#f4f3ee]">{"["}</span>
-            <input
-              type="email"
-              value={notifyEmail}
-              onChange={(e) => setNotifyEmail(e.target.value)}
-              placeholder="email@example.com"
-              style={{ width: "20ch" }}
-              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"
-            />
-            <span className="text-[#f4f3ee]">{"]"}</span>
-          </span>
+          <BracketInput label="email" value={notifyEmail} onChange={setNotifyEmail} type="email" placeholder="email@example.com" width="20ch" />
 
-          <span className="inline-flex items-center gap-0 pr-5">
-            <span className="text-[#9A968B]">{"phone: "}</span>
-            <span className="text-[#f4f3ee]">{"["}</span>
-            <input
-              type="tel"
-              value={formatPhone(notifyPhone)}
-              onChange={(e) => setNotifyPhone(stripPhone(e.target.value))}
-              placeholder="(123) 456-7890"
-              style={{ width: "16ch" }}
-              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"
-            />
-            <span className="text-[#f4f3ee]">{"]"}</span>
-          </span>
+          <BracketInput label="phone" value={formatPhone(notifyPhone)} onChange={(v) => setNotifyPhone(stripPhone(v))} type="tel" placeholder="(123) 456-7890" width="16ch" />
 
           <span className="hidden sm:block" />
 
@@ -255,33 +232,9 @@ export default function ConfigPage() {
             <span className="text-[#f4f3ee]">{"]"}</span>
           </span>
 
-          <span className="inline-flex items-center gap-0 pr-5">
-            <span className="text-[#9A968B]">{"email: "}</span>
-            <span className="text-[#f4f3ee]">{"["}</span>
-            <input
-              type="email"
-              value={loginNotifyEmail}
-              onChange={(e) => setLoginNotifyEmail(e.target.value)}
-              placeholder="----"
-              style={{ width: "20ch" }}
-              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"
-            />
-            <span className="text-[#f4f3ee]">{"]"}</span>
-          </span>
+          <BracketInput label="email" value={loginNotifyEmail} onChange={setLoginNotifyEmail} type="email" width="20ch" />
 
-          <span className="inline-flex items-center gap-0 pr-5">
-            <span className="text-[#9A968B]">{"phone: "}</span>
-            <span className="text-[#f4f3ee]">{"["}</span>
-            <input
-              type="tel"
-              value={formatPhone(loginNotifyPhone)}
-              onChange={(e) => setLoginNotifyPhone(stripPhone(e.target.value))}
-              placeholder="----"
-              style={{ width: "16ch" }}
-              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"
-            />
-            <span className="text-[#f4f3ee]">{"]"}</span>
-          </span>
+          <BracketInput label="phone" value={formatPhone(loginNotifyPhone)} onChange={(v) => setLoginNotifyPhone(stripPhone(v))} type="tel" width="16ch" />
 
           <span className="hidden sm:block" />
         </div>
