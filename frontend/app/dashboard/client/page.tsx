@@ -216,6 +216,7 @@ export default function ClientPage() {
                   <th className="px-4 py-2 font-normal">requested</th>
                   <th className="px-4 py-2 font-normal">client</th>
                   <th className="px-4 py-2 font-normal">status</th>
+                  <th className="px-4 py-2 font-normal">chrome</th>
                   <th className="px-4 py-2 font-normal">config</th>
                   <th className="px-4 py-2 font-normal w-full"></th>
                 </tr>
@@ -237,6 +238,7 @@ export default function ClientPage() {
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className={statusColor(build.status)}>{build.status}</span>
                         </td>
+                        <td className="px-4 py-3 text-[#9A968B] text-xs whitespace-nowrap">{cfg.chrome_version || "—"}</td>
                         <td className="px-4 py-3 text-[#9A968B] text-xs">{configSummary(cfg)}</td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex gap-2 justify-end items-center">
@@ -266,9 +268,8 @@ export default function ClientPage() {
                       </tr>
                       {showSettings && (
                         <tr key={`${build.id}-settings`} className="border-t border-[#3d3d3a] bg-[#1a1918]">
-                          <td colSpan={5} className="px-4 py-3 text-xs text-[#9A968B]">
+                          <td colSpan={6} className="px-4 py-3 text-xs text-[#9A968B]">
                             <div className="flex flex-wrap gap-x-6 gap-y-1">
-                              <span><span className="text-[#3d3d3a]">chrome version:</span> <span className="text-[#f4f3ee]">{cfg.chrome_version || "—"}</span></span>
                               <span><span className="text-[#3d3d3a]">chrome path:</span> <span className="text-[#f4f3ee]">{cfg.chrome_path || "—"}</span></span>
                               <span><span className="text-[#3d3d3a]">user data dir:</span> <span className="text-[#f4f3ee]">{cfg.chrome_user_data_dir_base || "—"}</span></span>
                               <span><span className="text-[#3d3d3a]">headless:</span> <span className="text-[#f4f3ee]">{cfg.headless ? "yes" : "no"}</span></span>
