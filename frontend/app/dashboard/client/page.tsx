@@ -181,20 +181,16 @@ export default function ClientPage() {
       <h1 className="font-semibold text-[#f4f3ee]">Client</h1>
 
       {justCreated && (
-        <div className="border border-[#d97757] px-4 py-4 space-y-2">
-          <div className="text-[#f4f3ee]">
-            Build requested — <span className="text-status-ok">client {justCreated.client_id}</span> queued.
-          </div>
-          <div className="text-[#9A968B] text-sm">Activation token (shown once — copy it now):</div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <code className="text-[#E5C07B] break-all text-xs">{justCreated.activation_token}</code>
-            <button onClick={() => copyToken(justCreated.activation_token)} className="group cursor-pointer transition-colors text-xs">
-              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copied ? "copied!" : "copy"}</Bracket>
-            </button>
-            <button onClick={() => setJustCreated(null)} className="group cursor-pointer transition-colors text-xs ml-auto">
-              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
-            </button>
-          </div>
+        <div className="border border-[#d97757] px-4 py-3 flex items-center gap-3 flex-wrap text-sm">
+          <span className="text-[#f4f3ee]">client {justCreated.client_id} queued.</span>
+          <span className="text-[#9A968B]">activation token:</span>
+          <code className="text-[#E5C07B] text-xs">{justCreated.activation_token}</code>
+          <button onClick={() => copyToken(justCreated.activation_token)} className="group cursor-pointer transition-colors text-xs">
+            <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copied ? "copied!" : "copy"}</Bracket>
+          </button>
+          <button onClick={() => setJustCreated(null)} className="group cursor-pointer transition-colors text-xs ml-auto">
+            <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
+          </button>
         </div>
       )}
 
