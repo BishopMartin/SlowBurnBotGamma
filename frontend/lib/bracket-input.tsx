@@ -25,7 +25,7 @@ export function BracketInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        style={{ width, paddingLeft: "1ch", paddingRight: "1ch" }}
+        style={{ width, paddingLeft: "1ch", paddingRight: "1ch", boxSizing: "content-box" }}
         className={INPUT_CLS}
       />
       <span className="text-[#f4f3ee]">]</span>

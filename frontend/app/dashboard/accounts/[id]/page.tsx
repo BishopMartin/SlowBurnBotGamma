@@ -210,8 +210,8 @@ export default function AccountDetailPage() {
                       if (e.key === "Enter") { e.preventDefault(); (e.target as HTMLInputElement).blur(); }
                       if (e.key === "Escape") { setEditingPw(false); setPwValue(""); }
                     }}
-                    style={{ width: "6ch" }}
-                    className="bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] outline-none focus:border-[#d97757] font-mono transition-colors"
+                    style={{ width: "6ch", paddingLeft: "1ch", paddingRight: "1ch", boxSizing: "content-box" }}
+                    className="bg-transparent text-[#f4f3ee] outline-none font-mono"
                   />
                   <span className="text-[#f4f3ee]">{"]"}</span>
                 </span>
@@ -219,11 +219,13 @@ export default function AccountDetailPage() {
                 <button
                   type="button"
                   onClick={() => setEditingPw(true)}
-                  className="group cursor-pointer transition-colors"
+                  className="group cursor-pointer transition-colors inline-flex items-center gap-0"
                 >
-                  <Bracket className={account.has_password ? "text-status-ok group-hover:text-[#d97757]" : "text-[#9A968B] group-hover:text-[#d97757]"}>
+                  <span className="text-[#f4f3ee]">[</span>
+                  <span style={{ paddingLeft: "1ch", paddingRight: "1ch" }} className={account.has_password ? "text-status-ok group-hover:text-[#d97757]" : "text-[#9A968B] group-hover:text-[#d97757]"}>
                     {account.has_password ? "******" : "------"}
-                  </Bracket>
+                  </span>
+                  <span className="text-[#f4f3ee]">]</span>
                 </button>
               )}
             </span>
@@ -261,7 +263,7 @@ export default function AccountDetailPage() {
                 onChange={(e) => setEditingStart(e.target.value)}
                 onBlur={() => { setSettings((s) => ({ ...s, schedule_start: parseTime(editingStart ?? "") })); setEditingStart(null); }}
                 placeholder="10:00 AM"
-                style={{ width: "8ch", paddingLeft: "1ch", paddingRight: "1ch" }}
+                style={{ width: "8ch", paddingLeft: "1ch", paddingRight: "1ch", boxSizing: "content-box" }}
                 className="bg-transparent text-[#f4f3ee] outline-none font-mono min-w-0"
               />
               <span className="text-[#f4f3ee]">{"]"}</span>
@@ -277,7 +279,7 @@ export default function AccountDetailPage() {
                 onChange={(e) => setEditingEnd(e.target.value)}
                 onBlur={() => { setSettings((s) => ({ ...s, schedule_end: parseTime(editingEnd ?? "") })); setEditingEnd(null); }}
                 placeholder="10:00 PM"
-                style={{ width: "8ch", paddingLeft: "1ch", paddingRight: "1ch" }}
+                style={{ width: "8ch", paddingLeft: "1ch", paddingRight: "1ch", boxSizing: "content-box" }}
                 className="bg-transparent text-[#f4f3ee] outline-none font-mono min-w-0"
               />
               <span className="text-[#f4f3ee]">{"]"}</span>
