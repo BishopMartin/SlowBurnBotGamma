@@ -161,7 +161,7 @@ export default function ClientPage() {
   }
 
   return (
-    <div className="space-y-6 font-mono">
+    <div className="space-y-4 font-mono">
       <h1 className="font-semibold text-[#f4f3ee]">Client</h1>
 
       {justCreated && (
