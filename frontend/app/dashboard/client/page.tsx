@@ -212,8 +212,8 @@ export default function ClientPage() {
                   <th className="px-4 py-2 font-normal">requested</th>
                   <th className="px-4 py-2 font-normal">client</th>
                   <th className="px-4 py-2 font-normal">status</th>
-                  <th className="px-4 py-2 font-normal">chrome</th>
-                  <th className="px-4 py-2 font-normal">config</th>
+                  <th className="px-4 py-2 font-normal">browser</th>
+                  <th className="px-4 py-2 font-normal">version</th>
                   <th className="px-4 py-2 font-normal w-full"></th>
                 </tr>
               </thead>
@@ -234,8 +234,8 @@ export default function ClientPage() {
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className={statusColor(build.status)}>{build.status}</span>
                         </td>
+                        <td className="px-4 py-3 text-[#9A968B] text-xs whitespace-nowrap">{configSummary(cfg)}</td>
                         <td className="px-4 py-3 text-[#9A968B] text-xs whitespace-nowrap">{cfg.chrome_version || "—"}</td>
-                        <td className="px-4 py-3 text-[#9A968B] text-xs">{configSummary(cfg)}</td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex gap-2 justify-end items-center">
                             <button onClick={() => toggleSettings(build.id)} className="group cursor-pointer transition-colors text-sm">
