@@ -21,6 +21,7 @@ import {
 } from "@/lib/api";
 import { scheduleLabel } from "@/lib/format";
 import { Bracket } from "@/lib/bracket";
+import { BracketInput } from "@/lib/bracket-input";
 import { Dropdown } from "@/lib/dropdown";
 
 function fmtGroup(n: number | null | undefined): string {
@@ -387,19 +388,12 @@ export default function AccountsPage() {
         )}
 
         <div className="border-t border-[#3d3d3a]">
-          <form onSubmit={handleAdd} className="flex flex-wrap items-center gap-2 px-4 py-3">
-            <span className="font-mono text-[#9A968B] shrink-0">Insert New Account:</span>
-            <input
-              type="text"
-              placeholder="Account Name"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] placeholder-[#9A968B] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
-            />
+          <form onSubmit={handleAdd} className="flex flex-wrap items-center gap-3 px-4 py-3 font-mono text-sm">
+            <BracketInput label="new account" value={newName} onChange={setNewName} placeholder="----" width="24ch" />
             <button
               type="submit"
               disabled={adding}
-              className="group font-mono disabled:opacity-50 transition-colors shrink-0"
+              className="group font-mono disabled:opacity-50 transition-colors"
             >
               <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">add</Bracket>
             </button>
