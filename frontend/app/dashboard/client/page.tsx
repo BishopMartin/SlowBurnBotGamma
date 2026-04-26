@@ -260,28 +260,21 @@ export default function ClientPage() {
           </span>
         </div>
 
-        <div className="px-4 py-3 flex flex-col gap-y-3 text-sm">
-
-          {/* Portable chrome version + user agent */}
-          <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
+        <div className="divide-y divide-[#3d3d3a] text-sm">
+          <div className="px-4 py-2 flex items-center gap-x-0 gap-y-2 flex-wrap">
             <BracketInput label="portable chrome version" value={config.chrome_version} onChange={(v) => setField("chrome_version", v)} width="5ch" placeholder="143" />
             <BracketInput label="user agent" value={config.system_user_agent} onChange={(v) => setField("system_user_agent", v)} width="52ch" />
           </div>
-
-          {/* Chrome path + user data dir */}
-          <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
+          <div className="px-4 py-2 flex items-center gap-x-0 gap-y-2 flex-wrap">
             <BracketInput label="chrome path" value={config.chrome_path} onChange={(v) => setField("chrome_path", v)} width="36ch" placeholder="\PortableChrome\chrome.exe" />
             <BracketInput label="user data dir" value={config.chrome_user_data_dir_base} onChange={(v) => setField("chrome_user_data_dir_base", v)} width="24ch" placeholder="\PortableChrome\" />
           </div>
-
-          {/* Headless + detach + close on session end + close on exit */}
-          <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
+          <div className="px-4 py-2 flex items-center gap-x-5 gap-y-2 flex-wrap">
             <BracketCheckbox label="headless" checked={config.headless} onChange={(v) => setField("headless", v)} />
             <BracketCheckbox label="detach" checked={config.detach} onChange={(v) => setField("detach", v)} />
             <BracketCheckbox label="close on session end" checked={config.close_browser_session} onChange={(v) => setField("close_browser_session", v)} />
             <BracketCheckbox label="close on exit" checked={config.close_browser_exit} onChange={(v) => setField("close_browser_exit", v)} />
           </div>
-
         </div>
       </div>
 

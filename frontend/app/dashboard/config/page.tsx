@@ -141,46 +141,29 @@ export default function ConfigPage() {
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">notifications</div>
 
-        <div className="px-4 py-3 text-sm flex flex-col gap-y-3 sm:grid sm:gap-y-3 sm:[grid-template-columns:auto_auto_auto_auto_1fr]">
-          <BracketCheckbox label="Session Notifications" checked={noticesSession} onChange={setNoticesSession} />
-
-          <span className="inline-flex items-center gap-0 pr-5">
-            <span className="text-[#9A968B]">{"type: "}</span>
-            <span className="text-[#f4f3ee]">{"["}</span>
-            <Dropdown
-              value={noticesType}
-              onChange={(v) => setNoticesType(v)}
-              placeholder="----"
-              options={NOTICES_OPTIONS}
-            />
-            <span className="text-[#f4f3ee]">{"]"}</span>
-          </span>
-
-          <BracketInput label="email" value={notifyEmail} onChange={setNotifyEmail} type="email" placeholder="email@example.com" width="20ch" />
-
-          <BracketInput label="phone" value={formatPhone(notifyPhone)} onChange={(v) => setNotifyPhone(stripPhone(v))} type="tel" placeholder="(123) 456-7890" width="16ch" />
-
-          <span className="hidden sm:block" />
-
-          <BracketCheckbox label="Login Issue Notifications" checked={noticesLogin} onChange={setNoticesLogin} />
-
-          <span className="inline-flex items-center gap-0 pr-5">
-            <span className="text-[#9A968B]">{"type: "}</span>
-            <span className="text-[#f4f3ee]">{"["}</span>
-            <Dropdown
-              value={loginNoticesType}
-              onChange={(v) => setLoginNoticesType(v)}
-              placeholder="----"
-              options={NOTICES_OPTIONS}
-            />
-            <span className="text-[#f4f3ee]">{"]"}</span>
-          </span>
-
-          <BracketInput label="email" value={loginNotifyEmail} onChange={setLoginNotifyEmail} type="email" width="20ch" />
-
-          <BracketInput label="phone" value={formatPhone(loginNotifyPhone)} onChange={(v) => setLoginNotifyPhone(stripPhone(v))} type="tel" width="16ch" />
-
-          <span className="hidden sm:block" />
+        <div className="divide-y divide-[#3d3d3a] text-sm">
+          <div className="px-4 py-2 flex items-center gap-x-5 gap-y-2 flex-wrap">
+            <BracketCheckbox label="Session Notifications" checked={noticesSession} onChange={setNoticesSession} />
+            <span className="inline-flex items-center gap-0 pr-5">
+              <span className="text-[#9A968B]">{"type: "}</span>
+              <span className="text-[#f4f3ee]">{"["}</span>
+              <Dropdown value={noticesType} onChange={(v) => setNoticesType(v)} placeholder="----" options={NOTICES_OPTIONS} />
+              <span className="text-[#f4f3ee]">{"]"}</span>
+            </span>
+            <BracketInput label="email" value={notifyEmail} onChange={setNotifyEmail} type="email" placeholder="email@example.com" width="20ch" />
+            <BracketInput label="phone" value={formatPhone(notifyPhone)} onChange={(v) => setNotifyPhone(stripPhone(v))} type="tel" placeholder="(123) 456-7890" width="16ch" />
+          </div>
+          <div className="px-4 py-2 flex items-center gap-x-5 gap-y-2 flex-wrap">
+            <BracketCheckbox label="Login Issue Notifications" checked={noticesLogin} onChange={setNoticesLogin} />
+            <span className="inline-flex items-center gap-0 pr-5">
+              <span className="text-[#9A968B]">{"type: "}</span>
+              <span className="text-[#f4f3ee]">{"["}</span>
+              <Dropdown value={loginNoticesType} onChange={(v) => setLoginNoticesType(v)} placeholder="----" options={NOTICES_OPTIONS} />
+              <span className="text-[#f4f3ee]">{"]"}</span>
+            </span>
+            <BracketInput label="email" value={loginNotifyEmail} onChange={setLoginNotifyEmail} type="email" width="20ch" />
+            <BracketInput label="phone" value={formatPhone(loginNotifyPhone)} onChange={(v) => setLoginNotifyPhone(stripPhone(v))} type="tel" width="16ch" />
+          </div>
         </div>
       </div>
 
