@@ -11,6 +11,7 @@ import {
   DesktopBuildConfig,
   DesktopBuildWithToken,
 } from "@/lib/api";
+import { Bracket } from "@/lib/bracket";
 import { BracketInput } from "@/lib/bracket-input";
 import { BracketCheckbox } from "@/lib/bracket-checkbox";
 
@@ -178,11 +179,11 @@ export default function ClientPage() {
           <div className="text-[#9A968B] text-sm">Activation token (shown once — copy it now):</div>
           <div className="flex items-center gap-3 flex-wrap">
             <code className="text-[#E5C07B] break-all text-xs">{justCreated.activation_token}</code>
-            <button onClick={() => copyToken(justCreated.activation_token)} className="cursor-pointer text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-xs">
-              [{copied ? "copied!" : "copy"}]
+            <button onClick={() => copyToken(justCreated.activation_token)} className="group cursor-pointer transition-colors text-xs">
+              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copied ? "copied!" : "copy"}</Bracket>
             </button>
-            <button onClick={() => setJustCreated(null)} className="cursor-pointer text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-xs ml-auto">
-              [dismiss]
+            <button onClick={() => setJustCreated(null)} className="group cursor-pointer transition-colors text-xs ml-auto">
+              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
             </button>
           </div>
         </div>
@@ -235,18 +236,20 @@ export default function ClientPage() {
                       <td className="px-4 py-3 text-right">
                         <div className="flex gap-2 justify-end items-center">
                           {canDownload && (
-                            <button onClick={() => handleDownload(build.id)} disabled={downloading === build.id} className="cursor-pointer text-[#9A968B] hover:text-[#f4f3ee] transition-colors text-sm disabled:opacity-40">
-                              [{downloading === build.id ? "…" : "download"}]
+                            <button onClick={() => handleDownload(build.id)} disabled={downloading === build.id} className="group cursor-pointer transition-colors text-sm disabled:opacity-40">
+                              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{downloading === build.id ? "…" : "download"}</Bracket>
                             </button>
                           )}
                           {build.status !== "revoked" && build.status !== "failed" && (
                             <button
                               onClick={() => handleRevoke(build.id)}
                               disabled={revoking === build.id}
-                              className={`cursor-pointer transition-colors text-sm disabled:opacity-40 ${confirmRevoke === build.id ? "text-status-bad hover:text-status-bad-hover" : "text-[#9A968B] hover:text-status-bad"}`}
+                              className="group cursor-pointer transition-colors text-sm disabled:opacity-40"
                               onBlur={() => setConfirmRevoke(null)}
                             >
-                              [{revoking === build.id ? "…" : confirmRevoke === build.id ? "confirm?" : "revoke"}]
+                              <Bracket className={confirmRevoke === build.id ? "text-status-bad group-hover:text-status-bad-hover" : "text-[#9A968B] group-hover:text-status-bad"}>
+                                {revoking === build.id ? "…" : confirmRevoke === build.id ? "confirm?" : "revoke"}
+                              </Bracket>
                             </button>
                           )}
                         </div>
@@ -293,9 +296,9 @@ export default function ClientPage() {
         <button
           onClick={handleSubmit}
           disabled={submitting || !config.chrome_path.trim()}
-          className="cursor-pointer text-[#d97757] hover:text-[#f4f3ee] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          [{submitting ? "requesting…" : "request build"}]
+          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{submitting ? "requesting…" : "request build"}</Bracket>
         </button>
         <span className="text-[#9A968B] text-xs">Build takes ~5–10 min.</span>
         {submitError && <span className="text-status-bad">{submitError}</span>}
