@@ -1,15 +1,16 @@
 """Desktop build endpoints — dashboard-facing."""
 import hashlib
+import hmac
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import current_active_user
+from app.auth import current_active_user, current_active_user_optional
 from app.database import get_async_session
 from app.deps import require_active_subscription
 from app.models.desktop_build import DesktopBuild
@@ -34,6 +35,29 @@ def _mint_token() -> tuple[str, str]:
     """Return (plaintext_token, sha256_hex_hash)."""
     token = secrets.token_urlsafe(32)
     return token, hashlib.sha256(token.encode()).hexdigest()
+
+
+_DL_TOKEN_TTL = 120  # seconds
+
+
+def _make_download_token(build_id: uuid.UUID, user_id: uuid.UUID) -> str:
+    expires = int(_now().timestamp()) + _DL_TOKEN_TTL
+    payload = f"{build_id}:{user_id}:{expires}"
+    sig = hmac.new(settings.secret_key.encode(), payload.encode(), hashlib.sha256).hexdigest()
+    return f"{expires}.{sig}"
+
+
+def _verify_download_token(token: str, build_id: uuid.UUID, user_id: uuid.UUID) -> bool:
+    try:
+        expires_str, sig = token.split(".", 1)
+        expires = int(expires_str)
+    except (ValueError, AttributeError):
+        return False
+    if int(_now().timestamp()) > expires:
+        return False
+    payload = f"{build_id}:{user_id}:{expires}"
+    expected = hmac.new(settings.secret_key.encode(), payload.encode(), hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, sig)
 
 
 async def _get_owned_build(
@@ -174,15 +198,41 @@ async def get_desktop_build(
     return DesktopBuildRead.model_validate(build)
 
 
-@router.get("/{build_id}/download")
-async def download_desktop_build(
+@router.post("/{build_id}/download-token")
+async def get_download_token(
     build_id: uuid.UUID,
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
     _: Subscription = Depends(require_active_subscription),
 ):
-    """Stream the built EXE to the user via GitHub artifact proxy."""
+    """Return a short-lived signed token for browser-native download."""
     build = await _get_owned_build(build_id, user, session)
+    if build.status != "ready":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Build not ready.")
+    if _now() > build.download_expires_at:
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail="Download expired.")
+    return {"token": _make_download_token(build_id, user.id)}
+
+
+@router.get("/{build_id}/download")
+async def download_desktop_build(
+    build_id: uuid.UUID,
+    dt: str | None = Query(default=None),
+    user: User | None = Depends(current_active_user_optional),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Stream the built EXE to the user via GitHub artifact proxy."""
+    # Auth: either Bearer token (user dep) or short-lived download token (?dt=)
+    if dt:
+        build = await session.scalar(
+            select(DesktopBuild).where(DesktopBuild.id == build_id)
+        )
+        if not build or not _verify_download_token(dt, build_id, build.user_id):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired download token.")
+    elif user:
+        build = await _get_owned_build(build_id, user, session)
+    else:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required.")
 
     if build.status != "ready":
         raise HTTPException(

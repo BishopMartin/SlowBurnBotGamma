@@ -6,6 +6,7 @@ import {
   listDesktopBuilds,
   getDesktopBuild,
   getDesktopBuildDownloadUrl,
+  getDesktopBuildDownloadToken,
   revokeDesktopBuild,
   DesktopBuild,
   DesktopBuildConfig,
@@ -145,26 +146,10 @@ export default function ClientPage() {
 
   async function handleDownload(buildId: string) {
     setDownloading(buildId);
-    const token = localStorage.getItem("token");
-    const url = getDesktopBuildDownloadUrl(buildId);
     try {
-      const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.detail ?? `Download failed: ${res.status}`);
-      }
-      const blob = await res.blob();
-      const objUrl = URL.createObjectURL(blob);
-      const build = builds.find((b) => b.id === buildId);
-      const filename = `SlowBurnBot-client${build?.client_id ?? ""}.exe`;
-      const a = document.createElement("a");
-      a.href = objUrl;
-      a.download = filename;
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: window }));
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(objUrl), 10000);
+      const dt = await getDesktopBuildDownloadToken(buildId);
+      const url = getDesktopBuildDownloadUrl(buildId) + `?dt=${encodeURIComponent(dt)}`;
+      window.location.href = url;
       await load();
     } catch (e: unknown) {
       setSubmitError(e instanceof Error ? e.message : "Download failed.");

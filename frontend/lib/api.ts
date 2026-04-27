@@ -513,6 +513,11 @@ export function getDesktopBuildDownloadUrl(id: string): string {
   return `${API_URL}/desktop-builds/${id}/download`;
 }
 
+export async function getDesktopBuildDownloadToken(id: string): Promise<string> {
+  const res = await request<{ token: string }>(`/desktop-builds/${id}/download-token`, { method: "POST" });
+  return res.token;
+}
+
 export async function revokeDesktopBuild(id: string): Promise<DesktopBuild> {
   return request<DesktopBuild>(`/desktop-builds/${id}/revoke`, { method: "POST" });
 }
