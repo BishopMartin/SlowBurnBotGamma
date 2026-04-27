@@ -142,6 +142,8 @@ export async function adminUpdateNotificationCredentials(data: {
   smtp_user?: string;
   smtp_password?: string;
   textbelt_key?: string;
+  resend_api_key?: string;
+  resend_from_address?: string;
 }) {
   return request<NotificationCredentials>("/admin/notification-credentials", {
     method: "PUT",
@@ -423,6 +425,8 @@ export interface NotificationCredentials {
   smtp_user: string | null;
   smtp_password_set: boolean;
   textbelt_key_set: boolean;
+  resend_api_key_set: boolean;
+  resend_from_address: string | null;
   updated_at: string;
 }
 

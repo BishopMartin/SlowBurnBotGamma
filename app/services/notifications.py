@@ -1,13 +1,11 @@
 """Server-side notification dispatch for the bot client.
 
-The bot client posts events to /bot/notify and this module reads SMTP and
+The bot client posts events to /bot/notify and this module reads Resend and
 TextBelt credentials from `system_configs` and sends them. Credentials
 never leave the backend.
 """
 import logging
-from email.message import EmailMessage
 
-import aiosmtplib
 import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,31 +32,30 @@ async def send_email(
     session: AsyncSession,
 ) -> None:
     config = await _load_system_config(session)
-    if config is None or not config.smtp_server or not config.smtp_user:
-        raise NotificationError("SMTP not configured")
-    password = decrypt(config.smtp_password_enc) if config.smtp_password_enc else None
-    if not password:
-        raise NotificationError("SMTP password not configured")
-
-    msg = EmailMessage()
-    msg["Subject"] = subject
-    msg["From"] = config.smtp_user
-    msg["To"] = to
-    msg.set_content(body)
+    if config is None or not config.resend_api_key_enc or not config.resend_from_address:
+        raise NotificationError("Resend not configured")
+    api_key = decrypt(config.resend_api_key_enc)
 
     try:
-        await aiosmtplib.send(
-            msg,
-            hostname=config.smtp_server,
-            port=config.smtp_port or 587,
-            username=config.smtp_user,
-            password=password,
-            start_tls=True,
-            timeout=15,
-        )
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.post(
+                "https://api.resend.com/emails",
+                headers={"Authorization": f"Bearer {api_key}"},
+                json={
+                    "from": config.resend_from_address,
+                    "to": [to],
+                    "subject": subject or "SlowBurnBot",
+                    "text": body,
+                },
+            )
+        if resp.status_code not in (200, 201):
+            logger.error("Resend rejected send: %s %s", resp.status_code, resp.text)
+            raise NotificationError(f"Resend rejected send: {resp.status_code}")
+    except NotificationError:
+        raise
     except Exception as e:
-        logger.error("SMTP send failed: %s (server=%s port=%s user=%s)", e, config.smtp_server, config.smtp_port, config.smtp_user)
-        raise NotificationError(f"SMTP send failed: {e}") from e
+        logger.error("Resend request failed: %s", e)
+        raise NotificationError(f"Resend request failed: {e}") from e
 
 
 async def send_sms(to: str, body: str, session: AsyncSession) -> None:

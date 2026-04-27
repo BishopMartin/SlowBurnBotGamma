@@ -21,8 +21,11 @@ export default function AdminConfigPage() {
   const [smtpUser, setSmtpUser] = useState("");
   const [smtpPassword, setSmtpPassword] = useState("");
   const [textbeltKey, setTextbeltKey] = useState("");
+  const [resendFrom, setResendFrom] = useState("");
+  const [resendApiKey, setResendApiKey] = useState("");
   const [editingSmtpPassword, setEditingSmtpPassword] = useState(false);
   const [editingTextbeltKey, setEditingTextbeltKey] = useState(false);
+  const [editingResendApiKey, setEditingResendApiKey] = useState(false);
 
   useEffect(() => {
     adminGetNotificationCredentials()
@@ -31,6 +34,7 @@ export default function AdminConfigPage() {
         setSmtpServer(c.smtp_server || "");
         setSmtpPort(String(c.smtp_port));
         setSmtpUser(c.smtp_user || "");
+        setResendFrom(c.resend_from_address || "");
       })
       .catch(() => {});
   }, []);
@@ -46,13 +50,18 @@ export default function AdminConfigPage() {
       };
       if (smtpPassword) data.smtp_password = smtpPassword;
       if (textbeltKey) data.textbelt_key = textbeltKey;
+      data.resend_from_address = resendFrom;
+      if (resendApiKey) data.resend_api_key = resendApiKey;
 
       const updated = await adminUpdateNotificationCredentials(data);
       setCreds(updated);
       setSmtpPassword("");
       setTextbeltKey("");
+      setResendApiKey("");
+      setResendFrom(updated.resend_from_address || "");
       setEditingSmtpPassword(false);
       setEditingTextbeltKey(false);
+      setEditingResendApiKey(false);
       setMsg("saved.");
     } catch (err: unknown) {
       setMsg(err instanceof Error ? err.message : "save failed.");
@@ -142,6 +151,54 @@ export default function AdminConfigPage() {
               >
                 <span className={creds.smtp_password_set ? "text-[#f4f3ee]" : "text-[#9A968B]"}>
                   {creds.smtp_password_set ? " " + "*".repeat(13) : "----"}
+                </span>
+              </button>
+            )}
+            <span className="text-[#f4f3ee]">{"]"}</span>
+          </span>
+        </div>
+
+        {/* Resend row */}
+        <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm border-b border-[#3d3d3a]">
+          <span className="text-[#9A968B]" style={{ width: "8ch" }}>resend:</span>
+
+          <span className="inline-flex items-center gap-0">
+            <span className="text-[#9A968B]">{"from: "}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
+            <input
+              type="text"
+              value={resendFrom}
+              onChange={(e) => setResendFrom(e.target.value)}
+              placeholder="----"
+              style={{ width: "24ch" }}
+              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"
+            />
+            <span className="text-[#f4f3ee]">{"]"}</span>
+          </span>
+
+          <span className="inline-flex items-center gap-0">
+            <span className="text-[#9A968B]">{"api key: "}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
+            {editingResendApiKey ? (
+              <input
+                type="text"
+                value={resendApiKey}
+                onChange={(e) => setResendApiKey(e.target.value)}
+                placeholder="----"
+                autoFocus
+                onBlur={() => { if (!resendApiKey) setEditingResendApiKey(false); }}
+                style={{ width: "20ch" }}
+                className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 pl-1"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingResendApiKey(true)}
+                style={{ width: "20ch" }}
+                className="bg-transparent text-left font-mono min-w-0 pl-1 cursor-pointer inline-flex items-center translate-y-px"
+              >
+                <span className={creds.resend_api_key_set ? "text-[#f4f3ee]" : "text-[#9A968B]"}>
+                  {creds.resend_api_key_set ? " " + "*".repeat(19) : "----"}
                 </span>
               </button>
             )}

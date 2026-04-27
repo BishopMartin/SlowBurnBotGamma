@@ -9,6 +9,8 @@ class NotificationCredentialsUpdate(BaseModel):
     smtp_user: str | None = None
     smtp_password: str | None = None
     textbelt_key: str | None = None
+    resend_api_key: str | None = None
+    resend_from_address: str | None = None
 
 
 class NotificationCredentialsRead(BaseModel):
@@ -17,4 +19,6 @@ class NotificationCredentialsRead(BaseModel):
     smtp_user: str | None
     smtp_password_set: bool
     textbelt_key_set: bool
+    resend_api_key_set: bool
+    resend_from_address: str | None
     updated_at: datetime

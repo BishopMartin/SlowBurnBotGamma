@@ -291,6 +291,8 @@ async def get_notification_credentials(
         smtp_user=config.smtp_user,
         smtp_password_set=config.smtp_password_enc is not None,
         textbelt_key_set=config.textbelt_key_enc is not None,
+        resend_api_key_set=config.resend_api_key_enc is not None,
+        resend_from_address=config.resend_from_address,
         updated_at=config.updated_at,
     )
 
@@ -301,7 +303,7 @@ async def update_notification_credentials(
     _: User = Depends(current_superuser),
     session: AsyncSession = Depends(get_async_session),
 ):
-    """Update SMTP/TextBelt config. Only provided fields are changed."""
+    """Update SMTP/TextBelt/Resend config. Only provided fields are changed."""
     config = await _get_system_config(session)
 
     if body.smtp_server is not None:
@@ -314,6 +316,10 @@ async def update_notification_credentials(
         config.smtp_password_enc = encrypt(body.smtp_password) if body.smtp_password else None
     if body.textbelt_key is not None:
         config.textbelt_key_enc = encrypt(body.textbelt_key) if body.textbelt_key else None
+    if body.resend_api_key is not None:
+        config.resend_api_key_enc = encrypt(body.resend_api_key) if body.resend_api_key else None
+    if body.resend_from_address is not None:
+        config.resend_from_address = body.resend_from_address or None
 
     await session.commit()
     await session.refresh(config)
@@ -324,6 +330,8 @@ async def update_notification_credentials(
         smtp_user=config.smtp_user,
         smtp_password_set=config.smtp_password_enc is not None,
         textbelt_key_set=config.textbelt_key_enc is not None,
+        resend_api_key_set=config.resend_api_key_enc is not None,
+        resend_from_address=config.resend_from_address,
         updated_at=config.updated_at,
     )
 
