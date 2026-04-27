@@ -293,6 +293,7 @@ async def get_notification_credentials(
         textbelt_key_set=config.textbelt_key_enc is not None,
         resend_api_key_set=config.resend_api_key_enc is not None,
         resend_from_address=config.resend_from_address,
+        resend_reply_to=config.resend_reply_to,
         updated_at=config.updated_at,
     )
 
@@ -320,6 +321,8 @@ async def update_notification_credentials(
         config.resend_api_key_enc = encrypt(body.resend_api_key) if body.resend_api_key else None
     if body.resend_from_address is not None:
         config.resend_from_address = body.resend_from_address or None
+    if body.resend_reply_to is not None:
+        config.resend_reply_to = body.resend_reply_to or None
 
     await session.commit()
     await session.refresh(config)
@@ -332,6 +335,7 @@ async def update_notification_credentials(
         textbelt_key_set=config.textbelt_key_enc is not None,
         resend_api_key_set=config.resend_api_key_enc is not None,
         resend_from_address=config.resend_from_address,
+        resend_reply_to=config.resend_reply_to,
         updated_at=config.updated_at,
     )
 

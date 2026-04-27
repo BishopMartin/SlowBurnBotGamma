@@ -11,6 +11,7 @@ class NotificationCredentialsUpdate(BaseModel):
     textbelt_key: str | None = None
     resend_api_key: str | None = None
     resend_from_address: str | None = None
+    resend_reply_to: str | None = None
 
 
 class NotificationCredentialsRead(BaseModel):
@@ -21,4 +22,5 @@ class NotificationCredentialsRead(BaseModel):
     textbelt_key_set: bool
     resend_api_key_set: bool
     resend_from_address: str | None
+    resend_reply_to: str | None
     updated_at: datetime

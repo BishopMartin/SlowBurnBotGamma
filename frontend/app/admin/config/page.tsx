@@ -22,6 +22,7 @@ export default function AdminConfigPage() {
   const [smtpPassword, setSmtpPassword] = useState("");
   const [textbeltKey, setTextbeltKey] = useState("");
   const [resendFrom, setResendFrom] = useState("");
+  const [resendReplyTo, setResendReplyTo] = useState("");
   const [resendApiKey, setResendApiKey] = useState("");
   const [editingSmtpPassword, setEditingSmtpPassword] = useState(false);
   const [editingTextbeltKey, setEditingTextbeltKey] = useState(false);
@@ -35,6 +36,7 @@ export default function AdminConfigPage() {
         setSmtpPort(String(c.smtp_port));
         setSmtpUser(c.smtp_user || "");
         setResendFrom(c.resend_from_address || "");
+        setResendReplyTo(c.resend_reply_to || "");
       })
       .catch(() => {});
   }, []);
@@ -51,6 +53,7 @@ export default function AdminConfigPage() {
       if (smtpPassword) data.smtp_password = smtpPassword;
       if (textbeltKey) data.textbelt_key = textbeltKey;
       data.resend_from_address = resendFrom;
+      data.resend_reply_to = resendReplyTo;
       if (resendApiKey) data.resend_api_key = resendApiKey;
 
       const updated = await adminUpdateNotificationCredentials(data);
@@ -59,6 +62,7 @@ export default function AdminConfigPage() {
       setTextbeltKey("");
       setResendApiKey("");
       setResendFrom(updated.resend_from_address || "");
+      setResendReplyTo(updated.resend_reply_to || "");
       setEditingSmtpPassword(false);
       setEditingTextbeltKey(false);
       setEditingResendApiKey(false);
@@ -169,6 +173,20 @@ export default function AdminConfigPage() {
               type="text"
               value={resendFrom}
               onChange={(e) => setResendFrom(e.target.value)}
+              placeholder="----"
+              style={{ width: "24ch" }}
+              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"
+            />
+            <span className="text-[#f4f3ee]">{"]"}</span>
+          </span>
+
+          <span className="inline-flex items-center gap-0">
+            <span className="text-[#9A968B]">{"reply-to: "}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
+            <input
+              type="text"
+              value={resendReplyTo}
+              onChange={(e) => setResendReplyTo(e.target.value)}
               placeholder="----"
               style={{ width: "24ch" }}
               className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"

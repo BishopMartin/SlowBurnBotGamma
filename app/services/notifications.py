@@ -37,16 +37,19 @@ async def send_email(
     api_key = decrypt(config.resend_api_key_enc)
 
     try:
+        payload: dict = {
+            "from": config.resend_from_address,
+            "to": [to],
+            "subject": subject or "SlowBurnBot",
+            "text": body,
+        }
+        if config.resend_reply_to:
+            payload["reply_to"] = config.resend_reply_to
         async with httpx.AsyncClient(timeout=15) as client:
             resp = await client.post(
                 "https://api.resend.com/emails",
                 headers={"Authorization": f"Bearer {api_key}"},
-                json={
-                    "from": config.resend_from_address,
-                    "to": [to],
-                    "subject": subject or "SlowBurnBot",
-                    "text": body,
-                },
+                json=payload,
             )
         if resp.status_code not in (200, 201):
             logger.error("Resend rejected send: %s %s", resp.status_code, resp.text)

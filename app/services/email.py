@@ -19,6 +19,7 @@ async def _get_resend_config(session: AsyncSession) -> dict | None:
     return {
         "api_key": decrypt(config.resend_api_key_enc),
         "from_address": config.resend_from_address,
+        "reply_to": config.resend_reply_to,
     }
 
 
@@ -43,16 +44,19 @@ async def send_invite_email(
         f"\nUse this code when creating your account.\n"
     )
 
+    payload: dict = {
+        "from": resend["from_address"],
+        "to": [to_email],
+        "subject": "SlowBurnBot — Invitation",
+        "text": body,
+    }
+    if resend.get("reply_to"):
+        payload["reply_to"] = resend["reply_to"]
     async with httpx.AsyncClient(timeout=15) as client:
         resp = await client.post(
             "https://api.resend.com/emails",
             headers={"Authorization": f"Bearer {resend['api_key']}"},
-            json={
-                "from": resend["from_address"],
-                "to": [to_email],
-                "subject": "SlowBurnBot — Invitation",
-                "text": body,
-            },
+            json=payload,
         )
 
     if resp.status_code not in (200, 201):
