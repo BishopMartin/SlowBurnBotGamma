@@ -57,6 +57,7 @@ async def send_email(
             timeout=15,
         )
     except Exception as e:
+        logger.error("SMTP send failed: %s (server=%s port=%s user=%s)", e, config.smtp_server, config.smtp_port, config.smtp_user)
         raise NotificationError(f"SMTP send failed: {e}") from e
 
 
