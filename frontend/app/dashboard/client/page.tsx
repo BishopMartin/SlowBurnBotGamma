@@ -154,14 +154,17 @@ export default function ClientPage() {
         throw new Error(body?.detail ?? `Download failed: ${res.status}`);
       }
       const blob = await res.blob();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
+      const objUrl = URL.createObjectURL(blob);
       const build = builds.find((b) => b.id === buildId);
-      a.download = `SlowBurnBot-client${build?.client_id ?? ""}.exe`;
+      const filename = `SlowBurnBot-client${build?.client_id ?? ""}.exe`;
+      const a = document.createElement("a");
+      a.href = objUrl;
+      a.download = filename;
+      a.style.display = "none";
       document.body.appendChild(a);
-      a.click();
+      a.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: window }));
       document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
+      setTimeout(() => URL.revokeObjectURL(objUrl), 10000);
       await load();
     } catch (e: unknown) {
       setSubmitError(e instanceof Error ? e.message : "Download failed.");
