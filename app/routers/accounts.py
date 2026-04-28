@@ -16,6 +16,7 @@ from app.plan_tiers import get_max_accounts
 from app.models.account import Account
 from app.models.account_settings import AccountSettings
 from app.models.client_heartbeat import ClientHeartbeat
+from app.models.desktop_build import DesktopBuild
 from app.models.follow_target import FollowTarget
 from app.models.session_log import SessionLog
 from app.models.user import User
@@ -77,14 +78,25 @@ async def get_client_status(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    """Return heartbeat rows for all clients belonging to this user."""
+    """Return heartbeat rows for clients that have an active (non-revoked, non-failed) build."""
     cutoff = func.now() - timedelta(minutes=2)
+    active_client_ids = (
+        select(DesktopBuild.client_id)
+        .where(
+            DesktopBuild.user_id == user.id,
+            DesktopBuild.status.notin_(["revoked", "failed"]),
+        )
+        .scalar_subquery()
+    )
     result = await session.execute(
         select(
             ClientHeartbeat,
             (ClientHeartbeat.last_heartbeat >= cutoff).label("connected"),
         )
-        .where(ClientHeartbeat.user_id == user.id)
+        .where(
+            ClientHeartbeat.user_id == user.id,
+            ClientHeartbeat.client_id.in_(active_client_ids),
+        )
         .order_by(ClientHeartbeat.client_id)
     )
     rows = result.all()
