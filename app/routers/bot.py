@@ -325,6 +325,8 @@ async def activate_desktop_build(
 
     if build.activated_at is None:
         build.activated_at = datetime.now(timezone.utc)
-        await session.commit()
+    if body.bot_version:
+        build.bot_version = body.bot_version
+    await session.commit()
 
     return {"activated": True, "client_id": build.client_id}
