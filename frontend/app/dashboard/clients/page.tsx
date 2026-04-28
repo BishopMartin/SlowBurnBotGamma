@@ -71,7 +71,7 @@ function BuildForm({
     setCfg((p) => ({ ...p, [k]: v }));
   }
   return (
-    <div className="px-4 py-3 space-y-2 text-sm bg-[#1a1918] border-t border-[#3d3d3a]">
+    <div className="px-4 py-3 space-y-2 bg-[#1a1918] border-t border-[#3d3d3a]">
       <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
         <BracketInput label="chrome version" value={cfg.chrome_version} onChange={(v) => set("chrome_version", v)} width="5ch" placeholder="143" />
         <BracketInput label="client name" value={cfg.client_name} onChange={(v) => set("client_name", v.slice(0, 15))} width="15ch" placeholder="my laptop" />
@@ -95,14 +95,14 @@ function BuildForm({
         <button
           onClick={() => onSubmit(cfg)}
           disabled={submitting || !cfg.chrome_path.trim()}
-          className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
+          className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{submitting ? "requesting…" : "request build"}</Bracket>
         </button>
-        <button onClick={onCancel} className="group cursor-pointer transition-colors text-sm">
+        <button onClick={onCancel} className="group cursor-pointer transition-colors">
           <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">cancel</Bracket>
         </button>
-        {error && <span className="text-status-bad text-xs">{error}</span>}
+        {error && <span className="text-status-bad">{error}</span>}
       </div>
     </div>
   );
@@ -248,20 +248,20 @@ export default function ClientPage() {
       </div>
 
       {justCreated && (
-        <div className="border border-[#d97757] px-4 py-3 flex items-center gap-3 flex-wrap text-sm">
+        <div className="border border-[#d97757] px-4 py-3 flex items-center gap-3 flex-wrap">
           <span className="text-[#f4f3ee]">client {justCreated.client_id} queued.</span>
           <span className="text-[#9A968B]">activation token:</span>
-          <code className="text-[#E5C07B] text-xs">{justCreated.activation_token}</code>
-          <button onClick={() => copyToken(justCreated.activation_token)} className="group cursor-pointer transition-colors text-xs">
+          <code className="text-[#E5C07B]">{justCreated.activation_token}</code>
+          <button onClick={() => copyToken(justCreated.activation_token)} className="group cursor-pointer transition-colors">
             <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copied ? "copied!" : "copy"}</Bracket>
           </button>
-          <button onClick={() => setJustCreated(null)} className="group cursor-pointer transition-colors text-xs ml-auto">
+          <button onClick={() => setJustCreated(null)} className="group cursor-pointer transition-colors ml-auto">
             <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
           </button>
         </div>
       )}
 
-      {pageError && <div className="text-status-bad text-sm">{pageError}</div>}
+      {pageError && <div className="text-status-bad">{pageError}</div>}
 
       {/* Builds / slots table */}
       <div className={sectionCls}>
@@ -288,32 +288,32 @@ export default function ClientPage() {
                   const showSettings = expandedBuild === build.id;
                   return (
                     <>
-                      <tr key={build.id} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors text-sm">
+                      <tr key={build.id} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors">
                         <td className="px-4 py-3 text-[#f4f3ee] whitespace-nowrap">#{String(build.client_id).padStart(2, "0")}</td>
-                        <td className="px-4 py-3 text-[#9A968B] text-xs whitespace-nowrap">{cfg.client_name || "—"}</td>
-                        <td className="px-4 py-3 text-[#9A968B] text-xs whitespace-nowrap">{fmtDate(build.created_at)}</td>
+                        <td className="px-4 py-3 text-[#9A968B] whitespace-nowrap">{cfg.client_name || "—"}</td>
+                        <td className="px-4 py-3 text-[#9A968B] whitespace-nowrap">{fmtDate(build.created_at)}</td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className={statusColor(build.status)}>{build.status}</span>
                         </td>
-                        <td className="px-4 py-3 text-[#9A968B] text-xs whitespace-nowrap">{build.bot_version ? `v${build.bot_version}` : "—"}</td>
+                        <td className="px-4 py-3 text-[#9A968B] whitespace-nowrap">{build.bot_version ? `v${build.bot_version}` : "—"}</td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex gap-2 justify-end items-center">
                             {canDownload && (
-                              <button onClick={() => handleDownload(build.id)} disabled={downloading === build.id} className="group cursor-pointer transition-colors text-sm disabled:opacity-40">
+                              <button onClick={() => handleDownload(build.id)} disabled={downloading === build.id} className="group cursor-pointer transition-colors disabled:opacity-40">
                                 <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{downloading === build.id ? "…" : "download"}</Bracket>
                               </button>
                             )}
                             <button
                               onClick={() => handleRebuild(build.id)}
                               disabled={rebuilding === build.id}
-                              className="group cursor-pointer transition-colors text-sm disabled:opacity-40"
+                              className="group cursor-pointer transition-colors disabled:opacity-40"
                               onBlur={() => setConfirmRebuild(null)}
                             >
                               <Bracket className={confirmRebuild === build.id ? "text-[#E5C07B] group-hover:text-[#f4f3ee]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>
                                 {rebuilding === build.id ? "…" : confirmRebuild === build.id ? "confirm?" : "re-build"}
                               </Bracket>
                             </button>
-                            <button onClick={() => setExpandedBuild(expandedBuild === build.id ? null : build.id)} className="group cursor-pointer transition-colors text-sm">
+                            <button onClick={() => setExpandedBuild(expandedBuild === build.id ? null : build.id)} className="group cursor-pointer transition-colors">
                               <Bracket className={showSettings ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>settings</Bracket>
                             </button>
                           </div>
@@ -321,7 +321,7 @@ export default function ClientPage() {
                       </tr>
                       {showSettings && (
                         <tr key={`${build.id}-settings`} className="border-t border-[#3d3d3a] bg-[#1a1918]">
-                          <td colSpan={6} className="px-4 py-3 text-sm text-[#9A968B]">
+                          <td colSpan={6} className="px-4 py-3 text-[#9A968B]">
                             <div className="flex flex-wrap gap-x-6 gap-y-1 mb-2">
                               <span><span className="text-[#3d3d3a]">chrome version:</span> <span className="text-[#f4f3ee]">{cfg.chrome_version || "—"}</span></span>
                               <span><span className="text-[#3d3d3a]">client name:</span> <span className="text-[#f4f3ee]">{cfg.client_name || "—"}</span></span>
@@ -348,7 +348,7 @@ export default function ClientPage() {
                   const isExpanding = expandingSlot === slotIndex;
                   return (
                     <>
-                      <tr key={`empty-${i}`} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors text-sm">
+                      <tr key={`empty-${i}`} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors">
                         <td className="px-4 py-3 text-[#3d3d3a]">#{String(slotIndex + 1).padStart(2, "0")}</td>
                         <td className="px-4 py-3 text-[#3d3d3a]">—</td>
                         <td className="px-4 py-3 text-[#3d3d3a]">—</td>
@@ -357,7 +357,7 @@ export default function ClientPage() {
                         <td className="px-4 py-3 text-right">
                           <button
                             onClick={() => { setExpandingSlot(isExpanding ? null : slotIndex); setSlotError(null); }}
-                            className="group cursor-pointer transition-colors text-sm"
+                            className="group cursor-pointer transition-colors"
                           >
                             <Bracket className={isExpanding ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>build</Bracket>
                           </button>
@@ -396,7 +396,7 @@ export default function ClientPage() {
         <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918]">
           <span className="text-[#f4f3ee]">getting started</span>
         </div>
-        <div className="px-4 py-4 space-y-2 text-sm text-[#9A968B]">
+        <div className="px-4 py-4 space-y-2 text-[#9A968B]">
           <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">build</span> on an empty slot and configure your client settings.</p>
           <p><span className="text-[#f4f3ee]">2.</span> Download <code className="text-[#E5C07B]">SlowBurnBot.exe</code> when the build status shows <span className="text-status-ok">ready</span>.</p>
           <p><span className="text-[#f4f3ee]">3.</span> Run the EXE on Windows and log in with your dashboard credentials.</p>
