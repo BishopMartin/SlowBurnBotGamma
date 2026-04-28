@@ -295,7 +295,7 @@ export default function AccountDetailPage() {
               </span>
 
               <span className="inline-flex items-center gap-0">
-                <span className="text-[#9A968B]">{"delay fixed: "}</span>
+                <span className="text-[#9A968B]">{"delay - fixed: "}</span>
                 <span className="text-[#f4f3ee]">{"["}</span>
                 <NumberInput
                   value={settings.delay_base_minutes}
@@ -303,10 +303,7 @@ export default function AccountDetailPage() {
                   placeholder="60"
                 />
                 <span className="text-[#f4f3ee]">{"]"}</span>
-              </span>
-
-              <span className="inline-flex items-center gap-0">
-                <span className="text-[#9A968B]">{"delay random: "}</span>
+                <span className="text-[#9A968B]">{" + random: "}</span>
                 <span className="text-[#f4f3ee]">{"["}</span>
                 <NumberInput
                   value={settings.delay_random_minutes}
@@ -314,6 +311,7 @@ export default function AccountDetailPage() {
                   placeholder="0"
                 />
                 <span className="text-[#f4f3ee]">{"]"}</span>
+                <span className="text-[#9A968B]">{" - minutes between each session"}</span>
               </span>
             </div>
 
