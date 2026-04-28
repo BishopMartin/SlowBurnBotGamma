@@ -211,33 +211,6 @@ export default function DashboardPage() {
         Overview{user?.display_name ? ` — ${user.display_name}` : ""}
       </h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          {
-            label: "plan",
-            value: displayPlanTier,
-            sub: entitlement?.active ? (
-              <span className="text-status-ok">active</span>
-            ) : (
-              <span className="text-status-bad">inactive</span>
-            ),
-          },
-          { label: "total accounts", value: `${accounts.length}/${maxAccounts}`, sub: null },
-          { label: "enabled accounts", value: `${enabledCount}/${activeAccounts.length}`, sub: null },
-        ].map(({ label, value, sub }) => (
-          <div
-            key={label}
-            className="border border-[#3d3d3a] px-4 py-2.5 flex flex-row items-center justify-between gap-3 min-w-0"
-          >
-            <span className="text-[#9A968B] shrink-0">{label}</span>
-            <div className="flex items-center gap-2 min-w-0 justify-end">
-              <span className="text-[#f4f3ee] font-semibold capitalize truncate">{value}</span>
-              {sub}
-            </div>
-          </div>
-        ))}
-      </div>
-
       <div className="space-y-2">
       <h2 className="font-semibold text-[#f4f3ee]">Client Status</h2>
 
