@@ -118,7 +118,7 @@ export default function ConfigPage() {
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">session settings</div>
 
-        <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
+        <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap">
           <BracketCheckbox label="Like Suggested" checked={likeSuggested} onChange={setLikeSuggested} />
           <BracketCheckbox label="Like Sponsored" checked={likeSponsored} onChange={setLikeSponsored} />
           <BracketCheckbox label="Skip Login Check" checked={skipLoginCheck} onChange={setSkipLoginCheck} />
@@ -141,7 +141,7 @@ export default function ConfigPage() {
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">notifications</div>
 
-        <div className="divide-y divide-[#3d3d3a] text-sm">
+        <div className="divide-y divide-[#3d3d3a]">
           <div className="px-4 py-2 flex items-center gap-x-5 gap-y-2 flex-wrap">
             <BracketCheckbox label="Session Notifications" checked={noticesSession} onChange={setNoticesSession} />
             <span className="inline-flex items-center gap-0 pr-5">
@@ -170,12 +170,12 @@ export default function ConfigPage() {
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">universal ignore</div>
 
-        <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
+        <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap">
           <BracketCheckbox label="Skip Private Accounts" checked={skipPrivate} onChange={setSkipPrivate} />
         </div>
 
-        <div className="px-4 py-3 border-t border-[#3d3d3a] text-sm">
-          <div className="text-[#9A968B] text-sm mb-1">skip/ignore account list</div>
+        <div className="px-4 py-3 border-t border-[#3d3d3a]">
+          <div className="text-[#9A968B] mb-1">skip/ignore account list</div>
           <textarea
             value={ignoreHandles}
             onChange={(e) => setIgnoreHandles(e.target.value)}
