@@ -16,6 +16,7 @@ from app.deps import require_active_subscription
 from app.models.desktop_build import DesktopBuild
 from app.models.subscription import Subscription
 from app.models.user import User
+from app.plan_tiers import get_max_clients
 from app.schemas.desktop_build import (
     DesktopBuildCreate,
     DesktopBuildRead,
@@ -112,6 +113,14 @@ async def _poll_github_status(build: DesktopBuild, session: AsyncSession) -> Non
     await session.refresh(build)
 
 
+@router.get("/meta")
+async def get_desktop_builds_meta(
+    _: User = Depends(current_active_user),
+):
+    """Return static metadata about desktop builds (e.g. current bot version)."""
+    return {"current_bot_version": settings.current_bot_version}
+
+
 @router.post("", response_model=DesktopBuildWithToken, status_code=status.HTTP_201_CREATED)
 async def create_desktop_build(
     body: DesktopBuildCreate,
@@ -120,6 +129,20 @@ async def create_desktop_build(
     _: Subscription = Depends(require_active_subscription),
 ):
     """Configure and request a new per-customer Windows EXE build."""
+    # Enforce per-plan client limit
+    max_clients = get_max_clients(user.plan_tier)
+    current_clients = await session.scalar(
+        select(func.count()).where(
+            DesktopBuild.user_id == user.id,
+            DesktopBuild.status.notin_(["revoked", "failed"]),
+        )
+    )
+    if max_clients > 0 and current_clients >= max_clients:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Client limit reached for your plan ({max_clients} clients).",
+        )
+
     # Resolve api_url: use client-supplied value or fall back to the server's PUBLIC_API_URL
     config = body.config
     api_url = (config.api_url or settings.public_api_url).rstrip("/")

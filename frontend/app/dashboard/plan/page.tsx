@@ -37,6 +37,10 @@ export default function PlanPage() {
             <span className="text-[#9A968B]">accounts</span>
             <span className="text-[#f4f3ee]">{info.current_accounts}/{info.max_accounts}</span>
           </div>
+          <div className="flex items-center gap-4">
+            <span className="text-[#9A968B]">clients</span>
+            <span className="text-[#f4f3ee]">{info.current_clients}/{info.max_clients}</span>
+          </div>
           {info.current_period_end && (
             <div className="flex items-center gap-4">
               <span className="text-[#9A968B]">renewal</span>
@@ -57,6 +61,7 @@ export default function PlanPage() {
               <th className="px-4 py-2 font-normal">tier</th>
               <th className="px-4 py-2 font-normal">price</th>
               <th className="px-4 py-2 font-normal">accounts</th>
+              <th className="px-4 py-2 font-normal">clients</th>
               <th className="px-4 py-2 font-normal text-right"></th>
             </tr>
           </thead>
@@ -75,7 +80,8 @@ export default function PlanPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-[#f4f3ee]">${tier.price}/mo</td>
-                  <td className="px-4 py-3 text-[#f4f3ee]">{tier.max_accounts} accounts</td>
+                  <td className="px-4 py-3 text-[#f4f3ee]">{tier.max_accounts}</td>
+                  <td className="px-4 py-3 text-[#f4f3ee]">{tier.max_clients}</td>
                   <td className="px-4 py-3 text-right">
                     {isCurrent ? (
                       <Bracket className="text-[#d97757]">current plan</Bracket>

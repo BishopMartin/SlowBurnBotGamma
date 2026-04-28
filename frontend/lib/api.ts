@@ -390,6 +390,7 @@ export interface TierInfo {
   name: string;
   price: number;
   max_accounts: number;
+  max_clients: number;
 }
 
 export interface SubscriptionInfo {
@@ -397,6 +398,8 @@ export interface SubscriptionInfo {
   status: string;
   max_accounts: number;
   current_accounts: number;
+  max_clients: number;
+  current_clients: number;
   current_period_end: string | null;
   tiers: TierInfo[];
 }
@@ -509,6 +512,10 @@ export async function createDesktopBuild(config: DesktopBuildConfig): Promise<De
 
 export async function listDesktopBuilds(): Promise<DesktopBuild[]> {
   return request<DesktopBuild[]>("/desktop-builds");
+}
+
+export async function getDesktopBuildsMeta(): Promise<{ current_bot_version: string }> {
+  return request<{ current_bot_version: string }>("/desktop-builds/meta");
 }
 
 export async function getDesktopBuild(id: string): Promise<DesktopBuild> {

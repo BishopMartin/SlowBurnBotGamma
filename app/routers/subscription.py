@@ -8,9 +8,10 @@ from app.auth import current_active_user
 from app.database import get_async_session
 from app.deps import get_active_subscription
 from app.models.account import Account
+from app.models.desktop_build import DesktopBuild
 from app.models.subscription import Subscription
 from app.models.user import User
-from app.plan_tiers import PLAN_TIERS, get_max_accounts
+from app.plan_tiers import PLAN_TIERS, get_max_accounts, get_max_clients
 
 router = APIRouter(prefix="/subscription", tags=["subscription"])
 
@@ -19,6 +20,7 @@ class TierInfo(BaseModel):
     name: str
     price: int
     max_accounts: int
+    max_clients: int
 
 
 class SubscriptionInfoRead(BaseModel):
@@ -26,6 +28,8 @@ class SubscriptionInfoRead(BaseModel):
     status: str
     max_accounts: int
     current_accounts: int
+    max_clients: int
+    current_clients: int
     current_period_end: str | None = None
     tiers: list[TierInfo]
 
@@ -44,13 +48,24 @@ async def get_subscription_info(
         else None
     )
 
-    count_result = await session.execute(
+    current_accounts = await session.scalar(
         select(func.count()).where(Account.user_id == user.id)
     )
-    current_accounts = count_result.scalar_one()
+
+    current_clients = await session.scalar(
+        select(func.count()).where(
+            DesktopBuild.user_id == user.id,
+            DesktopBuild.status.notin_(["revoked", "failed"]),
+        )
+    )
 
     tiers = [
-        TierInfo(name=name, price=info["price"], max_accounts=info["max_accounts"])
+        TierInfo(
+            name=name,
+            price=info["price"],
+            max_accounts=info["max_accounts"],
+            max_clients=info["max_clients"],
+        )
         for name, info in PLAN_TIERS.items()
     ]
 
@@ -59,6 +74,8 @@ async def get_subscription_info(
         status=sub_status,
         max_accounts=get_max_accounts(plan_tier),
         current_accounts=current_accounts,
+        max_clients=get_max_clients(plan_tier),
+        current_clients=current_clients,
         current_period_end=period_end,
         tiers=tiers,
     )
