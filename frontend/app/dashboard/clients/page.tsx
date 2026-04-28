@@ -3,13 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import {
   createDesktopBuild,
+  revokeDesktopBuild,
   listDesktopBuilds,
   getDesktopBuild,
   getDesktopBuildDownloadUrl,
   getDesktopBuildDownloadToken,
   getDesktopBuildsMeta,
   getSubscriptionInfo,
-  rebuildDesktopBuild,
   DesktopBuild,
   DesktopBuildConfig,
   DesktopBuildWithToken,
@@ -59,12 +59,14 @@ function BuildForm({
   onCancel,
   submitting,
   error,
+  submitLabel = "request build",
 }: {
   initial: DesktopBuildConfig;
   onSubmit: (cfg: DesktopBuildConfig) => void;
   onCancel: () => void;
   submitting: boolean;
   error: string | null;
+  submitLabel?: string;
 }) {
   const [cfg, setCfg] = useState<DesktopBuildConfig>(initial);
   function set<K extends keyof DesktopBuildConfig>(k: K, v: DesktopBuildConfig[K]) {
@@ -97,7 +99,7 @@ function BuildForm({
           disabled={submitting || !cfg.chrome_path.trim()}
           className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{submitting ? "requesting…" : "request build"}</Bracket>
+          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{submitting ? "requesting…" : submitLabel}</Bracket>
         </button>
         <button onClick={onCancel} className="group cursor-pointer transition-colors">
           <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">cancel</Bracket>
@@ -114,18 +116,12 @@ export default function ClientPage() {
   const [currentBotVersion, setCurrentBotVersion] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
-  // Per-slot inline form state
-  const [expandingSlot, setExpandingSlot] = useState<number | null>(null); // slot index of open build form
-  const [slotSubmitting, setSlotSubmitting] = useState(false);
-  const [slotError, setSlotError] = useState<string | null>(null);
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  // Per-build state
-  const [expandedBuild, setExpandedBuild] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
-  const [confirmRebuild, setConfirmRebuild] = useState<string | null>(null);
-  const [rebuilding, setRebuilding] = useState<string | null>(null);
 
-  // Activation token banner
   const [justCreated, setJustCreated] = useState<DesktopBuildWithToken | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -151,13 +147,11 @@ export default function ClientPage() {
     getDesktopBuildsMeta().then((m) => setCurrentBotVersion(m.current_bot_version)).catch(() => {});
   }, []);
 
-  // Refresh subInfo after any build change
   async function refreshAll() {
     await load();
     getSubscriptionInfo().then(setSubInfo).catch(() => {});
   }
 
-  // Poll active builds
   useEffect(() => {
     const active = builds.filter(isActive);
     if (active.length === 0) { if (pollRef.current) clearInterval(pollRef.current); return; }
@@ -169,7 +163,6 @@ export default function ClientPage() {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [builds]);
 
-  // Slot computation: only non-revoked/non-failed builds fill slots
   const activeBuilds = builds
     .filter((b) => b.status !== "revoked" && b.status !== "failed")
     .sort((a, b) => a.client_id - b.client_id);
@@ -177,33 +170,39 @@ export default function ClientPage() {
   const maxClients = subInfo?.max_clients ?? 0;
   const emptySlotCount = Math.max(0, maxClients - activeBuilds.length);
 
-  async function handleSlotSubmit(cfg: DesktopBuildConfig) {
-    setSlotSubmitting(true);
-    setSlotError(null);
+  function toggleExpand(key: string) {
+    setExpandedKey((prev) => prev === key ? null : key);
+    setFormError(null);
+  }
+
+  async function handleNewBuild(cfg: DesktopBuildConfig) {
+    setFormSubmitting(true);
+    setFormError(null);
     try {
       const result = await createDesktopBuild(cfg);
       setJustCreated(result);
-      setExpandingSlot(null);
+      setExpandedKey(null);
       await refreshAll();
     } catch (e: unknown) {
-      setSlotError(e instanceof Error ? e.message : "Build request failed.");
+      setFormError(e instanceof Error ? e.message : "Build request failed.");
     } finally {
-      setSlotSubmitting(false);
+      setFormSubmitting(false);
     }
   }
 
-  async function handleRebuild(buildId: string) {
-    if (confirmRebuild !== buildId) { setConfirmRebuild(buildId); return; }
-    setConfirmRebuild(null);
-    setRebuilding(buildId);
+  async function handleRebuildWithConfig(buildId: string, cfg: DesktopBuildConfig) {
+    setFormSubmitting(true);
+    setFormError(null);
     try {
-      const result = await rebuildDesktopBuild(buildId);
+      await revokeDesktopBuild(buildId);
+      const result = await createDesktopBuild(cfg);
       setJustCreated(result);
+      setExpandedKey(null);
       await refreshAll();
     } catch (e: unknown) {
-      setPageError(e instanceof Error ? e.message : "Rebuild failed.");
+      setFormError(e instanceof Error ? e.message : "Rebuild failed.");
     } finally {
-      setRebuilding(null);
+      setFormSubmitting(false);
     }
   }
 
@@ -282,10 +281,10 @@ export default function ClientPage() {
               </thead>
               <tbody>
                 {/* Filled slots */}
-                {activeBuilds.map((build, i) => {
+                {activeBuilds.map((build) => {
                   const cfg = build.build_options as DesktopBuildConfig;
                   const canDownload = build.status === "ready" && !isExpired(build);
-                  const showSettings = expandedBuild === build.id;
+                  const isExpanded = expandedKey === build.id;
                   return (
                     <>
                       <tr key={build.id} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors">
@@ -303,38 +302,23 @@ export default function ClientPage() {
                                 <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{downloading === build.id ? "…" : "download"}</Bracket>
                               </button>
                             )}
-                            <button
-                              onClick={() => handleRebuild(build.id)}
-                              disabled={rebuilding === build.id}
-                              className="group cursor-pointer transition-colors disabled:opacity-40"
-                              onBlur={() => setConfirmRebuild(null)}
-                            >
-                              <Bracket className={confirmRebuild === build.id ? "text-[#E5C07B] group-hover:text-[#f4f3ee]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>
-                                {rebuilding === build.id ? "…" : confirmRebuild === build.id ? "confirm?" : "re-build"}
-                              </Bracket>
-                            </button>
-                            <button onClick={() => setExpandedBuild(expandedBuild === build.id ? null : build.id)} className="group cursor-pointer transition-colors">
-                              <Bracket className={showSettings ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>settings</Bracket>
+                            <button onClick={() => toggleExpand(build.id)} className="group cursor-pointer transition-colors">
+                              <Bracket className={isExpanded ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>settings/build</Bracket>
                             </button>
                           </div>
                         </td>
                       </tr>
-                      {showSettings && (
-                        <tr key={`${build.id}-settings`} className="border-t border-[#3d3d3a] bg-[#1a1918]">
-                          <td colSpan={6} className="px-4 py-3 text-[#9A968B]">
-                            <div className="flex flex-wrap gap-x-6 gap-y-1 mb-2">
-                              <span><span className="text-[#9A968B]">chrome version:</span> <span className="text-[#f4f3ee]">{cfg.chrome_version || "—"}</span></span>
-                              <span><span className="text-[#9A968B]">client name:</span> <span className="text-[#f4f3ee]">{cfg.client_name || "—"}</span></span>
-                            </div>
-                            <div className="mb-1"><span className="text-[#9A968B]">user agent:</span> <span className="text-[#f4f3ee]">{cfg.system_user_agent || "—"}</span></div>
-                            <div className="mb-1"><span className="text-[#9A968B]">chrome path:</span> <span className="text-[#f4f3ee]">{cfg.chrome_path || "—"}</span></div>
-                            <div className="mb-2"><span className="text-[#9A968B]">user data dir:</span> <span className="text-[#f4f3ee]">{cfg.chrome_user_data_dir_base || "—"}</span></div>
-                            <div className="flex flex-wrap gap-x-6 gap-y-1">
-                              <span><span className="text-[#9A968B]">headless:</span> <span className="text-[#f4f3ee]">{cfg.headless ? "yes" : "no"}</span></span>
-                              <span><span className="text-[#9A968B]">detach:</span> <span className="text-[#f4f3ee]">{cfg.detach ? "yes" : "no"}</span></span>
-                              <span><span className="text-[#9A968B]">close on session end:</span> <span className="text-[#f4f3ee]">{cfg.close_browser_session ? "yes" : "no"}</span></span>
-                              <span><span className="text-[#9A968B]">close on exit:</span> <span className="text-[#f4f3ee]">{cfg.close_browser_exit ? "yes" : "no"}</span></span>
-                            </div>
+                      {isExpanded && (
+                        <tr key={`${build.id}-form`} className="border-t border-[#3d3d3a]">
+                          <td colSpan={6} className="p-0">
+                            <BuildForm
+                              initial={cfg}
+                              submitLabel="request re-build"
+                              onSubmit={(newCfg) => handleRebuildWithConfig(build.id, newCfg)}
+                              onCancel={() => { setExpandedKey(null); setFormError(null); }}
+                              submitting={formSubmitting}
+                              error={formError}
+                            />
                           </td>
                         </tr>
                       )}
@@ -344,34 +328,33 @@ export default function ClientPage() {
 
                 {/* Empty slots */}
                 {Array.from({ length: emptySlotCount }).map((_, i) => {
-                  const slotIndex = activeBuilds.length + i;
-                  const isExpanding = expandingSlot === slotIndex;
+                  const slotKey = `slot-${i}`;
+                  const slotNum = activeBuilds.length + i + 1;
+                  const isExpanded = expandedKey === slotKey;
                   return (
                     <>
-                      <tr key={`empty-${i}`} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors">
-                        <td className="px-4 py-3 text-[#3d3d3a]">#{String(slotIndex + 1).padStart(2, "0")}</td>
+                      <tr key={slotKey} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors">
+                        <td className="px-4 py-3 text-[#3d3d3a]">#{String(slotNum).padStart(2, "0")}</td>
                         <td className="px-4 py-3 text-[#3d3d3a]">—</td>
                         <td className="px-4 py-3 text-[#3d3d3a]">—</td>
                         <td className="px-4 py-3 text-[#3d3d3a]">—</td>
                         <td className="px-4 py-3 text-[#3d3d3a]">—</td>
                         <td className="px-4 py-3 text-right">
-                          <button
-                            onClick={() => { setExpandingSlot(isExpanding ? null : slotIndex); setSlotError(null); }}
-                            className="group cursor-pointer transition-colors"
-                          >
-                            <Bracket className={isExpanding ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>build</Bracket>
+                          <button onClick={() => toggleExpand(slotKey)} className="group cursor-pointer transition-colors">
+                            <Bracket className={isExpanded ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>settings/build</Bracket>
                           </button>
                         </td>
                       </tr>
-                      {isExpanding && (
-                        <tr key={`empty-${i}-form`} className="border-t border-[#3d3d3a]">
+                      {isExpanded && (
+                        <tr key={`${slotKey}-form`} className="border-t border-[#3d3d3a]">
                           <td colSpan={6} className="p-0">
                             <BuildForm
                               initial={DEFAULT_CONFIG}
-                              onSubmit={handleSlotSubmit}
-                              onCancel={() => { setExpandingSlot(null); setSlotError(null); }}
-                              submitting={slotSubmitting}
-                              error={slotError}
+                              submitLabel="request build"
+                              onSubmit={handleNewBuild}
+                              onCancel={() => { setExpandedKey(null); setFormError(null); }}
+                              submitting={formSubmitting}
+                              error={formError}
                             />
                           </td>
                         </tr>
@@ -397,7 +380,7 @@ export default function ClientPage() {
           <span className="text-[#f4f3ee]">getting started</span>
         </div>
         <div className="px-4 py-4 space-y-2 text-[#9A968B]">
-          <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">build</span> on an empty slot and configure your client settings.</p>
+          <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">settings/build</span> on an empty slot and configure your client settings.</p>
           <p><span className="text-[#f4f3ee]">2.</span> Download <code className="text-[#E5C07B]">SlowBurnBot.exe</code> when the build status shows <span className="text-status-ok">ready</span>.</p>
           <p><span className="text-[#f4f3ee]">3.</span> Run the EXE on Windows and log in with your dashboard credentials.</p>
           <p><span className="text-[#f4f3ee]">4.</span> The client activates on first launch and runs normally from there.</p>
