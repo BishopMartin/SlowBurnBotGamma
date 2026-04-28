@@ -145,7 +145,7 @@ export default function AccountDetailPage() {
     <div className="space-y-6 font-mono">
 
       {/* Header */}
-      <div className="flex items-center gap-2 flex-wrap text-sm">
+      <div className="flex items-center gap-2 flex-wrap">
         <Link href="/dashboard/accounts" className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">accounts</Link>
         <span className="text-[#3d3d3a]">-</span>
         <Link href="/dashboard/accounts?tab=settings" className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">settings</Link>
@@ -158,7 +158,7 @@ export default function AccountDetailPage() {
         {/* Configuration */}
         <div className={sectionCls}>
           <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">configuration</div>
-          <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
+          <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap">
 
             <span className="inline-flex items-center gap-1">
               <span className="text-[#9A968B]">enabled:</span>
@@ -237,7 +237,7 @@ export default function AccountDetailPage() {
         {/* Schedule */}
         <div className={sectionCls}>
           <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">schedule</div>
-          <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
+          <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap">
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#9A968B]">{"days: "}</span>
@@ -410,7 +410,7 @@ export default function AccountDetailPage() {
         {/* Follow Settings */}
         <div className={sectionCls}>
           <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">follow settings</div>
-          <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm border-b border-[#3d3d3a]">
+          <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap border-b border-[#3d3d3a]">
 
             <span className="inline-flex items-center gap-0">
               <span className="text-[#9A968B]">{"unfollow after: "}</span>
@@ -427,7 +427,7 @@ export default function AccountDetailPage() {
           </div>
           <div className="px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-4">
             <div>
-              <div className="text-[#9A968B] text-sm mb-1">account group</div>
+              <div className="text-[#9A968B] mb-1">account group</div>
               <textarea placeholder="comma-separated" rows={5}
                 value={settings.account_group ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, account_group: e.target.value || null }))}
@@ -435,7 +435,7 @@ export default function AccountDetailPage() {
               />
             </div>
             <div>
-              <div className="text-[#9A968B] text-sm mb-1">instagram topics</div>
+              <div className="text-[#9A968B] mb-1">instagram topics</div>
               <textarea placeholder="comma-separated" rows={5}
                 value={settings.topics ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, topics: e.target.value || null }))}
