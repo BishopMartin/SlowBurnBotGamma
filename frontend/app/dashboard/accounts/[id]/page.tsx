@@ -14,6 +14,7 @@ import {
   ActionBlock,
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
+import { BracketCheckbox } from "@/lib/bracket-checkbox";
 import { formatTime } from "@/lib/format";
 import { Dropdown } from "@/lib/dropdown";
 import { NumberInput } from "@/lib/number-input";
@@ -160,21 +161,14 @@ export default function AccountDetailPage() {
           <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">configuration</div>
           <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap">
 
-            <span className="inline-flex items-center gap-1">
-              <span className="text-[#9A968B]">enabled:</span>
-              <button
-                type="button"
-                onClick={() => handleAccountField({ enabled: !account.enabled })}
-                className="group cursor-pointer transition-colors"
-              >
-                <Bracket className={account.enabled ? "text-status-ok group-hover:text-status-bad" : "text-status-bad group-hover:text-status-ok"}>
-                  {account.enabled ? "on" : "off"}
-                </Bracket>
-              </button>
-            </span>
+            <BracketCheckbox
+              label="enabled"
+              checked={account.enabled}
+              onChange={(v) => handleAccountField({ enabled: v })}
+            />
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#9A968B]">{"group: "}</span>
+              <span className="text-[#9A968B]">{"client: "}</span>
               <span className="text-[#f4f3ee]">{"["}</span>
               <input
                 type="text"
