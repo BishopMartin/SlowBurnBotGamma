@@ -389,7 +389,7 @@ export default function AccountsPage() {
 
       </div>
 
-      <form onSubmit={handleAdd} className="flex flex-wrap items-center gap-3 font-mono text-sm">
+      <form onSubmit={handleAdd} className="flex flex-wrap items-center gap-3 font-mono">
         <BracketInput label="new account" value={newName} onChange={setNewName} placeholder="----" width="24ch" />
         <button
           type="submit"
