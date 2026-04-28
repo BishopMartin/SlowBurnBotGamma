@@ -231,87 +231,91 @@ export default function AccountDetailPage() {
         {/* Schedule */}
         <div className={sectionCls}>
           <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">schedule</div>
-          <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap">
+          <div className="px-4 py-3 space-y-2">
 
-            <span className="inline-flex items-center gap-0">
-              <span className="text-[#9A968B]">{"days: "}</span>
-              <span className="text-[#f4f3ee]">{"["}</span>
-              <Dropdown
-                value={settings.schedule_days ?? ""}
-                onChange={(v) => setSettings((s) => ({ ...s, schedule_days: v || null }))}
-                placeholder="----"
-                options={[
-                  { value: "", label: "----" },
-                  ...SCHEDULE_DAYS.map((d) => ({ value: d, label: d })),
-                ]}
-              />
-              <span className="text-[#f4f3ee]">{"]"}</span>
-            </span>
+            <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
+              <span className="inline-flex items-center gap-0">
+                <span className="text-[#9A968B]">{"days: "}</span>
+                <span className="text-[#f4f3ee]">{"["}</span>
+                <Dropdown
+                  value={settings.schedule_days ?? ""}
+                  onChange={(v) => setSettings((s) => ({ ...s, schedule_days: v || null }))}
+                  placeholder="----"
+                  options={[
+                    { value: "", label: "----" },
+                    ...SCHEDULE_DAYS.map((d) => ({ value: d, label: d })),
+                  ]}
+                />
+                <span className="text-[#f4f3ee]">{"]"}</span>
+              </span>
 
-            <span className="inline-flex items-center gap-0">
-              <span className="text-[#9A968B]">{"start: "}</span>
-              <span className="text-[#f4f3ee]">{"["}</span>
-              <input
-                type="text"
-                value={editingStart ?? (settings.schedule_start ? formatTime(settings.schedule_start) : "")}
-                onFocus={() => setEditingStart(settings.schedule_start ? formatTime(settings.schedule_start) : "")}
-                onChange={(e) => setEditingStart(e.target.value)}
-                onBlur={() => { setSettings((s) => ({ ...s, schedule_start: parseTime(editingStart ?? "") })); setEditingStart(null); }}
-                placeholder="10:00 AM"
-                style={{ width: "8ch", paddingLeft: "1ch", paddingRight: "1ch", boxSizing: "content-box" }}
-                className="bg-transparent text-[#f4f3ee] outline-none font-mono min-w-0"
-              />
-              <span className="text-[#f4f3ee]">{"]"}</span>
-            </span>
+              <span className="inline-flex items-center gap-0">
+                <span className="text-[#9A968B]">{"start: "}</span>
+                <span className="text-[#f4f3ee]">{"["}</span>
+                <input
+                  type="text"
+                  value={editingStart ?? (settings.schedule_start ? formatTime(settings.schedule_start) : "")}
+                  onFocus={() => setEditingStart(settings.schedule_start ? formatTime(settings.schedule_start) : "")}
+                  onChange={(e) => setEditingStart(e.target.value)}
+                  onBlur={() => { setSettings((s) => ({ ...s, schedule_start: parseTime(editingStart ?? "") })); setEditingStart(null); }}
+                  placeholder="10:00 AM"
+                  style={{ width: "8ch", paddingLeft: "1ch", paddingRight: "0", boxSizing: "content-box" }}
+                  className="bg-transparent text-[#f4f3ee] outline-none font-mono min-w-0"
+                />
+                <span className="text-[#f4f3ee]">{"]"}</span>
+              </span>
 
-            <span className="inline-flex items-center gap-0">
-              <span className="text-[#9A968B]">{"end: "}</span>
-              <span className="text-[#f4f3ee]">{"["}</span>
-              <input
-                type="text"
-                value={editingEnd ?? (settings.schedule_end ? formatTime(settings.schedule_end) : "")}
-                onFocus={() => setEditingEnd(settings.schedule_end ? formatTime(settings.schedule_end) : "")}
-                onChange={(e) => setEditingEnd(e.target.value)}
-                onBlur={() => { setSettings((s) => ({ ...s, schedule_end: parseTime(editingEnd ?? "") })); setEditingEnd(null); }}
-                placeholder="10:00 PM"
-                style={{ width: "8ch", paddingLeft: "1ch", paddingRight: "1ch", boxSizing: "content-box" }}
-                className="bg-transparent text-[#f4f3ee] outline-none font-mono min-w-0"
-              />
-              <span className="text-[#f4f3ee]">{"]"}</span>
-            </span>
+              <span className="inline-flex items-center gap-0">
+                <span className="text-[#9A968B]">{"end: "}</span>
+                <span className="text-[#f4f3ee]">{"["}</span>
+                <input
+                  type="text"
+                  value={editingEnd ?? (settings.schedule_end ? formatTime(settings.schedule_end) : "")}
+                  onFocus={() => setEditingEnd(settings.schedule_end ? formatTime(settings.schedule_end) : "")}
+                  onChange={(e) => setEditingEnd(e.target.value)}
+                  onBlur={() => { setSettings((s) => ({ ...s, schedule_end: parseTime(editingEnd ?? "") })); setEditingEnd(null); }}
+                  placeholder="10:00 PM"
+                  style={{ width: "8ch", paddingLeft: "1ch", paddingRight: "0", boxSizing: "content-box" }}
+                  className="bg-transparent text-[#f4f3ee] outline-none font-mono min-w-0"
+                />
+                <span className="text-[#f4f3ee]">{"]"}</span>
+              </span>
+            </div>
 
-            <span className="inline-flex items-center gap-0">
-              <span className="text-[#9A968B]">{"delay fixed: "}</span>
-              <span className="text-[#f4f3ee]">{"["}</span>
-              <NumberInput
-                value={settings.delay_base_minutes}
-                onChange={(n) => setSettings((s) => ({ ...s, delay_base_minutes: n }))}
-                placeholder="60"
-              />
-              <span className="text-[#f4f3ee]">{"]"}</span>
-            </span>
+            <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
+              <span className="inline-flex items-center gap-0">
+                <span className="text-[#9A968B]">{"delay fixed: "}</span>
+                <span className="text-[#f4f3ee]">{"["}</span>
+                <NumberInput
+                  value={settings.delay_base_minutes}
+                  onChange={(n) => setSettings((s) => ({ ...s, delay_base_minutes: n }))}
+                  placeholder="60"
+                />
+                <span className="text-[#f4f3ee]">{"]"}</span>
+              </span>
 
-            <span className="inline-flex items-center gap-0">
-              <span className="text-[#9A968B]">{"delay random: "}</span>
-              <span className="text-[#f4f3ee]">{"["}</span>
-              <NumberInput
-                value={settings.delay_random_minutes}
-                onChange={(n) => setSettings((s) => ({ ...s, delay_random_minutes: n }))}
-                placeholder="0"
-              />
-              <span className="text-[#f4f3ee]">{"]"}</span>
-            </span>
+              <span className="inline-flex items-center gap-0">
+                <span className="text-[#9A968B]">{"delay random: "}</span>
+                <span className="text-[#f4f3ee]">{"["}</span>
+                <NumberInput
+                  value={settings.delay_random_minutes}
+                  onChange={(n) => setSettings((s) => ({ ...s, delay_random_minutes: n }))}
+                  placeholder="0"
+                />
+                <span className="text-[#f4f3ee]">{"]"}</span>
+              </span>
 
-            <span className="inline-flex items-center gap-0">
-              <span className="text-[#9A968B]">{"sessions/day: "}</span>
-              <span className="text-[#f4f3ee]">{"["}</span>
-              <NumberInput
-                value={settings.max_runs_per_day}
-                onChange={(n) => setSettings((s) => ({ ...s, max_runs_per_day: n || 1 }))}
-                placeholder="1"
-              />
-              <span className="text-[#f4f3ee]">{"]"}</span>
-            </span>
+              <span className="inline-flex items-center gap-0">
+                <span className="text-[#9A968B]">{"sessions/day: "}</span>
+                <span className="text-[#f4f3ee]">{"["}</span>
+                <NumberInput
+                  value={settings.max_runs_per_day}
+                  onChange={(n) => setSettings((s) => ({ ...s, max_runs_per_day: n || 1 }))}
+                  placeholder="1"
+                />
+                <span className="text-[#f4f3ee]">{"]"}</span>
+              </span>
+            </div>
 
           </div>
         </div>
