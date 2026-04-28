@@ -24,9 +24,9 @@ const DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKi
 const DEFAULT_CONFIG: DesktopBuildConfig = {
   client_name: "",
   system_type: "windows",
-  chrome_path: "\\PortableChrome\\chrome.exe",
+  chrome_path: "PortableChrome\\chrome.exe",
   chrome_version: "143",
-  chrome_user_data_dir_base: "\\PortableChrome\\",
+  chrome_user_data_dir_base: "PortableChrome",
   headless: false,
   detach: false,
   close_browser_session: false,
