@@ -230,7 +230,8 @@ export interface SessionLogEntry {
 }
 
 export interface AccountStats {
-  pending: number;
+  following: number;
+  unfollow_ready: number;
   complete: number;
   ignored: number;
   total: number;

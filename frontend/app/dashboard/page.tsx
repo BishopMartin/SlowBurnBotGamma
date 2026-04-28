@@ -55,7 +55,7 @@ function fmtPct(v: number | null): string {
 }
 
 type Tab = "settings" | "activity" | "stats" | "database";
-type SortKey = "name" | "enabled" | "group" | "pending" | "complete" | "ignored" | "total" | "success" | "last_25" | "all_time" | "sessions" | "likes" | "follows" | "unfollows" | "fb_rate" | "followed" | "followed_back";
+type SortKey = "name" | "enabled" | "group" | "following" | "unfollow_ready" | "complete" | "ignored" | "total" | "success" | "last_25" | "all_time" | "sessions" | "likes" | "follows" | "unfollows" | "fb_rate" | "followed" | "followed_back";
 type SortDir = "asc" | "desc";
 type Period = "day" | "week" | "month";
 
@@ -93,7 +93,8 @@ export default function DashboardPage() {
       case "name": return account.name.toLowerCase();
       case "enabled": return account.enabled ? 1 : 0;
       case "group": return account.group_number ?? -1;
-      case "pending": return statsMap[account.id]?.pending ?? -1;
+      case "following": return statsMap[account.id]?.following ?? -1;
+      case "unfollow_ready": return statsMap[account.id]?.unfollow_ready ?? -1;
       case "complete": return statsMap[account.id]?.complete ?? -1;
       case "ignored": return statsMap[account.id]?.ignored ?? -1;
       case "total": return statsMap[account.id]?.total ?? -1;
@@ -325,7 +326,8 @@ export default function DashboardPage() {
                 )}
                 {tab === "database" && (
                   <>
-                    <SortTh label="Pend." field="pending" className="whitespace-nowrap" />
+                    <SortTh label="Following" field="following" className="whitespace-nowrap" />
+                    <SortTh label="Pend." field="unfollow_ready" className="whitespace-nowrap" />
                     <SortTh label="Compl." field="complete" className="whitespace-nowrap" />
                     <SortTh label="Ignored" field="ignored" className="whitespace-nowrap" />
                     <SortTh label="Total" field="total" className="whitespace-nowrap" />
@@ -414,7 +416,8 @@ export default function DashboardPage() {
                     )}
                     {tab === "database" && (
                       <>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.pending)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.following)}</td>
+                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.unfollow_ready)}</td>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.complete)}</td>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.ignored)}</td>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.total)}</td>

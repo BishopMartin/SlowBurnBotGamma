@@ -2,7 +2,7 @@
 import csv
 import io
 import uuid
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response
@@ -470,10 +470,24 @@ async def get_account_stats(
     total = await session.scalar(
         select(func.count()).select_from(base.subquery())
     )
-    pending = await session.scalar(
+    following = await session.scalar(
         select(func.count()).where(
             FollowTarget.account_id == account_id,
             FollowTarget.status == "following",
+        )
+    )
+
+    settings_row = await session.scalar(
+        select(AccountSettings).where(AccountSettings.account_id == account_id)
+    )
+    unfollow_days = (settings_row.unfollow_days if settings_row else 30) or 30
+    unfollow_cutoff = datetime.now(timezone.utc) - timedelta(days=unfollow_days)
+    unfollow_ready = await session.scalar(
+        select(func.count()).where(
+            FollowTarget.account_id == account_id,
+            FollowTarget.status == "following",
+            FollowTarget.follow_date.isnot(None),
+            FollowTarget.follow_date <= unfollow_cutoff,
         )
     )
     ignored = await session.scalar(
@@ -512,7 +526,8 @@ async def get_account_stats(
     all_time_rate = (success / complete) if complete else None
 
     return {
-        "pending": pending or 0,
+        "following": following or 0,
+        "unfollow_ready": unfollow_ready or 0,
         "complete": complete or 0,
         "ignored": ignored or 0,
         "total": total or 0,
