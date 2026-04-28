@@ -77,7 +77,7 @@ export default function DashboardPage() {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
-  const maxAccounts = PLAN_LIMITS[planTier] ?? 0;
+  const maxAccounts = subInfo?.max_accounts ?? PLAN_LIMITS[planTier] ?? 0;
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -273,7 +273,7 @@ export default function DashboardPage() {
       <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <h2 className="font-semibold text-[#f4f3ee]">
-          Accounts <span className="text-[#9A968B] font-normal">[{String(accounts.length).padStart(2, "0")}/{String(maxAccounts).padStart(2, "0")}]</span>
+          Accounts <span className="text-[#9A968B] font-normal">[{String(subInfo?.current_accounts ?? accounts.length).padStart(2, "0")}/{String(maxAccounts).padStart(2, "0")}]</span>
         </h2>
         <span className="text-[#9A968B]">--</span>
         <div className="basis-full sm:basis-auto flex flex-wrap items-center gap-2 text-sm">
