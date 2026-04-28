@@ -75,7 +75,7 @@ export default function PlanPage() {
                   className={`transition-colors ${isCurrent ? "bg-[#1f1e1d]" : "hover:bg-[#1f1e1d]"}`}
                 >
                   <td className="px-4 py-3">
-                    <span className={`capitalize font-semibold ${isCurrent ? "text-[#d97757]" : "text-[#f4f3ee]"}`}>
+                    <span className={`capitalize font-semibold ${isCurrent ? "text-[#d97757]" : "text-[#9A968B]"}`}>
                       {tier.name}
                     </span>
                   </td>
