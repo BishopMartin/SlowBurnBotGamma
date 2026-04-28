@@ -12,6 +12,7 @@ import {
   getFollowbackSummary,
   getClientStatus,
   getRecentSessionLog,
+  getSubscriptionInfo,
   updateAccount,
   Account,
   AccountSettings,
@@ -21,6 +22,7 @@ import {
   LogSummaryEntry,
   FollowbackSummaryEntry,
   RecentSessionLogEntry,
+  SubscriptionInfo,
   PLAN_LIMITS,
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
@@ -66,6 +68,7 @@ export default function DashboardPage() {
   const [fbMap, setFbMap] = useState<Record<string, FollowbackSummaryEntry>>({});
   const [entitlement, setEntitlement] = useState<Entitlement | null>(null);
   const [clientStatus, setClientStatus] = useState<ClientStatus[]>([]);
+  const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null);
   const [recentLog, setRecentLog] = useState<RecentSessionLogEntry[]>([]);
   const [planTier, setPlanTier] = useState<string>("free");
   const [tab, setTab] = useState<Tab>("settings");
@@ -164,6 +167,7 @@ export default function DashboardPage() {
     getEntitlement().then(setEntitlement).catch(() => {});
     getRecentSessionLog(15).then((r) => setRecentLog(r.items)).catch(() => {});
     getClientStatus().then(setClientStatus).catch(() => {});
+    getSubscriptionInfo().then(setSubInfo).catch(() => {});
     const interval = setInterval(() => {
       getClientStatus().then(setClientStatus).catch(() => {});
     }, 60_000);
@@ -212,7 +216,9 @@ export default function DashboardPage() {
       </h1>
 
       <div className="space-y-2">
-      <h2 className="font-semibold text-[#f4f3ee]">Client Status</h2>
+      <h2 className="font-semibold text-[#f4f3ee]">
+        Clients <span className="text-[#9A968B] font-normal">[{String(subInfo?.current_clients ?? 0).padStart(2, "0")}/{subInfo?.max_clients ? String(subInfo.max_clients).padStart(2, "0") : "--"}]</span>
+      </h2>
 
       <div className="border border-[#3d3d3a]">
         {clientStatus.length === 0 ? (
