@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, time
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Time, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Time, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -37,6 +37,7 @@ class AccountSettings(Base):
 
     # Actions (up to 4, stored as JSONB)
     actions: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    actions_random_order: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Unfollow / follow sources
     unfollow_days: Mapped[int] = mapped_column(Integer, default=30)

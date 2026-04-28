@@ -401,6 +401,13 @@ export default function AccountDetailPage() {
             </tbody>
           </table>
           </div>
+          <div className="px-4 py-3 border-t border-[#3d3d3a]">
+            <BracketCheckbox
+              label="run session actions in random order"
+              checked={settings.actions_random_order ?? false}
+              onChange={(v) => setSettings((s) => ({ ...s, actions_random_order: v }))}
+            />
+          </div>
         </div>
 
         {/* Follow Settings */}
