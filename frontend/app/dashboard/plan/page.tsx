@@ -79,9 +79,9 @@ export default function PlanPage() {
                       {tier.name}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-[#f4f3ee]">${tier.price}/mo</td>
-                  <td className="px-4 py-3 text-[#f4f3ee]">{tier.max_accounts}</td>
-                  <td className="px-4 py-3 text-[#f4f3ee]">{tier.max_clients}</td>
+                  <td className={`px-4 py-3 ${isCurrent ? "text-[#f4f3ee]" : "text-[#9A968B]"}`}>${tier.price}/mo</td>
+                  <td className={`px-4 py-3 ${isCurrent ? "text-[#f4f3ee]" : "text-[#9A968B]"}`}>{tier.max_accounts}</td>
+                  <td className={`px-4 py-3 ${isCurrent ? "text-[#f4f3ee]" : "text-[#9A968B]"}`}>{tier.max_clients}</td>
                   <td className="px-4 py-3 text-right">
                     {isCurrent ? (
                       <Bracket className="text-[#d97757]">current plan</Bracket>
