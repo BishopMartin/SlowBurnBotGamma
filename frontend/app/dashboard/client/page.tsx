@@ -265,22 +265,18 @@ export default function ClientPage() {
 
       {/* Builds / slots table */}
       <div className={sectionCls}>
-        <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918]">
-          <span className="text-[#f4f3ee]">builds</span>
-        </div>
-
         {loading && <div className="px-4 py-4 text-[#9A968B]">loading...</div>}
 
         {!loading && (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918] text-xs">
-                  <th className="px-4 py-2 font-normal">client</th>
-                  <th className="px-4 py-2 font-normal">name</th>
-                  <th className="px-4 py-2 font-normal">build date</th>
-                  <th className="px-4 py-2 font-normal">status</th>
-                  <th className="px-4 py-2 font-normal">client ver</th>
+                <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
+                  <th className="px-4 py-2 font-normal whitespace-nowrap">client</th>
+                  <th className="px-4 py-2 font-normal whitespace-nowrap">name</th>
+                  <th className="px-4 py-2 font-normal whitespace-nowrap">build date</th>
+                  <th className="px-4 py-2 font-normal whitespace-nowrap">status</th>
+                  <th className="px-4 py-2 font-normal whitespace-nowrap">client ver</th>
                   <th className="px-4 py-2 font-normal w-full"></th>
                 </tr>
               </thead>
@@ -325,16 +321,20 @@ export default function ClientPage() {
                       </tr>
                       {showSettings && (
                         <tr key={`${build.id}-settings`} className="border-t border-[#3d3d3a] bg-[#1a1918]">
-                          <td colSpan={6} className="px-4 py-3 text-xs text-[#9A968B]">
-                            <div className="flex flex-wrap gap-x-6 gap-y-1 mb-1">
+                          <td colSpan={6} className="px-4 py-3 text-sm text-[#9A968B]">
+                            <div className="flex flex-wrap gap-x-6 gap-y-1 mb-2">
+                              <span><span className="text-[#3d3d3a]">chrome version:</span> <span className="text-[#f4f3ee]">{cfg.chrome_version || "—"}</span></span>
+                              <span><span className="text-[#3d3d3a]">client name:</span> <span className="text-[#f4f3ee]">{cfg.client_name || "—"}</span></span>
+                            </div>
+                            <div className="mb-1"><span className="text-[#3d3d3a]">user agent:</span> <span className="text-[#f4f3ee]">{cfg.system_user_agent || "—"}</span></div>
+                            <div className="mb-1"><span className="text-[#3d3d3a]">chrome path:</span> <span className="text-[#f4f3ee]">{cfg.chrome_path || "—"}</span></div>
+                            <div className="mb-2"><span className="text-[#3d3d3a]">user data dir:</span> <span className="text-[#f4f3ee]">{cfg.chrome_user_data_dir_base || "—"}</span></div>
+                            <div className="flex flex-wrap gap-x-6 gap-y-1">
                               <span><span className="text-[#3d3d3a]">headless:</span> <span className="text-[#f4f3ee]">{cfg.headless ? "yes" : "no"}</span></span>
                               <span><span className="text-[#3d3d3a]">detach:</span> <span className="text-[#f4f3ee]">{cfg.detach ? "yes" : "no"}</span></span>
-                              <span><span className="text-[#3d3d3a]">close on session:</span> <span className="text-[#f4f3ee]">{cfg.close_browser_session ? "yes" : "no"}</span></span>
+                              <span><span className="text-[#3d3d3a]">close on session end:</span> <span className="text-[#f4f3ee]">{cfg.close_browser_session ? "yes" : "no"}</span></span>
                               <span><span className="text-[#3d3d3a]">close on exit:</span> <span className="text-[#f4f3ee]">{cfg.close_browser_exit ? "yes" : "no"}</span></span>
                             </div>
-                            <div><span className="text-[#3d3d3a]">chrome path:</span> <span className="text-[#f4f3ee]">{cfg.chrome_path || "—"}</span></div>
-                            <div className="mt-1"><span className="text-[#3d3d3a]">user data dir:</span> <span className="text-[#f4f3ee]">{cfg.chrome_user_data_dir_base || "—"}</span></div>
-                            <div className="mt-1"><span className="text-[#3d3d3a]">user agent:</span> <span className="text-[#f4f3ee]">{cfg.system_user_agent || "—"}</span></div>
                           </td>
                         </tr>
                       )}
