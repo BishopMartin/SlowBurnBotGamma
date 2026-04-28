@@ -163,6 +163,7 @@ async def create_desktop_build(
         client_id=next_client_id,
         build_options=config.model_dump(),
         status="queued",
+        bot_version=settings.current_bot_version or None,
         activation_token_hash=token_hash,
         activation_token_expires_at=now
         + timedelta(hours=settings.desktop_activation_token_ttl_hours),
@@ -307,3 +308,63 @@ async def revoke_desktop_build(
     await session.commit()
     await session.refresh(build)
     return DesktopBuildRead.model_validate(build)
+
+
+@router.post("/{build_id}/rebuild", response_model=DesktopBuildWithToken, status_code=status.HTTP_201_CREATED)
+async def rebuild_desktop_build(
+    build_id: uuid.UUID,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+    _: Subscription = Depends(require_active_subscription),
+):
+    """Revoke an existing build and queue a new one with the same config."""
+    old_build = await _get_owned_build(build_id, user, session)
+
+    # Revoke the old build (frees up a slot for the new one)
+    old_build.status = "revoked"
+    await session.commit()
+
+    config_dict = old_build.build_options
+    api_url = (config_dict.get("api_url") or settings.public_api_url).rstrip("/")
+
+    max_cid = await session.scalar(
+        select(func.coalesce(func.max(DesktopBuild.client_id), 0)).where(
+            DesktopBuild.user_id == user.id
+        )
+    )
+    next_client_id = (max_cid or 0) + 1
+
+    now = _now()
+    token, token_hash = _mint_token()
+
+    new_build = DesktopBuild(
+        user_id=user.id,
+        client_id=next_client_id,
+        build_options=config_dict,
+        status="queued",
+        bot_version=settings.current_bot_version or None,
+        activation_token_hash=token_hash,
+        activation_token_expires_at=now + timedelta(hours=settings.desktop_activation_token_ttl_hours),
+        download_expires_at=now + timedelta(hours=settings.desktop_download_expires_hours),
+    )
+    session.add(new_build)
+    await session.commit()
+    await session.refresh(new_build)
+
+    try:
+        await github_actions.dispatch_workflow(
+            build_id=str(new_build.id),
+            user_id=str(user.id),
+            client_id=next_client_id,
+            api_url=api_url,
+            activation_token=token,
+            build_options=config_dict,
+        )
+    except Exception as exc:
+        new_build.status = "failed"
+        new_build.failure_reason = str(exc)[:500]
+        await session.commit()
+        await session.refresh(new_build)
+
+    read = DesktopBuildRead.model_validate(new_build)
+    return DesktopBuildWithToken(**read.model_dump(), activation_token=token)

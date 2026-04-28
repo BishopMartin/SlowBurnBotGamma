@@ -44,6 +44,7 @@ class DesktopBuild(Base):
     artifact_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
     file_size_bytes: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     failure_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    bot_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     activation_token_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     activation_token_expires_at: Mapped[datetime] = mapped_column(

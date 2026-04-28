@@ -45,6 +45,7 @@ class DesktopBuildRead(BaseModel):
     build_options: dict
     github_run_id: str | None
     failure_reason: str | None
+    bot_version: str | None = None
     activated_at: datetime | None
     download_expires_at: datetime
     download_count: int

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   createDesktopBuild,
   listDesktopBuilds,
@@ -8,10 +8,12 @@ import {
   getDesktopBuildDownloadUrl,
   getDesktopBuildDownloadToken,
   getDesktopBuildsMeta,
-  revokeDesktopBuild,
+  getSubscriptionInfo,
+  rebuildDesktopBuild,
   DesktopBuild,
   DesktopBuildConfig,
   DesktopBuildWithToken,
+  SubscriptionInfo,
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
 import { BracketInput } from "@/lib/bracket-input";
@@ -47,54 +49,97 @@ function statusColor(status: string): string {
 function isActive(b: DesktopBuild) { return b.status === "queued" || b.status === "running"; }
 function isExpired(b: DesktopBuild) { return new Date(b.download_expires_at) < new Date(); }
 
-function configSummary(cfg: DesktopBuildConfig): string {
-  const parts: string[] = [];
-  if (cfg.headless) parts.push("headless");
-  if (cfg.chrome_path.toLowerCase().includes("portable")) parts.push("portable chrome");
-  if (cfg.bot_debug) parts.push("debug");
-  return parts.length ? parts.join(", ") : "default";
+function fmtDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
+function BuildForm({
+  initial,
+  onSubmit,
+  onCancel,
+  submitting,
+  error,
+}: {
+  initial: DesktopBuildConfig;
+  onSubmit: (cfg: DesktopBuildConfig) => void;
+  onCancel: () => void;
+  submitting: boolean;
+  error: string | null;
+}) {
+  const [cfg, setCfg] = useState<DesktopBuildConfig>(initial);
+  function set<K extends keyof DesktopBuildConfig>(k: K, v: DesktopBuildConfig[K]) {
+    setCfg((p) => ({ ...p, [k]: v }));
+  }
+  return (
+    <div className="px-4 py-3 space-y-2 text-sm bg-[#1a1918] border-t border-[#3d3d3a]">
+      <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
+        <BracketInput label="chrome version" value={cfg.chrome_version} onChange={(v) => set("chrome_version", v)} width="5ch" placeholder="143" />
+        <BracketInput label="client name" value={cfg.client_name} onChange={(v) => set("client_name", v.slice(0, 15))} width="15ch" placeholder="my laptop" />
+      </div>
+      <div>
+        <BracketInput label="user agent" value={cfg.system_user_agent} onChange={(v) => set("system_user_agent", v)} width="72ch" />
+      </div>
+      <div>
+        <BracketInput label="chrome path" value={cfg.chrome_path} onChange={(v) => set("chrome_path", v)} width="44ch" placeholder="\PortableChrome\chrome.exe" />
+      </div>
+      <div>
+        <BracketInput label="user data dir" value={cfg.chrome_user_data_dir_base} onChange={(v) => set("chrome_user_data_dir_base", v)} width="44ch" placeholder="\PortableChrome\" />
+      </div>
+      <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
+        <BracketCheckbox label="headless" checked={cfg.headless} onChange={(v) => set("headless", v)} />
+        <BracketCheckbox label="detach" checked={cfg.detach} onChange={(v) => set("detach", v)} />
+        <BracketCheckbox label="close on session end" checked={cfg.close_browser_session} onChange={(v) => set("close_browser_session", v)} />
+        <BracketCheckbox label="close on exit" checked={cfg.close_browser_exit} onChange={(v) => set("close_browser_exit", v)} />
+      </div>
+      <div className="flex items-center gap-3 pt-1">
+        <button
+          onClick={() => onSubmit(cfg)}
+          disabled={submitting || !cfg.chrome_path.trim()}
+          className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
+        >
+          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{submitting ? "requesting…" : "request build"}</Bracket>
+        </button>
+        <button onClick={onCancel} className="group cursor-pointer transition-colors text-sm">
+          <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">cancel</Bracket>
+        </button>
+        {error && <span className="text-status-bad text-xs">{error}</span>}
+      </div>
+    </div>
+  );
+}
 
 export default function ClientPage() {
   const [builds, setBuilds] = useState<DesktopBuild[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null);
   const [currentBotVersion, setCurrentBotVersion] = useState<string>("");
+  const [loading, setLoading] = useState(true);
 
-  const [config, setConfig] = useState<DesktopBuildConfig>(DEFAULT_CONFIG);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  // Per-slot inline form state
+  const [expandingSlot, setExpandingSlot] = useState<number | null>(null); // slot index of open build form
+  const [slotSubmitting, setSlotSubmitting] = useState(false);
+  const [slotError, setSlotError] = useState<string | null>(null);
+
+  // Per-build state
+  const [expandedBuild, setExpandedBuild] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
+  const [confirmRebuild, setConfirmRebuild] = useState<string | null>(null);
+  const [rebuilding, setRebuilding] = useState<string | null>(null);
+
+  // Activation token banner
   const [justCreated, setJustCreated] = useState<DesktopBuildWithToken | null>(null);
   const [copied, setCopied] = useState(false);
-  const [revoking, setRevoking] = useState<string | null>(null);
-  const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null);
-  const [downloading, setDownloading] = useState<string | null>(null);
-  const [expandedSettings, setExpandedSettings] = useState<Set<string>>(new Set());
 
-  function toggleSettings(id: string) {
-    setExpandedSettings((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  }
+  const [pageError, setPageError] = useState<string | null>(null);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const nextClientId = useMemo(() => {
-    if (builds.length === 0) return 1;
-    const max = Math.max(...builds.map((b) => b.client_id));
-    return max >= 99 ? 1 : max + 1;
-  }, [builds]);
 
   async function load() {
     try {
       const data = await listDesktopBuilds();
       setBuilds(data);
-      setError(null);
+      setPageError(null);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to load builds.");
+      setPageError(e instanceof Error ? e.message : "Failed to load builds.");
     } finally {
       setLoading(false);
     }
@@ -102,9 +147,17 @@ export default function ClientPage() {
 
   useEffect(() => {
     load();
+    getSubscriptionInfo().then(setSubInfo).catch(() => {});
     getDesktopBuildsMeta().then((m) => setCurrentBotVersion(m.current_bot_version)).catch(() => {});
   }, []);
 
+  // Refresh subInfo after any build change
+  async function refreshAll() {
+    await load();
+    getSubscriptionInfo().then(setSubInfo).catch(() => {});
+  }
+
+  // Poll active builds
   useEffect(() => {
     const active = builds.filter(isActive);
     if (active.length === 0) { if (pollRef.current) clearInterval(pollRef.current); return; }
@@ -116,36 +169,41 @@ export default function ClientPage() {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [builds]);
 
-  function setField<K extends keyof DesktopBuildConfig>(key: K, value: DesktopBuildConfig[K]) {
-    setConfig((prev) => ({ ...prev, [key]: value }));
-  }
+  // Slot computation: only non-revoked/non-failed builds fill slots
+  const activeBuilds = builds
+    .filter((b) => b.status !== "revoked" && b.status !== "failed")
+    .sort((a, b) => a.client_id - b.client_id);
 
-  async function handleSubmit() {
-    setSubmitting(true);
-    setSubmitError(null);
+  const maxClients = subInfo?.max_clients ?? 0;
+  const emptySlotCount = Math.max(0, maxClients - activeBuilds.length);
+
+  async function handleSlotSubmit(cfg: DesktopBuildConfig) {
+    setSlotSubmitting(true);
+    setSlotError(null);
     try {
-      const result = await createDesktopBuild(config);
+      const result = await createDesktopBuild(cfg);
       setJustCreated(result);
-      setConfig(DEFAULT_CONFIG);
-      await load();
+      setExpandingSlot(null);
+      await refreshAll();
     } catch (e: unknown) {
-      setSubmitError(e instanceof Error ? e.message : "Build request failed.");
+      setSlotError(e instanceof Error ? e.message : "Build request failed.");
     } finally {
-      setSubmitting(false);
+      setSlotSubmitting(false);
     }
   }
 
-  async function handleRevoke(buildId: string) {
-    if (confirmRevoke !== buildId) { setConfirmRevoke(buildId); return; }
-    setConfirmRevoke(null);
-    setRevoking(buildId);
+  async function handleRebuild(buildId: string) {
+    if (confirmRebuild !== buildId) { setConfirmRebuild(buildId); return; }
+    setConfirmRebuild(null);
+    setRebuilding(buildId);
     try {
-      const updated = await revokeDesktopBuild(buildId);
-      setBuilds((prev) => prev.map((b) => (b.id === buildId ? updated : b)));
+      const result = await rebuildDesktopBuild(buildId);
+      setJustCreated(result);
+      await refreshAll();
     } catch (e: unknown) {
-      setSubmitError(e instanceof Error ? e.message : "Revoke failed.");
+      setPageError(e instanceof Error ? e.message : "Rebuild failed.");
     } finally {
-      setRevoking(null);
+      setRebuilding(null);
     }
   }
 
@@ -157,7 +215,7 @@ export default function ClientPage() {
       window.location.href = url;
       await load();
     } catch (e: unknown) {
-      setSubmitError(e instanceof Error ? e.message : "Download failed.");
+      setPageError(e instanceof Error ? e.message : "Download failed.");
     } finally {
       setDownloading(null);
     }
@@ -170,9 +228,24 @@ export default function ClientPage() {
     });
   }
 
+  const currentStr = String(activeBuilds.length).padStart(2, "0");
+  const maxStr = maxClients > 0 ? String(maxClients).padStart(2, "0") : "--";
+
   return (
     <div className="space-y-4 font-mono">
-      <h1 className="font-semibold text-[#f4f3ee]">Client</h1>
+      <div className="flex items-baseline gap-3">
+        <h1 className="font-semibold text-[#f4f3ee]">Clients</h1>
+        <span className="text-[#9A968B]">
+          -- <span className="text-[#f4f3ee]">[</span>
+          <span className="text-[#E5C07B]">{loading ? "--" : currentStr}/{maxStr}</span>
+          <span className="text-[#f4f3ee]">]</span>
+          {currentBotVersion && (
+            <span className="ml-3">
+              -- client ver: <span className="text-[#f4f3ee]">[</span><span className="text-[#E5C07B]">v {currentBotVersion}</span><span className="text-[#f4f3ee]">]</span>
+            </span>
+          )}
+        </span>
+      </div>
 
       {justCreated && (
         <div className="border border-[#d97757] px-4 py-3 flex items-center gap-3 flex-wrap text-sm">
@@ -188,86 +261,78 @@ export default function ClientPage() {
         </div>
       )}
 
-      {/* Build history */}
+      {pageError && <div className="text-status-bad text-sm">{pageError}</div>}
+
+      {/* Builds / slots table */}
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918]">
           <span className="text-[#f4f3ee]">builds</span>
         </div>
 
         {loading && <div className="px-4 py-4 text-[#9A968B]">loading...</div>}
-        {!loading && error && <div className="px-4 py-4 text-status-bad">{error}</div>}
-        {!loading && !error && builds.length === 0 && <div className="px-4 py-4 text-[#9A968B]">No builds yet.</div>}
 
-        {!loading && !error && builds.length > 0 && (
+        {!loading && (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
-                  <th className="px-4 py-2 font-normal">requested</th>
+                <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918] text-xs">
                   <th className="px-4 py-2 font-normal">client</th>
                   <th className="px-4 py-2 font-normal">name</th>
+                  <th className="px-4 py-2 font-normal">build date</th>
                   <th className="px-4 py-2 font-normal">status</th>
-                  <th className="px-4 py-2 font-normal">browser</th>
-                  <th className="px-4 py-2 font-normal">version</th>
+                  <th className="px-4 py-2 font-normal">client ver</th>
                   <th className="px-4 py-2 font-normal w-full"></th>
                 </tr>
               </thead>
               <tbody>
-                {builds.map((build) => {
-                  const canDownload = build.status === "ready" && !isExpired(build);
-                  const expired = build.status === "ready" && isExpired(build);
+                {/* Filled slots */}
+                {activeBuilds.map((build, i) => {
                   const cfg = build.build_options as DesktopBuildConfig;
-                  const showSettings = expandedSettings.has(build.id);
+                  const canDownload = build.status === "ready" && !isExpired(build);
+                  const showSettings = expandedBuild === build.id;
                   return (
                     <>
-                      <tr key={build.id} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors">
-                        <td className="px-4 py-3 text-[#9A968B] text-sm whitespace-nowrap">
-                          {new Date(build.created_at).toLocaleDateString()}{" "}
-                          {new Date(build.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        </td>
-                        <td className="px-4 py-3 text-[#f4f3ee]">#{build.client_id}</td>
+                      <tr key={build.id} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors text-sm">
+                        <td className="px-4 py-3 text-[#f4f3ee] whitespace-nowrap">#{String(build.client_id).padStart(2, "0")}</td>
                         <td className="px-4 py-3 text-[#9A968B] text-xs whitespace-nowrap">{cfg.client_name || "—"}</td>
+                        <td className="px-4 py-3 text-[#9A968B] text-xs whitespace-nowrap">{fmtDate(build.created_at)}</td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className={statusColor(build.status)}>{build.status}</span>
                         </td>
-                        <td className="px-4 py-3 text-[#9A968B] text-xs whitespace-nowrap">{configSummary(cfg)}</td>
-                        <td className="px-4 py-3 text-[#9A968B] text-xs whitespace-nowrap">{cfg.chrome_version || "—"}</td>
+                        <td className="px-4 py-3 text-[#9A968B] text-xs whitespace-nowrap">{build.bot_version ? `v${build.bot_version}` : "—"}</td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex gap-2 justify-end items-center">
-                            <button onClick={() => toggleSettings(build.id)} className="group cursor-pointer transition-colors text-sm">
-                              <Bracket className={showSettings ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>view</Bracket>
-                            </button>
                             {canDownload && (
                               <button onClick={() => handleDownload(build.id)} disabled={downloading === build.id} className="group cursor-pointer transition-colors text-sm disabled:opacity-40">
                                 <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{downloading === build.id ? "…" : "download"}</Bracket>
                               </button>
                             )}
-                            {expired && <span className="text-status-bad text-xs">expired</span>}
-                            {build.status !== "revoked" && build.status !== "failed" && (
-                              <button
-                                onClick={() => handleRevoke(build.id)}
-                                disabled={revoking === build.id}
-                                className="group cursor-pointer transition-colors text-sm disabled:opacity-40"
-                                onBlur={() => setConfirmRevoke(null)}
-                              >
-                                <Bracket className={confirmRevoke === build.id ? "text-status-bad group-hover:text-status-bad-hover" : "text-[#9A968B] group-hover:text-status-bad"}>
-                                  {revoking === build.id ? "…" : confirmRevoke === build.id ? "confirm?" : "revoke"}
-                                </Bracket>
-                              </button>
-                            )}
+                            <button
+                              onClick={() => handleRebuild(build.id)}
+                              disabled={rebuilding === build.id}
+                              className="group cursor-pointer transition-colors text-sm disabled:opacity-40"
+                              onBlur={() => setConfirmRebuild(null)}
+                            >
+                              <Bracket className={confirmRebuild === build.id ? "text-[#E5C07B] group-hover:text-[#f4f3ee]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>
+                                {rebuilding === build.id ? "…" : confirmRebuild === build.id ? "confirm?" : "re-build"}
+                              </Bracket>
+                            </button>
+                            <button onClick={() => setExpandedBuild(expandedBuild === build.id ? null : build.id)} className="group cursor-pointer transition-colors text-sm">
+                              <Bracket className={showSettings ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>settings</Bracket>
+                            </button>
                           </div>
                         </td>
                       </tr>
                       {showSettings && (
                         <tr key={`${build.id}-settings`} className="border-t border-[#3d3d3a] bg-[#1a1918]">
-                          <td colSpan={7} className="px-4 py-3 text-xs text-[#9A968B]">
-                            <div className="flex flex-wrap gap-x-6 gap-y-1">
+                          <td colSpan={6} className="px-4 py-3 text-xs text-[#9A968B]">
+                            <div className="flex flex-wrap gap-x-6 gap-y-1 mb-1">
                               <span><span className="text-[#3d3d3a]">headless:</span> <span className="text-[#f4f3ee]">{cfg.headless ? "yes" : "no"}</span></span>
                               <span><span className="text-[#3d3d3a]">detach:</span> <span className="text-[#f4f3ee]">{cfg.detach ? "yes" : "no"}</span></span>
                               <span><span className="text-[#3d3d3a]">close on session:</span> <span className="text-[#f4f3ee]">{cfg.close_browser_session ? "yes" : "no"}</span></span>
                               <span><span className="text-[#3d3d3a]">close on exit:</span> <span className="text-[#f4f3ee]">{cfg.close_browser_exit ? "yes" : "no"}</span></span>
                             </div>
-                            <div className="mt-1"><span className="text-[#3d3d3a]">chrome path:</span> <span className="text-[#f4f3ee]">{cfg.chrome_path || "—"}</span></div>
+                            <div><span className="text-[#3d3d3a]">chrome path:</span> <span className="text-[#f4f3ee]">{cfg.chrome_path || "—"}</span></div>
                             <div className="mt-1"><span className="text-[#3d3d3a]">user data dir:</span> <span className="text-[#f4f3ee]">{cfg.chrome_user_data_dir_base || "—"}</span></div>
                             <div className="mt-1"><span className="text-[#3d3d3a]">user agent:</span> <span className="text-[#f4f3ee]">{cfg.system_user_agent || "—"}</span></div>
                           </td>
@@ -276,63 +341,54 @@ export default function ClientPage() {
                     </>
                   );
                 })}
+
+                {/* Empty slots */}
+                {Array.from({ length: emptySlotCount }).map((_, i) => {
+                  const slotIndex = activeBuilds.length + i;
+                  const isExpanding = expandingSlot === slotIndex;
+                  return (
+                    <>
+                      <tr key={`empty-${i}`} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors text-sm">
+                        <td className="px-4 py-3 text-[#3d3d3a]">#{String(slotIndex + 1).padStart(2, "0")}</td>
+                        <td className="px-4 py-3 text-[#3d3d3a]">—</td>
+                        <td className="px-4 py-3 text-[#3d3d3a]">—</td>
+                        <td className="px-4 py-3 text-[#3d3d3a]">—</td>
+                        <td className="px-4 py-3 text-[#3d3d3a]">—</td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => { setExpandingSlot(isExpanding ? null : slotIndex); setSlotError(null); }}
+                            className="group cursor-pointer transition-colors text-sm"
+                          >
+                            <Bracket className={isExpanding ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>build</Bracket>
+                          </button>
+                        </td>
+                      </tr>
+                      {isExpanding && (
+                        <tr key={`empty-${i}-form`} className="border-t border-[#3d3d3a]">
+                          <td colSpan={6} className="p-0">
+                            <BuildForm
+                              initial={DEFAULT_CONFIG}
+                              onSubmit={handleSlotSubmit}
+                              onCancel={() => { setExpandingSlot(null); setSlotError(null); }}
+                              submitting={slotSubmitting}
+                              error={slotError}
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </>
+                  );
+                })}
+
+                {maxClients === 0 && !loading && (
+                  <tr className="border-t border-[#3d3d3a]">
+                    <td colSpan={6} className="px-4 py-4 text-[#9A968B]">No active subscription.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         )}
-      </div>
-
-      {/* Generate new client */}
-      <div className={sectionCls}>
-        <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918]">
-          <span className="flex items-center gap-x-4 flex-wrap gap-y-1">
-            <span className="text-[#f4f3ee]">
-              generate new client
-              <span className="text-[#9A968B] ml-2">
-                -- client id: <span className="text-[#f4f3ee]">[</span><span className="text-[#E5C07B]">{String(nextClientId).padStart(2, "0")}</span><span className="text-[#f4f3ee]">]</span>
-              </span>
-              {currentBotVersion && (
-                <span className="text-[#9A968B] ml-2">
-                  -- client ver: <span className="text-[#f4f3ee]">[</span><span className="text-[#E5C07B]">v {currentBotVersion}</span><span className="text-[#f4f3ee]">]</span>
-                </span>
-              )}
-            </span>
-            <BracketInput label="client name" value={config.client_name} onChange={(v) => setField("client_name", v.slice(0, 15))} width="15ch" placeholder="my laptop" />
-          </span>
-        </div>
-
-        <div className="divide-y divide-[#3d3d3a] text-sm">
-          <div className="px-4 py-2 flex items-center gap-x-0 gap-y-2 flex-wrap">
-            <BracketInput label="portable chrome version" value={config.chrome_version} onChange={(v) => setField("chrome_version", v)} width="5ch" placeholder="143" />
-          </div>
-          <div className="px-4 py-2 flex items-center gap-x-0 gap-y-2 flex-wrap">
-            <BracketInput label="user agent" value={config.system_user_agent} onChange={(v) => setField("system_user_agent", v)} width="72ch" />
-          </div>
-          <div className="px-4 py-2 flex items-center gap-x-0 gap-y-2 flex-wrap">
-            <BracketInput label="chrome path" value={config.chrome_path} onChange={(v) => setField("chrome_path", v)} width="36ch" placeholder="\PortableChrome\chrome.exe" />
-          </div>
-          <div className="px-4 py-2 flex items-center gap-x-0 gap-y-2 flex-wrap">
-            <BracketInput label="user data dir" value={config.chrome_user_data_dir_base} onChange={(v) => setField("chrome_user_data_dir_base", v)} width="36ch" placeholder="\PortableChrome\" />
-          </div>
-          <div className="px-4 py-2 flex items-center gap-x-5 gap-y-2 flex-wrap">
-            <BracketCheckbox label="headless" checked={config.headless} onChange={(v) => setField("headless", v)} />
-            <BracketCheckbox label="detach" checked={config.detach} onChange={(v) => setField("detach", v)} />
-            <BracketCheckbox label="close on session end" checked={config.close_browser_session} onChange={(v) => setField("close_browser_session", v)} />
-            <BracketCheckbox label="close on exit" checked={config.close_browser_exit} onChange={(v) => setField("close_browser_exit", v)} />
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3 font-mono text-sm">
-        <button
-          onClick={handleSubmit}
-          disabled={submitting || !config.chrome_path.trim()}
-          className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{submitting ? "requesting…" : "request build"}</Bracket>
-        </button>
-        <span className="text-[#9A968B] text-xs">Build takes ~5–10 min.</span>
-        {submitError && <span className="text-status-bad">{submitError}</span>}
       </div>
 
       {/* Getting started */}
@@ -341,9 +397,10 @@ export default function ClientPage() {
           <span className="text-[#f4f3ee]">getting started</span>
         </div>
         <div className="px-4 py-4 space-y-2 text-sm text-[#9A968B]">
-          <p><span className="text-[#f4f3ee]">1.</span> Download <code className="text-[#E5C07B]">SlowBurnBot.exe</code> when your build is ready.</p>
-          <p><span className="text-[#f4f3ee]">2.</span> Run the EXE on Windows and log in with your dashboard credentials.</p>
-          <p><span className="text-[#f4f3ee]">3.</span> The client activates on first launch and runs normally from there.</p>
+          <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">build</span> on an empty slot and configure your client settings.</p>
+          <p><span className="text-[#f4f3ee]">2.</span> Download <code className="text-[#E5C07B]">SlowBurnBot.exe</code> when the build status shows <span className="text-status-ok">ready</span>.</p>
+          <p><span className="text-[#f4f3ee]">3.</span> Run the EXE on Windows and log in with your dashboard credentials.</p>
+          <p><span className="text-[#f4f3ee]">4.</span> The client activates on first launch and runs normally from there.</p>
         </div>
       </div>
     </div>

@@ -491,6 +491,7 @@ export interface DesktopBuild {
   build_options: DesktopBuildConfig;
   github_run_id: string | null;
   failure_reason: string | null;
+  bot_version: string | null;
   activated_at: string | null;
   download_expires_at: string;
   download_count: number;
@@ -533,4 +534,8 @@ export async function getDesktopBuildDownloadToken(id: string): Promise<string> 
 
 export async function revokeDesktopBuild(id: string): Promise<DesktopBuild> {
   return request<DesktopBuild>(`/desktop-builds/${id}/revoke`, { method: "POST" });
+}
+
+export async function rebuildDesktopBuild(id: string): Promise<DesktopBuildWithToken> {
+  return request<DesktopBuildWithToken>(`/desktop-builds/${id}/rebuild`, { method: "POST" });
 }
