@@ -16,7 +16,7 @@ from app.database import get_async_session
 from app.models.user import User
 from app.settings import settings
 
-ACCESS_TOKEN_LIFETIME = 3600  # 1 hour
+ACCESS_TOKEN_LIFETIME = 86400  # 24 hours
 
 
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
