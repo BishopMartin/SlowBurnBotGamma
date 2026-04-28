@@ -121,6 +121,8 @@ export default function ClientPage() {
   const [formError, setFormError] = useState<string | null>(null);
 
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null);
+  const [revoking, setRevoking] = useState<string | null>(null);
 
   const [justCreated, setJustCreated] = useState<DesktopBuildWithToken | null>(null);
   const [copied, setCopied] = useState(false);
@@ -220,6 +222,21 @@ export default function ClientPage() {
     }
   }
 
+  async function handleRevoke(buildId: string) {
+    if (confirmRevoke !== buildId) { setConfirmRevoke(buildId); return; }
+    setConfirmRevoke(null);
+    setRevoking(buildId);
+    try {
+      await revokeDesktopBuild(buildId);
+      if (expandedKey === buildId) setExpandedKey(null);
+      await refreshAll();
+    } catch (e: unknown) {
+      setPageError(e instanceof Error ? e.message : "Revoke failed.");
+    } finally {
+      setRevoking(null);
+    }
+  }
+
   function copyToken(token: string) {
     navigator.clipboard.writeText(token).then(() => {
       setCopied(true);
@@ -302,6 +319,16 @@ export default function ClientPage() {
                                 <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{downloading === build.id ? "…" : "download"}</Bracket>
                               </button>
                             )}
+                            <button
+                              onClick={() => handleRevoke(build.id)}
+                              disabled={revoking === build.id}
+                              className="group cursor-pointer transition-colors disabled:opacity-40"
+                              onBlur={() => setConfirmRevoke(null)}
+                            >
+                              <Bracket className={confirmRevoke === build.id ? "text-[#E5C07B] group-hover:text-[#f4f3ee]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>
+                                {revoking === build.id ? "…" : confirmRevoke === build.id ? "confirm?" : "revoke"}
+                              </Bracket>
+                            </button>
                             <button onClick={() => toggleExpand(build.id)} className="group cursor-pointer transition-colors">
                               <Bracket className={isExpanded ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>settings/build</Bracket>
                             </button>
