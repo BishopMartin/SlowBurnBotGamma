@@ -284,6 +284,17 @@ export default function AccountDetailPage() {
 
             <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
               <span className="inline-flex items-center gap-0">
+                <span className="text-[#9A968B]">{"sessions/day: "}</span>
+                <span className="text-[#f4f3ee]">{"["}</span>
+                <NumberInput
+                  value={settings.max_runs_per_day}
+                  onChange={(n) => setSettings((s) => ({ ...s, max_runs_per_day: n || 1 }))}
+                  placeholder="1"
+                />
+                <span className="text-[#f4f3ee]">{"]"}</span>
+              </span>
+
+              <span className="inline-flex items-center gap-0">
                 <span className="text-[#9A968B]">{"delay fixed: "}</span>
                 <span className="text-[#f4f3ee]">{"["}</span>
                 <NumberInput
@@ -301,17 +312,6 @@ export default function AccountDetailPage() {
                   value={settings.delay_random_minutes}
                   onChange={(n) => setSettings((s) => ({ ...s, delay_random_minutes: n }))}
                   placeholder="0"
-                />
-                <span className="text-[#f4f3ee]">{"]"}</span>
-              </span>
-
-              <span className="inline-flex items-center gap-0">
-                <span className="text-[#9A968B]">{"sessions/day: "}</span>
-                <span className="text-[#f4f3ee]">{"["}</span>
-                <NumberInput
-                  value={settings.max_runs_per_day}
-                  onChange={(n) => setSettings((s) => ({ ...s, max_runs_per_day: n || 1 }))}
-                  placeholder="1"
                 />
                 <span className="text-[#f4f3ee]">{"]"}</span>
               </span>

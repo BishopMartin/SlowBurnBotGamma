@@ -25,36 +25,55 @@ export function Dropdown({
   className = "",
 }: DropdownProps) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (
+        triggerRef.current && !triggerRef.current.contains(e.target as Node) &&
+        menuRef.current && !menuRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  function openMenu() {
+    if (disabled) return;
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (rect) setMenuPos({ top: rect.bottom + 2, left: rect.left });
+    setOpen((o) => !o);
+  }
+
   const selected = options.find((o) => o.value === value);
   const display = selected?.label ?? placeholder;
 
   return (
-    <div ref={ref} className={`relative inline-block font-mono ${className}`}>
+    <div className={`relative inline-block font-mono ${className}`}>
       <button
+        ref={triggerRef}
         type="button"
         disabled={disabled}
-        onClick={() => !disabled && setOpen((o) => !o)}
+        onClick={openMenu}
         className={`bg-transparent outline-none cursor-pointer text-[#9A968B] ${disabled ? "text-[#3d3d3a] cursor-default" : ""}`}
       >
         {display}
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-50 border border-[#3d3d3a] bg-[#1f1e1d] min-w-max text-left">
+        <div
+          ref={menuRef}
+          style={{ position: "fixed", top: menuPos.top, left: menuPos.left, zIndex: 9999 }}
+          className="border border-[#3d3d3a] bg-[#1f1e1d] min-w-max text-left"
+        >
           {options.map((opt) => (
             <div
               key={opt.value}
               onClick={() => { onChange(opt.value); setOpen(false); }}
-              className={`px-3 py-1 cursor-pointer transition-colors ${
+              className={`px-3 py-1 cursor-pointer transition-colors font-mono ${
                 opt.value === value
                   ? "bg-[#d97757] text-[#141413]"
                   : "text-[#f4f3ee] hover:bg-[#2a2927]"
