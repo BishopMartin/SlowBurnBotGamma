@@ -7,6 +7,7 @@ import {
   getDesktopBuild,
   getDesktopBuildDownloadUrl,
   getDesktopBuildDownloadToken,
+  getDesktopBuildsMeta,
   revokeDesktopBuild,
   DesktopBuild,
   DesktopBuildConfig,
@@ -59,6 +60,7 @@ export default function ClientPage() {
   const [builds, setBuilds] = useState<DesktopBuild[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentBotVersion, setCurrentBotVersion] = useState<string>("");
 
   const [config, setConfig] = useState<DesktopBuildConfig>(DEFAULT_CONFIG);
   const [submitting, setSubmitting] = useState(false);
@@ -98,7 +100,10 @@ export default function ClientPage() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    getDesktopBuildsMeta().then((m) => setCurrentBotVersion(m.current_bot_version)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const active = builds.filter(isActive);
@@ -257,14 +262,14 @@ export default function ClientPage() {
                         <tr key={`${build.id}-settings`} className="border-t border-[#3d3d3a] bg-[#1a1918]">
                           <td colSpan={7} className="px-4 py-3 text-xs text-[#9A968B]">
                             <div className="flex flex-wrap gap-x-6 gap-y-1">
-                              <span><span className="text-[#3d3d3a]">chrome path:</span> <span className="text-[#f4f3ee]">{cfg.chrome_path || "—"}</span></span>
-                              <span><span className="text-[#3d3d3a]">user data dir:</span> <span className="text-[#f4f3ee]">{cfg.chrome_user_data_dir_base || "—"}</span></span>
                               <span><span className="text-[#3d3d3a]">headless:</span> <span className="text-[#f4f3ee]">{cfg.headless ? "yes" : "no"}</span></span>
                               <span><span className="text-[#3d3d3a]">detach:</span> <span className="text-[#f4f3ee]">{cfg.detach ? "yes" : "no"}</span></span>
                               <span><span className="text-[#3d3d3a]">close on session:</span> <span className="text-[#f4f3ee]">{cfg.close_browser_session ? "yes" : "no"}</span></span>
                               <span><span className="text-[#3d3d3a]">close on exit:</span> <span className="text-[#f4f3ee]">{cfg.close_browser_exit ? "yes" : "no"}</span></span>
-                              <span><span className="text-[#3d3d3a]">user agent:</span> <span className="text-[#f4f3ee]">{cfg.system_user_agent || "—"}</span></span>
                             </div>
+                            <div className="mt-1"><span className="text-[#3d3d3a]">chrome path:</span> <span className="text-[#f4f3ee]">{cfg.chrome_path || "—"}</span></div>
+                            <div className="mt-1"><span className="text-[#3d3d3a]">user data dir:</span> <span className="text-[#f4f3ee]">{cfg.chrome_user_data_dir_base || "—"}</span></div>
+                            <div className="mt-1"><span className="text-[#3d3d3a]">user agent:</span> <span className="text-[#f4f3ee]">{cfg.system_user_agent || "—"}</span></div>
                           </td>
                         </tr>
                       )}
@@ -286,6 +291,11 @@ export default function ClientPage() {
               <span className="text-[#9A968B] ml-2">
                 -- client id: <span className="text-[#f4f3ee]">[</span><span className="text-[#E5C07B]">{String(nextClientId).padStart(2, "0")}</span><span className="text-[#f4f3ee]">]</span>
               </span>
+              {currentBotVersion && (
+                <span className="text-[#9A968B] ml-2">
+                  -- client ver: <span className="text-[#f4f3ee]">[</span><span className="text-[#E5C07B]">v {currentBotVersion}</span><span className="text-[#f4f3ee]">]</span>
+                </span>
+              )}
             </span>
             <BracketInput label="client name" value={config.client_name} onChange={(v) => setField("client_name", v.slice(0, 15))} width="15ch" placeholder="my laptop" />
           </span>
@@ -294,11 +304,15 @@ export default function ClientPage() {
         <div className="divide-y divide-[#3d3d3a] text-sm">
           <div className="px-4 py-2 flex items-center gap-x-0 gap-y-2 flex-wrap">
             <BracketInput label="portable chrome version" value={config.chrome_version} onChange={(v) => setField("chrome_version", v)} width="5ch" placeholder="143" />
-            <BracketInput label="user agent" value={config.system_user_agent} onChange={(v) => setField("system_user_agent", v)} width="52ch" />
+          </div>
+          <div className="px-4 py-2 flex items-center gap-x-0 gap-y-2 flex-wrap">
+            <BracketInput label="user agent" value={config.system_user_agent} onChange={(v) => setField("system_user_agent", v)} width="72ch" />
           </div>
           <div className="px-4 py-2 flex items-center gap-x-0 gap-y-2 flex-wrap">
             <BracketInput label="chrome path" value={config.chrome_path} onChange={(v) => setField("chrome_path", v)} width="36ch" placeholder="\PortableChrome\chrome.exe" />
-            <BracketInput label="user data dir" value={config.chrome_user_data_dir_base} onChange={(v) => setField("chrome_user_data_dir_base", v)} width="24ch" placeholder="\PortableChrome\" />
+          </div>
+          <div className="px-4 py-2 flex items-center gap-x-0 gap-y-2 flex-wrap">
+            <BracketInput label="user data dir" value={config.chrome_user_data_dir_base} onChange={(v) => setField("chrome_user_data_dir_base", v)} width="36ch" placeholder="\PortableChrome\" />
           </div>
           <div className="px-4 py-2 flex items-center gap-x-5 gap-y-2 flex-wrap">
             <BracketCheckbox label="headless" checked={config.headless} onChange={(v) => setField("headless", v)} />

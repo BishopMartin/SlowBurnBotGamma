@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     desktop_activation_token_ttl_hours: int = 168  # 7 days
     desktop_download_expires_hours: int = 72
     desktop_max_downloads: int = 10
+    current_bot_version: str = ""  # CURRENT_BOT_VERSION env var — update when bumping bot
 
     @field_validator("database_url", mode="before")
     @classmethod
