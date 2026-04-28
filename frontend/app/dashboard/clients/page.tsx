@@ -323,17 +323,17 @@ export default function ClientPage() {
                         <tr key={`${build.id}-settings`} className="border-t border-[#3d3d3a] bg-[#1a1918]">
                           <td colSpan={6} className="px-4 py-3 text-[#9A968B]">
                             <div className="flex flex-wrap gap-x-6 gap-y-1 mb-2">
-                              <span><span className="text-[#3d3d3a]">chrome version:</span> <span className="text-[#f4f3ee]">{cfg.chrome_version || "—"}</span></span>
-                              <span><span className="text-[#3d3d3a]">client name:</span> <span className="text-[#f4f3ee]">{cfg.client_name || "—"}</span></span>
+                              <span><span className="text-[#9A968B]">chrome version:</span> <span className="text-[#f4f3ee]">{cfg.chrome_version || "—"}</span></span>
+                              <span><span className="text-[#9A968B]">client name:</span> <span className="text-[#f4f3ee]">{cfg.client_name || "—"}</span></span>
                             </div>
-                            <div className="mb-1"><span className="text-[#3d3d3a]">user agent:</span> <span className="text-[#f4f3ee]">{cfg.system_user_agent || "—"}</span></div>
-                            <div className="mb-1"><span className="text-[#3d3d3a]">chrome path:</span> <span className="text-[#f4f3ee]">{cfg.chrome_path || "—"}</span></div>
-                            <div className="mb-2"><span className="text-[#3d3d3a]">user data dir:</span> <span className="text-[#f4f3ee]">{cfg.chrome_user_data_dir_base || "—"}</span></div>
+                            <div className="mb-1"><span className="text-[#9A968B]">user agent:</span> <span className="text-[#f4f3ee]">{cfg.system_user_agent || "—"}</span></div>
+                            <div className="mb-1"><span className="text-[#9A968B]">chrome path:</span> <span className="text-[#f4f3ee]">{cfg.chrome_path || "—"}</span></div>
+                            <div className="mb-2"><span className="text-[#9A968B]">user data dir:</span> <span className="text-[#f4f3ee]">{cfg.chrome_user_data_dir_base || "—"}</span></div>
                             <div className="flex flex-wrap gap-x-6 gap-y-1">
-                              <span><span className="text-[#3d3d3a]">headless:</span> <span className="text-[#f4f3ee]">{cfg.headless ? "yes" : "no"}</span></span>
-                              <span><span className="text-[#3d3d3a]">detach:</span> <span className="text-[#f4f3ee]">{cfg.detach ? "yes" : "no"}</span></span>
-                              <span><span className="text-[#3d3d3a]">close on session end:</span> <span className="text-[#f4f3ee]">{cfg.close_browser_session ? "yes" : "no"}</span></span>
-                              <span><span className="text-[#3d3d3a]">close on exit:</span> <span className="text-[#f4f3ee]">{cfg.close_browser_exit ? "yes" : "no"}</span></span>
+                              <span><span className="text-[#9A968B]">headless:</span> <span className="text-[#f4f3ee]">{cfg.headless ? "yes" : "no"}</span></span>
+                              <span><span className="text-[#9A968B]">detach:</span> <span className="text-[#f4f3ee]">{cfg.detach ? "yes" : "no"}</span></span>
+                              <span><span className="text-[#9A968B]">close on session end:</span> <span className="text-[#f4f3ee]">{cfg.close_browser_session ? "yes" : "no"}</span></span>
+                              <span><span className="text-[#9A968B]">close on exit:</span> <span className="text-[#f4f3ee]">{cfg.close_browser_exit ? "yes" : "no"}</span></span>
                             </div>
                           </td>
                         </tr>
