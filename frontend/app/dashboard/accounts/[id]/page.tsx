@@ -29,7 +29,7 @@ const ACTION_TARGETS: Record<string, string[]> = {
   like: ["posts [homepage]", "posts [topics]"],
 };
 
-const SCHEDULE_DAYS = ["daily", "weekdays", "weekends"];
+const SCHEDULE_DAYS = ["daily", "weekdays", "weekends", "random 1/3", "random 2/3"];
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
