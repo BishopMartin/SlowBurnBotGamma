@@ -192,12 +192,12 @@ export default function ClientPage() {
     }
   }
 
-  async function handleRebuildWithConfig(buildId: string, cfg: DesktopBuildConfig) {
+  async function handleRebuildWithConfig(buildId: string, slotNumber: number, cfg: DesktopBuildConfig) {
     setFormSubmitting(true);
     setFormError(null);
     try {
       await revokeDesktopBuild(buildId);
-      const result = await createDesktopBuild(cfg);
+      const result = await createDesktopBuild(cfg, slotNumber);
       setJustCreated(result);
       setExpandedKey(null);
       await refreshAll();
@@ -341,7 +341,7 @@ export default function ClientPage() {
                             <BuildForm
                               initial={cfg}
                               submitLabel="request re-build"
-                              onSubmit={(newCfg) => handleRebuildWithConfig(build.id, newCfg)}
+                              onSubmit={(newCfg) => handleRebuildWithConfig(build.id, build.client_id, newCfg)}
                               onCancel={() => { setExpandedKey(null); setFormError(null); }}
                               submitting={formSubmitting}
                               error={formError}

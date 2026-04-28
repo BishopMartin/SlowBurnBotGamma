@@ -147,13 +147,19 @@ async def create_desktop_build(
     config = body.config
     api_url = (config.api_url or settings.public_api_url).rstrip("/")
 
-    # Allocate next client_id for this user
-    max_cid = await session.scalar(
-        select(func.coalesce(func.max(DesktopBuild.client_id), 0)).where(
-            DesktopBuild.user_id == user.id
-        )
-    )
-    next_client_id = (max_cid or 0) + 1
+    # Assign client_id: use explicit slot_number (rebuild) or lowest free slot (new build)
+    if body.slot_number is not None:
+        next_client_id = body.slot_number
+    else:
+        occupied = set(await session.scalars(
+            select(DesktopBuild.client_id).where(
+                DesktopBuild.user_id == user.id,
+                DesktopBuild.status.notin_(["revoked", "failed"]),
+            )
+        ))
+        next_client_id = 1
+        while next_client_id in occupied:
+            next_client_id += 1
 
     now = _now()
     token, token_hash = _mint_token()
@@ -326,13 +332,7 @@ async def rebuild_desktop_build(
 
     config_dict = old_build.build_options
     api_url = (config_dict.get("api_url") or settings.public_api_url).rstrip("/")
-
-    max_cid = await session.scalar(
-        select(func.coalesce(func.max(DesktopBuild.client_id), 0)).where(
-            DesktopBuild.user_id == user.id
-        )
-    )
-    next_client_id = (max_cid or 0) + 1
+    next_client_id = old_build.client_id
 
     now = _now()
     token, token_hash = _mint_token()

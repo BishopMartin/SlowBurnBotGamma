@@ -34,6 +34,7 @@ class DesktopBuildConfig(BaseModel):
 
 class DesktopBuildCreate(BaseModel):
     config: DesktopBuildConfig
+    slot_number: int | None = None  # if set, use this as client_id (rebuild preserving slot)
 
 
 class DesktopBuildRead(BaseModel):

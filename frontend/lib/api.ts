@@ -505,10 +505,10 @@ export interface DesktopBuildWithToken extends DesktopBuild {
   activation_token: string;
 }
 
-export async function createDesktopBuild(config: DesktopBuildConfig): Promise<DesktopBuildWithToken> {
+export async function createDesktopBuild(config: DesktopBuildConfig, slotNumber?: number): Promise<DesktopBuildWithToken> {
   return request<DesktopBuildWithToken>("/desktop-builds", {
     method: "POST",
-    body: JSON.stringify({ config }),
+    body: JSON.stringify({ config, slot_number: slotNumber ?? null }),
   });
 }
 
