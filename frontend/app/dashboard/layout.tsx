@@ -42,7 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen flex flex-col font-mono">
       <div className="flex-1 max-w-5xl mx-auto w-full sm:border-x border-[#3d3d3a]">
-        <header className="px-3 sm:px-6 pt-2 pb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <header className="px-3 sm:px-6 pt-5 pb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="font-semibold text-[#d97757]">SlowBurnBot <span className="text-[#3d3d3a] font-normal">--</span></span>
           <nav className="flex flex-wrap gap-1">
             {navItems.map((item) => (
