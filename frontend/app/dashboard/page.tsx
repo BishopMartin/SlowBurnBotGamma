@@ -276,7 +276,7 @@ export default function DashboardPage() {
           Accounts <span className="text-[#9A968B] font-normal">[{String(subInfo?.current_accounts ?? accounts.length).padStart(2, "0")}/{String(maxAccounts).padStart(2, "0")}]</span>
         </h2>
         <span className="text-[#9A968B]">--</span>
-        <div className="basis-full sm:basis-auto flex flex-wrap items-center gap-2 text-sm">
+        <div className="basis-full sm:basis-auto flex flex-wrap items-center gap-2">
           {tabs.map((t) => (
             <button
               key={t.key}
@@ -460,7 +460,7 @@ export default function DashboardPage() {
       <div className="flex items-center gap-4">
         <h2 className="font-semibold text-[#f4f3ee]">Recent Activity</h2>
         <span className="text-[#9A968B]">--</span>
-        <Link href="/dashboard/accounts?tab=activity" className="text-[#d97757] hover:text-[#f4f3ee] transition-colors text-sm">
+        <Link href="/dashboard/accounts?tab=activity" className="text-[#d97757] hover:text-[#f4f3ee] transition-colors">
           by account →
         </Link>
       </div>
