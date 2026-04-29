@@ -25,4 +25,5 @@ if git diff --quiet -- frontend/lib/version.ts 2>/dev/null; then
 fi
 
 git add frontend/lib/version.ts
-git commit -m "chore: bump app version" --no-verify || exit 1
+VERSION=$(grep -o '"[0-9.]*"' frontend/lib/version.ts | tr -d '"')
+git commit -m "chore: bump app version to ${VERSION}" --no-verify || exit 1
