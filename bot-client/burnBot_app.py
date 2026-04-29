@@ -5,7 +5,7 @@ from datetime import datetime
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.widgets import DataTable, Input, RichLog, Static
+from textual.widgets import DataTable, Input, RichLog, Rule, Static
 from textual.containers import Vertical
 from textual.screen import Screen
 from textual import on
@@ -90,7 +90,7 @@ class HelpScreen(Screen):
         border: solid #9A968B;
         padding: 1 2;
         background: #1e1e1e;
-        color: #f4f3ee;
+        color: #c9c7c0;
     }
     .help-title {
         text-align: center;
@@ -138,6 +138,7 @@ class BurnBotApp(App):
     Screen {
         background: #1a1a1a;
         layers: base overlay;
+        color: #c9c7c0;
     }
 
     #header-bar {
@@ -147,10 +148,16 @@ class BurnBotApp(App):
         padding: 0 1;
     }
 
+    Rule {
+        color: #3a3a3a;
+        margin: 0;
+    }
+
     RichLog {
         border: none;
         background: #1a1a1a;
-        color: #f4f3ee;
+        color: #c9c7c0;
+        padding: 0 0 0 1;
         scrollbar-color: #9A968B;
         scrollbar-background: #1a1a1a;
     }
@@ -159,8 +166,7 @@ class BurnBotApp(App):
         height: auto;
         max-height: 16;
         background: #1a1a1a;
-        color: #f4f3ee;
-        border: solid #9A968B;
+        color: #c9c7c0;
     }
     DataTable > .datatable--header {
         background: #1a1a1a;
@@ -171,24 +177,15 @@ class BurnBotApp(App):
         background: #2a2a2a;
     }
 
-    #input-row {
-        height: 3;
-        background: #1a1a1a;
-    }
     Input {
         background: #1a1a1a;
         color: #f4f3ee;
-        border: solid #9A968B;
+        border: none;
+        border-top: solid #3a3a3a;
     }
     Input:focus {
-        border: solid #adcc00;
-    }
-
-    #hint-bar {
-        height: 1;
-        background: #1a1a1a;
-        color: #9A968B;
-        padding: 0 1;
+        border: none;
+        border-top: solid #adcc00;
     }
     """
 
@@ -199,11 +196,11 @@ class BurnBotApp(App):
     def __init__(self, version: str, client_id: str, client_name: str,
                  bot_loop_fn, stop_flag):
         super().__init__()
-        self._version    = version
-        self._client_id  = client_id
+        self._version     = version
+        self._client_id   = client_id
         self._client_name = client_name
         self._bot_loop_fn = bot_loop_fn
-        self._stop_flag  = stop_flag
+        self._stop_flag   = stop_flag
 
     # ------------------------------------------------------------------
     # Layout
@@ -211,10 +208,11 @@ class BurnBotApp(App):
 
     def compose(self) -> ComposeResult:
         yield Static("", id="header-bar")
+        yield Rule()
         yield RichLog(highlight=False, markup=True, wrap=False, id="log")
+        yield Rule()
         yield DataTable(id="accounts", show_cursor=False)
-        yield Input(placeholder="  type a command  ( /help for list )", id="cmd-input")
-        yield Static("", id="hint-bar")
+        yield Input(placeholder="  /stop   /exit   /settings   /help   ·   type a command", id="cmd-input")
 
     def on_mount(self) -> None:
         table = self.query_one("#accounts", DataTable)
@@ -226,31 +224,36 @@ class BurnBotApp(App):
         threading.Thread(target=self._bot_loop_fn, daemon=True).start()
 
     # ------------------------------------------------------------------
-    # Header / hint bar
+    # Header
     # ------------------------------------------------------------------
 
     def _refresh_header(self) -> None:
         paused = status_store.is_bot_paused()
         now    = datetime.now().strftime("%I:%M %p")
-        name_part = f"  ·  {self._client_name}" if self._client_name else ""
+        client_id_str = str(self._client_id).zfill(2)
 
         header = Text(no_wrap=True)
         header.append(f"SlowBurnBot Client v{self._version}", style=f"bold {status_store.FG}")
         header.append("  |  ", style=status_store.DIM)
+        header.append(f"Client ID: {client_id_str}", style=status_store.DIM)
+        if self._client_name:
+            header.append(f" ({self._client_name})", style=status_store.DIM)
+        header.append("  |  ", style=status_store.DIM)
         header.append(now, style=status_store.DIM)
         header.append("  |  Current State: ", style=status_store.DIM)
         if paused:
-            header.append("STOPPED", style=f"bold #E5C07B")
-            header.append("  |  enter /start to resume", style=status_store.DIM)
+            header.append("[STOPPED]", style="bold #E5C07B")
         else:
-            header.append("RUNNING", style=f"bold #adcc00")
-            header.append("  |  enter /stop to pause", style=status_store.DIM)
-        header.append(f"   Client #{self._client_id}{name_part}", style=status_store.DIM)
+            header.append("[RUNNING]", style="bold #adcc00")
 
         self.query_one("#header-bar", Static).update(header)
 
-        hint = "  /start   /exit   /settings   /help" if paused else "  /stop   /exit   /settings   /help"
-        self.query_one("#hint-bar", Static).update(hint)
+        try:
+            inp = self.query_one("#cmd-input", Input)
+            hint_cmd = "/start" if paused else "/stop"
+            inp.placeholder = f"  {hint_cmd}   /exit   /settings   /help   ·   type a command"
+        except Exception:
+            pass
 
     # ------------------------------------------------------------------
     # Log + accounts table (called from bot threads via call_from_thread)
@@ -270,13 +273,11 @@ class BurnBotApp(App):
         last_action  = kwargs.get("last_action", "—")
 
         try:
-            # Row exists — update each cell individually
             table.update_cell(account_name, "Status",         status_cell,  update_width=False)
             table.update_cell(account_name, "Sessions Today", run_info,     update_width=False)
             table.update_cell(account_name, "Next Run",       next_run,     update_width=False)
             table.update_cell(account_name, "Last Action",    last_action,  update_width=False)
         except Exception:
-            # New account — add row
             table.add_row(
                 account_name, status_cell, run_info, next_run, last_action,
                 key=account_name,

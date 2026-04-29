@@ -31,8 +31,9 @@ COLOR = {
     "idle":            "#9A968B",
     "off-schedule":    "#9A968B",
 }
-FG  = "#f4f3ee"
-DIM = "#9A968B"
+FG   = "#f4f3ee"   # titles / headers
+TEXT = "#c9c7c0"   # regular body text
+DIM  = "#9A968B"   # secondary / meta
 
 
 # ---------------------------------------------------------------------------
