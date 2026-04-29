@@ -96,8 +96,6 @@ def set_bot_paused(val: bool) -> None:
     global _bot_paused
     with _lock:
         _bot_paused = val
-    if _app is not None:
-        _app.call_from_thread(_app._refresh_header)
 
 
 def is_stop_requested() -> bool:
