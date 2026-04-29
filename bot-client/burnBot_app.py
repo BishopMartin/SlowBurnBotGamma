@@ -222,6 +222,7 @@ class BurnBotApp(App):
         self._refresh_header()
         self.set_interval(1.0, self._refresh_header)
         self.query_one("#cmd-input", Input).focus()
+        status_store.flush_log_buffer(self)
         threading.Thread(target=self._bot_loop_fn, daemon=True).start()
 
     # ------------------------------------------------------------------

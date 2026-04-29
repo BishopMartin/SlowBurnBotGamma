@@ -40,13 +40,17 @@ DIM = "#9A968B"
 # ---------------------------------------------------------------------------
 
 def set_app(app) -> None:
-    """Called once the Textual app is ready. Flushes buffered log lines."""
+    """Register the Textual app instance. Call flush_log_buffer() from on_mount to drain buffered lines."""
     global _app
     _app = app
+
+
+def flush_log_buffer(app) -> None:
+    """Flush lines buffered before the TUI started. Must be called from within the event loop (e.g. on_mount)."""
     with _lock:
         buffered = list(_log_buffer)
     for line in buffered:
-        app.call_from_thread(app._write_log, line)
+        app._write_log(line)
 
 
 # ---------------------------------------------------------------------------
