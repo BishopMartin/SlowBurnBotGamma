@@ -6,7 +6,7 @@ from datetime import datetime
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import DataTable, Input, RichLog, Rule, Static
-from textual.containers import Vertical
+from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual import on
 from rich.text import Text
@@ -167,6 +167,8 @@ class BurnBotApp(App):
         max-height: 16;
         background: #1a1a1a;
         color: #c9c7c0;
+        border: solid #9A968B;
+        border-bottom: none;
     }
     DataTable > .datatable--header {
         background: #1a1a1a;
@@ -177,15 +179,27 @@ class BurnBotApp(App):
         background: #2a2a2a;
     }
 
+    #input-row {
+        height: 3;
+        background: #1a1a1a;
+        border: solid #9A968B;
+    }
+    #input-row:focus-within {
+        border: solid #adcc00;
+    }
+    #input-prompt {
+        width: 4;
+        color: #adcc00;
+        background: #1a1a1a;
+        content-align: center middle;
+    }
     Input {
         background: #1a1a1a;
         color: #f4f3ee;
         border: none;
-        border-top: solid #3a3a3a;
     }
     Input:focus {
         border: none;
-        border-top: solid #adcc00;
     }
     """
 
@@ -210,9 +224,10 @@ class BurnBotApp(App):
         yield Static("", id="header-bar")
         yield Rule()
         yield RichLog(highlight=False, markup=True, wrap=False, id="log")
-        yield Rule()
         yield DataTable(id="accounts", show_cursor=False)
-        yield Input(placeholder="  /stop   /exit   /settings   /help   ·   type a command", id="cmd-input")
+        with Horizontal(id="input-row"):
+            yield Static(">", id="input-prompt")
+            yield Input(placeholder="type a command  ·  /stop   /exit   /settings   /help", id="cmd-input")
 
     def on_mount(self) -> None:
         table = self.query_one("#accounts", DataTable)
@@ -251,7 +266,7 @@ class BurnBotApp(App):
         try:
             inp = self.query_one("#cmd-input", Input)
             hint_cmd = "/start" if paused else "/stop"
-            inp.placeholder = f"  {hint_cmd}   /exit   /settings   /help   ·   type a command"
+            inp.placeholder = f"type a command  ·  {hint_cmd}   /exit   /settings   /help"
         except Exception:
             pass
 
@@ -299,16 +314,18 @@ class BurnBotApp(App):
             self.exit()
         elif cmd == "/stop":
             status_store.set_bot_paused(True)
+            self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Pausing bot execution")
             self._refresh_header()
         elif cmd == "/start":
             status_store.set_bot_paused(False)
+            self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Resuming bot execution")
             self._refresh_header()
         elif cmd == "/settings":
             self.push_screen(SettingsScreen())
         elif cmd == "/help":
             self.push_screen(HelpScreen())
         else:
-            status_store.add_log(f"[system]: unknown command '{cmd}' — type /help for list")
+            self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Unknown command '{cmd}' — type /help for list")
 
     def action_clear_input(self) -> None:
         inp = self.query_one("#cmd-input", Input)
