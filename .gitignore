@@ -3,11 +3,21 @@
 *.xlsx
 *.xls
 
+# Local Claude Code settings (may contain tokens)
+.claude/settings.local.json
+
 # Google Sheets shortcut stubs (cloud-only; not useful in git)
 *.gsheet
 
-# Bot client lives in its own repo (BishopMartin/SlowBurnBot-BotClient)
-bot-client/
+# Bot client — source tracked here; exclude runtime/local artifacts
+bot-client/burnBot_config.ini
+bot-client/burnBot_runs.json
+bot-client/.venv/
+bot-client/ChromeUserData/
+bot-client/PortableChrome/
+bot-client/dist/
+bot-client/build/
+bot-client/*.spec.bak
 
 # Local bot state / secrets (common in sibling Beta tree; mirror here if copied)
 burnBot_runs.json

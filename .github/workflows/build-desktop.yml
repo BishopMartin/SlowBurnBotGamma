@@ -1,7 +1,7 @@
 # Desktop build workflow — triggered by the SlowBurnBot backend via workflow_dispatch.
 #
 # Required repository secrets (set in GitHub → Settings → Secrets):
-#   (none for v1 — artifact upload uses GITHUB_TOKEN automatically)
+#   (none — artifact upload uses GITHUB_TOKEN automatically; bot-client is in this repo)
 #
 # The backend PAT (GITHUB_TOKEN in Railway) is never exposed here.
 
@@ -37,13 +37,6 @@ jobs:
     steps:
       - name: Checkout SlowBurnBotGamma
         uses: actions/checkout@v4
-
-      - name: Checkout bot-client
-        uses: actions/checkout@v4
-        with:
-          repository: BishopMartin/SlowBurnBot-BotClient
-          token: ${{ secrets.BOT_CLIENT_PAT }}
-          path: bot-client
 
       - name: Set up Python
         uses: actions/setup-python@v5

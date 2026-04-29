@@ -1,0 +1,11 @@
+burnBot_config.ini
+burnBot_runs.json
+.venv/
+ChromeUserData/
+PortableChrome/
+__pycache__/
+*.py[cod]
+*.pyo
+dist/
+build/
+*.spec.bak
