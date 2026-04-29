@@ -303,7 +303,8 @@ try:
     class _BotConsole:
         @staticmethod
         def print(*args, **kwargs):
-            status_store.add_log(" ".join(str(a) for a in args))
+            from rich.markup import escape
+            status_store.add_log(escape(" ".join(str(a) for a in args)))
 
     console = _BotConsole()
 
