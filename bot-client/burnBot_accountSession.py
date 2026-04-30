@@ -59,6 +59,21 @@ def accountSession(account, account_id, idx, threads_active, stop_flag, apiClien
     global drivers
     _print = console.print if console else builtins.print
 
+    try:
+        _accountSession_inner(account, account_id, idx, threads_active, stop_flag, apiClient, permanent_idx, _print)
+    except Exception as _thread_exc:
+        import traceback
+        _print(f"- [{account}]: [FATAL] Unhandled exception in session thread: {_thread_exc}")
+        _print(f"- [{account}]: [FATAL] {traceback.format_exc()}")
+        try:
+            threads_active[idx].clear()
+        except Exception:
+            pass
+
+
+def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, apiClient, permanent_idx, _print):
+    global drivers
+
     time.sleep(1)
     _print(f"- [{account}]: [setup] start thread..")
 
@@ -96,9 +111,11 @@ def accountSession(account, account_id, idx, threads_active, stop_flag, apiClien
     threads_active[idx].clear()
     _print(f"- [{account}]: [setup] setup complete and idle")
     status_store.update(account, status="idle", last_action="—")
+    _print(f"- [{account}]: [diag] pre-loop: stop_flag={stop_flag.is_set()}, event={threads_active[idx].is_set()}")
 
     # Main loop: Idle <-> Active
     while not stop_flag.is_set():
+        _print(f"- [{account}]: [diag] loop-tick: event={threads_active[idx].is_set()}")
         if threads_active[idx].is_set():
             # ACTIVE STATE
             # ========================================
