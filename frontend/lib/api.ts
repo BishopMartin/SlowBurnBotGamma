@@ -517,8 +517,8 @@ export async function listDesktopBuilds(): Promise<DesktopBuild[]> {
   return request<DesktopBuild[]>("/desktop-builds");
 }
 
-export async function getDesktopBuildsMeta(): Promise<{ current_bot_version: string }> {
-  return request<{ current_bot_version: string }>("/desktop-builds/meta");
+export async function getDesktopBuildsMeta(): Promise<{ current_bot_version: string; current_bot_release_date: string }> {
+  return request<{ current_bot_version: string; current_bot_release_date: string }>("/desktop-builds/meta");
 }
 
 export async function getDesktopBuild(id: string): Promise<DesktopBuild> {

@@ -81,10 +81,8 @@ function BuildForm({
       <div>
         <BracketInput label="user agent" value={cfg.system_user_agent} onChange={(v) => set("system_user_agent", v)} width="72ch" />
       </div>
-      <div>
+      <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
         <BracketInput label="chrome path" value={cfg.chrome_path} onChange={(v) => set("chrome_path", v)} width="44ch" placeholder="\PortableChrome\chrome.exe" />
-      </div>
-      <div>
         <BracketInput label="user data dir" value={cfg.chrome_user_data_dir_base} onChange={(v) => set("chrome_user_data_dir_base", v)} width="44ch" placeholder="\PortableChrome\" />
       </div>
       <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
@@ -110,10 +108,19 @@ function BuildForm({
   );
 }
 
+function versionGt(a: string, b: string): boolean {
+  const parse = (v: string) => v.split(".").map((n) => parseInt(n, 10));
+  const [am, ap] = parse(a);
+  const [bm, bp] = parse(b);
+  return am > bm || (am === bm && ap > bp);
+}
+
 export default function ClientPage() {
   const [builds, setBuilds] = useState<DesktopBuild[]>([]);
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null);
   const [currentBotVersion, setCurrentBotVersion] = useState<string>("");
+  const [botReleaseDate, setBotReleaseDate] = useState<string>("");
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
@@ -146,7 +153,10 @@ export default function ClientPage() {
   useEffect(() => {
     load();
     getSubscriptionInfo().then(setSubInfo).catch(() => {});
-    getDesktopBuildsMeta().then((m) => setCurrentBotVersion(m.current_bot_version)).catch(() => {});
+    getDesktopBuildsMeta().then((m) => {
+      setCurrentBotVersion(m.current_bot_version);
+      setBotReleaseDate(m.current_bot_release_date);
+    }).catch(() => {});
   }, []);
 
   async function refreshAll() {
@@ -263,6 +273,19 @@ export default function ClientPage() {
         </span>
       </div>
 
+      {!bannerDismissed && currentBotVersion && (
+        <div className="border border-[#d97757] px-4 py-3 flex items-center gap-3 flex-wrap">
+          <span className="text-[#f4f3ee]">
+            BurnBotClient <span className="text-[#E5C07B]">v{currentBotVersion}</span>
+            {botReleaseDate && <span className="text-[#9A968B]"> released {botReleaseDate}</span>}
+            <span className="text-[#9A968B]"> — update any old versions!</span>
+          </span>
+          <button onClick={() => setBannerDismissed(true)} className="group cursor-pointer transition-colors ml-auto">
+            <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
+          </button>
+        </div>
+      )}
+
       {justCreated && (
         <div className="border border-[#d97757] px-4 py-3 flex items-center gap-3 flex-wrap">
           <span className="text-[#f4f3ee]">client {justCreated.client_id} queued.</span>
@@ -300,7 +323,8 @@ export default function ClientPage() {
                 {/* Filled slots */}
                 {activeBuilds.map((build) => {
                   const cfg = build.build_options as DesktopBuildConfig;
-                  const canDownload = build.status === "ready" && !isExpired(build);
+                  const buildIsOutdated = !!(currentBotVersion && build.bot_version && versionGt(currentBotVersion, build.bot_version));
+                  const canDownload = build.status === "ready" && !isExpired(build) && !buildIsOutdated;
                   const isExpanded = expandedKey === build.id;
                   return (
                     <>
@@ -311,9 +335,16 @@ export default function ClientPage() {
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className={statusColor(build.status)}>{build.status}</span>
                         </td>
-                        <td className="px-4 py-3 text-[#9A968B] whitespace-nowrap">{build.bot_version ? `v${build.bot_version}` : "—"}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={buildIsOutdated ? "text-status-bad" : "text-[#9A968B]"}>
+                            {build.bot_version ? `v${build.bot_version}` : (currentBotVersion ? `v${currentBotVersion}` : "—")}
+                          </span>
+                        </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex gap-2 justify-end items-center">
+                            {buildIsOutdated && (
+                              <span className="text-status-bad opacity-50 text-sm">outdated</span>
+                            )}
                             {canDownload && (
                               <button onClick={() => handleDownload(build.id)} disabled={downloading === build.id} className="group cursor-pointer transition-colors disabled:opacity-40">
                                 <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{downloading === build.id ? "…" : "download"}</Bracket>

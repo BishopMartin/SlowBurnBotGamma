@@ -118,7 +118,10 @@ async def get_desktop_builds_meta(
     _: User = Depends(current_active_user),
 ):
     """Return static metadata about desktop builds (e.g. current bot version)."""
-    return {"current_bot_version": settings.current_bot_version}
+    return {
+        "current_bot_version": settings.current_bot_version,
+        "current_bot_release_date": settings.current_bot_release_date,
+    }
 
 
 @router.post("", response_model=DesktopBuildWithToken, status_code=status.HTTP_201_CREATED)
