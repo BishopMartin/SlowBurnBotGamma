@@ -12,6 +12,7 @@ from app.auth import current_superuser
 from app.crypto import decrypt, encrypt
 from app.database import get_async_session
 from app.models.account import Account
+from app.services import github_actions
 from app.models.follow_target import FollowTarget
 from app.models.invite_code import InviteCode
 from app.models.subscription import Subscription
@@ -419,3 +420,53 @@ async def delete_invite(
         raise HTTPException(status_code=400, detail="Cannot revoke an already-used invite.")
     await session.delete(invite)
     await session.commit()
+
+
+# ---------------------------------------------------------------------------
+# Bot version management
+# ---------------------------------------------------------------------------
+
+@router.get("/bot-version")
+async def get_bot_version_status(
+    _: User = Depends(current_superuser),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Return current DB bot version and what GitHub's main branch currently reports."""
+    config = await _get_system_config(session)
+    github_version = None
+    github_error = None
+    try:
+        github_version = await github_actions.get_main_branch_bot_version()
+    except Exception as e:
+        github_error = str(e)
+    return {
+        "db_current_bot_version": config.current_bot_version,
+        "db_current_bot_release_date": config.current_bot_release_date,
+        "github_main_version": github_version,
+        "github_error": github_error,
+    }
+
+
+@router.post("/sync-bot-version")
+async def sync_bot_version(
+    _: User = Depends(current_superuser),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Force-sync current_bot_version from GitHub main branch to DB."""
+    try:
+        version = await github_actions.get_main_branch_bot_version()
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"GitHub API error: {e}")
+    if not version:
+        raise HTTPException(status_code=502, detail="Could not read BOT_VERSION from GitHub main branch.")
+
+    config = await _get_system_config(session)
+    old_version = config.current_bot_version
+    config.current_bot_version = version
+    config.current_bot_release_date = datetime.now(timezone.utc).strftime("%b %d %Y")
+    await session.commit()
+    return {
+        "previous_version": old_version,
+        "updated_to": version,
+        "release_date": config.current_bot_release_date,
+    }
