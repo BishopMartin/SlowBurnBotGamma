@@ -303,8 +303,7 @@ try:
     class _BotConsole:
         @staticmethod
         def print(*args, **kwargs):
-            from rich.markup import escape
-            status_store.add_log(escape(" ".join(str(a) for a in args)))
+            status_store.add_log(" ".join(str(a) for a in args))
 
     console = _BotConsole()
 
@@ -315,8 +314,7 @@ try:
     class _TuiStdout:
         def write(self, text):
             if text and not text.isspace():
-                from rich.markup import escape
-                status_store.add_log(escape(text.rstrip()))
+                status_store.add_log(text.rstrip())
         def flush(self):
             pass
         def isatty(self):

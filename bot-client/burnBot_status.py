@@ -66,10 +66,12 @@ def update(account_name: str, **kwargs) -> None:
 
 
 def add_log(line: str) -> None:
+    from rich.markup import escape
+    line = escape(str(line))
     with _lock:
-        _log_buffer.append(str(line))
+        _log_buffer.append(line)
     if _app is not None:
-        _app.call_from_thread(_app._write_log, str(line))
+        _app.call_from_thread(_app._write_log, line)
 
 
 # ---------------------------------------------------------------------------
