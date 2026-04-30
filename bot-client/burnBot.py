@@ -218,6 +218,18 @@ try:
         # Wait for TUI to finish rendering before generating any log output
         time.sleep(1.5)
 
+        # Pre-populate accounts table before any log output appears
+        try:
+            _init_group = int(client_id_norm) if client_id_norm else None
+            _init_accounts = apiClient.get_accounts(group_number=_init_group)
+            if _init_accounts:
+                for _acct in _init_accounts:
+                    _name = _acct.get("name", "")
+                    if _name:
+                        status_store.update(_name, status="starting...", next_run="—", last_action="—", run_info="—")
+        except Exception:
+            pass
+
         # ------------------------------------------------------------------
         # Entitlement check (runs post-TUI so the result appears in the log)
         # ------------------------------------------------------------------
@@ -265,31 +277,35 @@ try:
         _ane = (_notif_cfg.get('notify_email') or '').strip()
         _anp = (_notif_cfg.get('notify_phone') or '').strip()
 
+        def _log(msg):
+            status_store.add_log(msg)
+            time.sleep(0.25)
+
         _started_at = datetime.now().strftime("%I:%M %p")
-        status_store.add_log(f"SlowBurnBot Client v{BOT_VERSION}  started {_started_at}")
-        status_store.add_log("=" * 60)
-        status_store.add_log("Bot Settings:")
+        _log(f"SlowBurnBot Client v{BOT_VERSION}  started {_started_at}")
+        _log("=" * 60)
+        _log("Bot Settings:")
         if not is_frozen():
-            status_store.add_log(f"{'local config file:':<{_w}}[{config_file}]")
-        status_store.add_log(f"{'api_url:':<{_w}}[{api_url}]")
-        status_store.add_log(f"{'client_id:':<{_w}}[{_sg}]")
-        status_store.add_log(f"{'system_type:':<{_w}}[{_st}]")
-        status_store.add_log(f"{'debug:':<{_w}}[{_dbg}]")
-        status_store.add_log(f"{'system_user_agent:':<{_w}}[{_ua}]")
-        status_store.add_log(f"{'close_browser_session:':<{_w}}[{_cs}]")
-        status_store.add_log(f"{'close_browser_exit:':<{_w}}[{_ce}]")
-        status_store.add_log(f"{'bot_idle_delay:':<{_w}}[{_idl}]")
-        status_store.add_log("Session Settings (from web app):")
-        status_store.add_log(f"{'like_suggested:':<{_w}}[{_lks}]")
-        status_store.add_log(f"{'like_sponsored:':<{_w}}[{_lkp}]")
-        status_store.add_log(f"{'skip_login_check:':<{_w}}[{_skl}]")
-        status_store.add_log(f"{'login_tries:':<{_w}}[{_lgt}]")
-        status_store.add_log("Notification Settings (from web app):")
-        status_store.add_log(f"{'notices_type:':<{_w}}[{_ant}]")
-        status_store.add_log(f"{'notices_session:':<{_w}}[{_ans}]")
-        status_store.add_log(f"{'notify_email:':<{_w}}[{_ane}]")
-        status_store.add_log(f"{'notify_phone:':<{_w}}[{_anp}]")
-        status_store.add_log("=" * 60)
+            _log(f"{'local config file:':<{_w}}[{config_file}]")
+        _log(f"{'api_url:':<{_w}}[{api_url}]")
+        _log(f"{'client_id:':<{_w}}[{_sg}]")
+        _log(f"{'system_type:':<{_w}}[{_st}]")
+        _log(f"{'debug:':<{_w}}[{_dbg}]")
+        _log(f"{'system_user_agent:':<{_w}}[{_ua}]")
+        _log(f"{'close_browser_session:':<{_w}}[{_cs}]")
+        _log(f"{'close_browser_exit:':<{_w}}[{_ce}]")
+        _log(f"{'bot_idle_delay:':<{_w}}[{_idl}]")
+        _log("Session Settings (from web app):")
+        _log(f"{'like_suggested:':<{_w}}[{_lks}]")
+        _log(f"{'like_sponsored:':<{_w}}[{_lkp}]")
+        _log(f"{'skip_login_check:':<{_w}}[{_skl}]")
+        _log(f"{'login_tries:':<{_w}}[{_lgt}]")
+        _log("Notification Settings (from web app):")
+        _log(f"{'notices_type:':<{_w}}[{_ant}]")
+        _log(f"{'notices_session:':<{_w}}[{_ans}]")
+        _log(f"{'notify_email:':<{_w}}[{_ane}]")
+        _log(f"{'notify_phone:':<{_w}}[{_anp}]")
+        _log("=" * 60)
         _beep('startup')
 
         # Redirect stdout so plain print() in any module routes to the TUI log

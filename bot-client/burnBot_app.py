@@ -15,67 +15,6 @@ import burnBot_status as status_store
 
 
 # ---------------------------------------------------------------------------
-# Settings overlay screen
-# ---------------------------------------------------------------------------
-
-class SettingsScreen(Screen):
-    CSS = """
-    SettingsScreen {
-        align: center middle;
-    }
-    #settings-panel {
-        width: 50;
-        height: auto;
-        border: solid #9A968B;
-        padding: 1 2;
-        background: #1e1e1e;
-    }
-    .settings-title {
-        text-align: center;
-        color: #f4f3ee;
-        text-style: bold;
-        margin-bottom: 1;
-    }
-    .settings-row {
-        height: 1;
-    }
-    #settings-hint {
-        color: #9A968B;
-        margin-top: 1;
-        text-align: center;
-    }
-    """
-
-    BINDINGS = [
-        Binding("escape", "dismiss", "Back"),
-    ]
-
-    def compose(self) -> ComposeResult:
-        with Vertical(id="settings-panel"):
-            yield Static("Settings", classes="settings-title")
-            yield DataTable(id="settings-table", show_header=False, cursor_type="row")
-            yield Static("Enter: Toggle   Esc: Back", id="settings-hint")
-
-    def on_mount(self) -> None:
-        table = self.query_one("#settings-table", DataTable)
-        table.add_columns("Setting", "Value")
-        self._refresh_rows()
-        table.focus()
-
-    def _refresh_rows(self) -> None:
-        table = self.query_one("#settings-table", DataTable)
-        table.clear()
-        for label, key in status_store._SETTINGS:
-            val = status_store.get_setting_value(key)
-            val_text = Text("ON", style="#adcc00") if val else Text("OFF", style="#cf3b0a")
-            table.add_row(label, val_text)
-
-    def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
-        status_store.toggle_setting(event.cursor_row)
-        self._refresh_rows()
-
-
-# ---------------------------------------------------------------------------
 # Help overlay screen
 # ---------------------------------------------------------------------------
 
@@ -152,11 +91,36 @@ class BurnBotApp(App):
 
     RichLog {
         border: none;
-        background: #1a1a1a;
+        background: #000000;
         color: #c9c7c0;
         padding: 0 0 0 1;
         scrollbar-color: #9A968B;
-        scrollbar-background: #1a1a1a;
+        scrollbar-background: #000000;
+    }
+
+    #settings-overlay {
+        display: none;
+        background: #1a1a1a;
+        align: center middle;
+    }
+    #settings-title {
+        width: 1fr;
+        text-align: center;
+        color: #f4f3ee;
+        text-style: bold;
+        margin-bottom: 1;
+    }
+    #settings-table {
+        width: 50;
+        height: auto;
+        max-height: 10;
+        border: solid #9A968B;
+    }
+    #settings-hint {
+        width: 1fr;
+        color: #9A968B;
+        margin-top: 1;
+        text-align: center;
     }
 
     DataTable {
@@ -228,19 +192,27 @@ class BurnBotApp(App):
     def compose(self) -> ComposeResult:
         yield Static("", id="header-bar")
         yield RichLog(highlight=False, markup=True, wrap=False, id="log")
+        with Vertical(id="settings-overlay"):
+            yield Static("Settings", id="settings-title")
+            yield DataTable(id="settings-table", show_header=False, cursor_type="row")
+            yield Static("Enter: Toggle   Esc: Back", id="settings-hint")
         yield DataTable(id="accounts", show_cursor=False)
         with Horizontal(id="input-row"):
             yield Static(">", id="input-prompt")
-            yield Input(placeholder="", id="cmd-input")
+            yield Input(placeholder="enter a command", id="cmd-input")
             yield Static("", id="input-hints")
 
     def on_mount(self) -> None:
-        table = self.query_one("#accounts", DataTable)
-        table.add_column("Account",        key="account")
-        table.add_column("Status",         key="status")
-        table.add_column("Sessions Today", key="sessions_today")
-        table.add_column("Next Run",       key="next_run")
-        table.add_column("Last Action",    key="last_action")
+        accounts = self.query_one("#accounts", DataTable)
+        accounts.add_column("Account",        key="account")
+        accounts.add_column("Status",         key="status")
+        accounts.add_column("Sessions Today", key="sessions_today")
+        accounts.add_column("Next Run",       key="next_run")
+        accounts.add_column("Last Action",    key="last_action")
+
+        settings = self.query_one("#settings-table", DataTable)
+        settings.add_columns("Setting", "Value")
+
         self._refresh_header()
         self.set_interval(1.0, self._refresh_header)
         self.query_one("#cmd-input", Input).focus()
@@ -283,6 +255,35 @@ class BurnBotApp(App):
             )
         except Exception:
             pass
+
+    # ------------------------------------------------------------------
+    # Settings panel (inline, replaces log area)
+    # ------------------------------------------------------------------
+
+    def _open_settings(self) -> None:
+        self.query_one("#log").display = False
+        self.query_one("#settings-overlay").display = True
+        self._refresh_settings_rows()
+        self.query_one("#settings-table", DataTable).focus()
+
+    def _close_settings(self) -> None:
+        self.query_one("#settings-overlay").display = False
+        self.query_one("#log").display = True
+        self.query_one("#cmd-input", Input).focus()
+
+    def _refresh_settings_rows(self) -> None:
+        table = self.query_one("#settings-table", DataTable)
+        table.clear()
+        for label, key in status_store._SETTINGS:
+            val = status_store.get_setting_value(key)
+            val_text = Text("ON", style="#adcc00") if val else Text("OFF", style="#cf3b0a")
+            table.add_row(label, val_text)
+
+    @on(DataTable.RowSelected)
+    def on_settings_row_selected(self, event: DataTable.RowSelected) -> None:
+        if event.data_table.id == "settings-table":
+            status_store.toggle_setting(event.cursor_row)
+            self._refresh_settings_rows()
 
     # ------------------------------------------------------------------
     # Log + accounts table (called from bot threads via call_from_thread)
@@ -338,7 +339,7 @@ class BurnBotApp(App):
             self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Resuming bot execution")
             self._refresh_header()
         elif cmd == "/settings":
-            self.push_screen(SettingsScreen())
+            self._open_settings()
         elif cmd == "/help":
             self.push_screen(HelpScreen())
         else:
@@ -348,5 +349,7 @@ class BurnBotApp(App):
         inp = self.query_one("#cmd-input", Input)
         if inp.value:
             inp.clear()
+        elif self.query_one("#settings-overlay").display:
+            self._close_settings()
         elif self.screen_stack and len(self.screen_stack) > 1:
             self.pop_screen()
