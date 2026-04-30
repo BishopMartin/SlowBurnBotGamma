@@ -2,6 +2,7 @@
 
 from burnBot_imports import *
 from burnBot_utils import close_windows, has_internet_connection, process_exception, delay
+from burnBot_client_log import client_log_line
 
 
 def is_bot_debug_enabled():
@@ -183,7 +184,7 @@ def dismiss_browser_dialogs(driver, max_attempts=3, wait_between=0.3):
         try:
             alert = driver.switch_to.alert
             alert_text = alert.text
-            print(f"- [LOGIN]: Browser dialog #{dialogs_dismissed + 1} detected: '{alert_text}' - dismissing...")
+            print(client_log_line(None, "login", f"Browser dialog #{dialogs_dismissed + 1} detected: '{alert_text}' — dismissing…"))
             alert.accept()  # Try accepting instead of dismissing
             dialogs_dismissed += 1
             time.sleep(wait_between)
@@ -194,7 +195,7 @@ def dismiss_browser_dialogs(driver, max_attempts=3, wait_between=0.3):
             break
     
     if dialogs_dismissed > 0:
-        print(f"- [LOGIN]: Dismissed {dialogs_dismissed} browser dialog(s)")
+        print(client_log_line(None, "login", f"Dismissed {dialogs_dismissed} browser dialog(s)"))
     
     return dialogs_dismissed
 
@@ -221,7 +222,7 @@ def navigate_to_instagram_login_if_needed(driver, *, long_initial_settle=True):
             pass
         time.sleep(2.0 if long_initial_settle else 1.0)
         if is_bot_debug_enabled():
-            print("- [LOGIN]: already on /accounts/login/ — skipped driver.get()")
+            print(client_log_line(None, "login", "already on /accounts/login/ — skipped driver.get()"))
         return True
     driver.get(INSTAGRAM_ACCOUNTS_LOGIN)
     WebDriverWait(driver, 22).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
@@ -277,12 +278,12 @@ def submit_instagram_credentials(driver, password_input, log_name="login"):
             try:
                 btn.click()
                 if is_bot_debug_enabled():
-                    print(f"- [{log_name}]: [login][debug] submit: native click (type=submit)")
+                    print(client_log_line(log_name, "login", "debug submit: native click (type=submit)"))
                 return True
             except Exception:
                 driver.execute_script("arguments[0].click();", btn)
                 if is_bot_debug_enabled():
-                    print(f"- [{log_name}]: [login][debug] submit: JS click (type=submit)")
+                    print(client_log_line(log_name, "login", "debug submit: JS click (type=submit)"))
                 return True
         except Exception:
             continue
@@ -304,7 +305,7 @@ def submit_instagram_credentials(driver, password_input, log_name="login"):
             time.sleep(0.4)
             driver.execute_script("arguments[0].click();", btn)
             if is_bot_debug_enabled():
-                print(f"- [{log_name}]: [login][debug] submit: xpath / role=button")
+                print(client_log_line(log_name, "login", "debug submit: xpath / role=button"))
             return True
         except Exception:
             continue
@@ -373,7 +374,7 @@ def dismiss_instagram_account_picker(driver, context_label="login", max_passes=4
                     els = driver.find_elements(By.XPATH, xp)
                     for el in els:
                         if el.is_displayed() and _click_el(el):
-                            print(f"- [LOGIN]: [{context_label}] account picker: clicked {label!r}")
+                            print(client_log_line(None, "login", f"{context_label} account picker: clicked {label!r}"))
                             time.sleep(1.6)
                             found = True
                             clicked_any = True
@@ -396,7 +397,7 @@ def dismiss_instagram_account_picker(driver, context_label="login", max_passes=4
                         if not el.is_displayed():
                             continue
                         if _click_el(el):
-                            print(f"- [LOGIN]: [{context_label}] account picker: matched {sub!r}")
+                            print(client_log_line(None, "login", f"{context_label} account picker: matched {sub!r}"))
                             time.sleep(1.6)
                             found = True
                             clicked_any = True
@@ -414,7 +415,7 @@ def dismiss_instagram_account_picker(driver, context_label="login", max_passes=4
                 try:
                     for el in driver.find_elements(By.XPATH, xp):
                         if el.is_displayed() and _click_el(el):
-                            print(f"- [LOGIN]: [{context_label}] account picker: closed via dialog dismiss control")
+                            print(client_log_line(None, "login", f"{context_label} account picker: closed via dialog dismiss control"))
                             time.sleep(1.4)
                             found = True
                             clicked_any = True
@@ -578,7 +579,7 @@ def check_login(driver, account=None):
             WebDriverWait(driver, 12).until(EC.presence_of_element_located((By.NAME, "username")))
             login_fields = driver.find_elements(By.NAME, "username")
             if login_fields:
-                print(f"- [{_acct}]: [login][check] login form detected")
+                print(client_log_line(_acct, "login", "check: login form detected"))
                 return False, None, moduleErrorsLog
         except TimeoutException:
             pass  # Username field not found — possibly logged in
@@ -613,7 +614,7 @@ def check_login(driver, account=None):
             WebDriverWait(driver, 12).until(
                 lambda d: any(text.lower() in d.page_source.lower() for text in login_indicators)
             )
-            print(f"- [{_acct}]: [login][check] login indicators detected")
+            print(client_log_line(_acct, "login", "check: login indicators detected"))
             return False, None, moduleErrorsLog
         except:
             pass
@@ -696,7 +697,7 @@ def do_login(driver, username, password):
                 if is_bot_debug_enabled():
                     print(f"-- DEBUG: Current URL after ESC: {current_url}")
             except Exception as e:
-                print(f"- [LOGIN]: Could not get URL: {e}")
+                print(client_log_line(None, "login", f"Could not get URL: {e}"))
             
             # Prefer name=username (avoids matching phone / other text fields)
             loginUsername = None
@@ -812,10 +813,10 @@ def do_login(driver, username, password):
             # ALWAYS print error details for login failures (not just in debug mode)
             try:
                 current_url = driver.current_url
-                print(f"- [{username}]: [login][error] url: {current_url}")
-                print(f"- [{username}]: [login][error] {str(error)}")
+                print(client_log_line(username, "login", f"error url: {current_url}"))
+                print(client_log_line(username, "login", f"error {str(error)}"))
             except Exception as url_error:
-                print(f"- [{username}]: [login][error] {str(error)} (couldn't get URL: {url_error})")
+                print(client_log_line(username, "login", f"error {str(error)} (couldn't get URL: {url_error})"))
             
             return False, None, moduleErrorsLog
         
@@ -1064,7 +1065,7 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
     verification_requested = False
     
     if skipLoginCheck:
-        print(f"- [{account}]: skiping login check manual setting")
+        print(client_log_line(account, "login", "skipping login check (manual setting)"))
         return True, account, False, 0, False  # Assume logged in if skipping check
     else:
         current_user = None
@@ -1073,55 +1074,64 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
         for attempt in range(1, login_tries + 1):
             attempts_made = attempt
             # Check login status
-            print(f"- [{account}]: [login][check] status:[checking] try:[{attempt}/{login_tries}]")
+            print(client_log_line(account, "login", f"check try={attempt}/{login_tries} → checking"))
             is_logged_in, current_user, loginErrors = check_login(driver, account=account)
             
             # Check if phone verification is required
             if is_logged_in == "VERIFICATION_REQUIRED":
-                print(
-                    f"- [{account}]: [login][verification] status:[challenge] try:[{attempt}/{login_tries}] "
-                    f"(SMS or security code — session log will record details)"
-                )
+                print(client_log_line(
+                    account, "login",
+                    f"verification challenge try={attempt}/{login_tries} (SMS or security code)",
+                ))
                 loginFailureExit = True
                 verification_requested = True
                 break
             
             # Log errors if any (to console only, session log will capture final result)
             if loginErrors and is_bot_debug_enabled():
-                print(f"- [{account}]: [login][debug] check_login errors: {loginErrors}")
+                print(client_log_line(account, "login", f"debug check_login errors: {loginErrors}"))
             
-            print(f"- [{account}]: [login][check] status:[{is_logged_in}] user:[{current_user}] try:[{attempt}/{login_tries}]")
+            print(client_log_line(
+                account, "login",
+                f"check try={attempt}/{login_tries} → ok={is_logged_in} user={current_user}",
+            ))
             
             # Attempt login if needed
             if not is_logged_in:
-                print(f"- [{account}]: [login][login] status:[attempting] try:[{attempt}/{login_tries}]")
+                print(client_log_line(account, "login", f"login try={attempt}/{login_tries} → attempting"))
                 is_logged_in, current_user, loginErrors = do_login(driver, account, accountPass)
                 
                 if is_logged_in == "VERIFICATION_REQUIRED":
-                    print(
-                        f"- [{account}]: [login][verification] status:[challenge] try:[{attempt}/{login_tries}] "
-                        f"(SMS or security code — session log will record details)"
-                    )
+                    print(client_log_line(
+                        account, "login",
+                        f"verification challenge try={attempt}/{login_tries} (SMS or security code)",
+                    ))
                     loginFailureExit = True
                     verification_requested = True
                     break
                 
                 # Log errors if any (to console only, session log will capture final result)
                 if loginErrors and is_bot_debug_enabled():
-                    print(f"- [{account}]: [login][debug] do_login errors: {loginErrors}")
+                    print(client_log_line(account, "login", f"debug do_login errors: {loginErrors}"))
                 
-                print(f"- [{account}]: [login][login] status:[{is_logged_in}] user:[{current_user}] try:[{attempt}/{login_tries}]")
+                print(client_log_line(
+                    account, "login",
+                    f"login try={attempt}/{login_tries} → ok={is_logged_in} user={current_user}",
+                ))
             
             # Switch account if needed (skip if verification required)
             if is_logged_in and is_logged_in != "VERIFICATION_REQUIRED" and account != current_user:
-                print(f"- [{account}]: [login][switch] status:[switching] try:[{attempt}/{login_tries}]")
+                print(client_log_line(account, "login", f"switch try={attempt}/{login_tries} → switching"))
                 is_logged_in, current_user, loginErrors = switch_login(driver, account)
                 
                 # Log errors if any (to console only, session log will capture final result)
                 if loginErrors and is_bot_debug_enabled():
-                    print(f"- [{account}]: [login][debug] switch_login errors: {loginErrors}")
+                    print(client_log_line(account, "login", f"debug switch_login errors: {loginErrors}"))
                 
-                print(f"- [{account}]: [login][switch] status:[{is_logged_in}] user:[{current_user}] try:[{attempt}/{login_tries}]")
+                print(client_log_line(
+                    account, "login",
+                    f"switch try={attempt}/{login_tries} → ok={is_logged_in} user={current_user}",
+                ))
             
             # Break if successful (skip if verification required)
             if account == current_user and is_logged_in and is_logged_in != "VERIFICATION_REQUIRED":
@@ -1140,7 +1150,7 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
                 return False, current_user, True, attempts_made, verification_requested
             
             error_msg = f"Login failure - wrong user: {current_user} or not logged in: {is_logged_in}"
-            print(f"- [{account}]: [login] status:[failed] reason:[{error_msg}]")
+            print(client_log_line(account, "login", f"failed — {error_msg}"))
             return False, current_user, True, attempts_made, verification_requested
         
         # Should not reach here, but return success if we do

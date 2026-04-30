@@ -13,6 +13,7 @@ from burnBot_unfollowDatabase import do_unfollow_database
 from burnBot_followSuggested import do_follow_suggested
 from burnBot_followGroup import do_follow_group
 from burnBot_randomActions import do_random_action
+from burnBot_client_log import client_log_line, action_combo_slug
 import burnBot_status as status_store
 
 # Global dictionary to store driver instances
@@ -63,8 +64,8 @@ def accountSession(account, account_id, idx, threads_active, stop_flag, apiClien
         _accountSession_inner(account, account_id, idx, threads_active, stop_flag, apiClient, permanent_idx, _print)
     except Exception as _thread_exc:
         import traceback
-        _print(f"- [{account}]: [FATAL] Unhandled exception in session thread: {_thread_exc}")
-        _print(f"- [{account}]: [FATAL] {traceback.format_exc()}")
+        _print(client_log_line(account, "error", f"FATAL in session thread: {_thread_exc}"))
+        _print(client_log_line(account, "error", traceback.format_exc()))
         try:
             threads_active[idx].clear()
         except Exception:
@@ -75,7 +76,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
     global drivers
 
     time.sleep(1)
-    _print(f"- [{account}]: [setup] start thread..")
+    _print(client_log_line(account, "init", "thread start"))
 
     # User agent from local config
     accountAgent = CONFIG.get('bot_settings', 'system_user_agent', fallback='').strip()
@@ -85,7 +86,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
     # Fetch initial settings from API
     settings = apiClient.get_account_settings(account_id)
     if not settings:
-        _print(f"- [{account}]: [setup] ERROR: Could not fetch settings from API")
+        _print(client_log_line(account, "init", "ERROR: Could not fetch settings from API"))
         threads_active[idx].clear()
         return
 
@@ -107,16 +108,17 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
 
     driver = None
 
-    # Signal initial setup complete
+    # Signal initial setup complete (main loop may already show "running"; do not
+    # overwrite with "idle" here — that caused the TUI to drop to idle during Chrome/login.)
     threads_active[idx].clear()
-    _print(f"- [{account}]: [setup] setup complete and idle")
-    status_store.update(account, status="idle", last_action="—")
+    _print(client_log_line(account, "init", "setup complete, awaiting activation"))
 
     # Main loop: Idle <-> Active
     while not stop_flag.is_set():
         if threads_active[idx].is_set():
             # ACTIVE STATE
             # ========================================
+            status_store.update(account, status="initializing", last_action="browser")
 
             # Open browser for this session
             account_idx_for_port = permanent_idx if permanent_idx is not None else idx
@@ -125,7 +127,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     driver.current_url  # quick connectivity check
                     drivers[account] = driver
                     if is_bot_debug_enabled():
-                        _print(f"- [{account}]: reusing existing browser session")
+                        _print(client_log_line(account, "init", "reusing existing browser session"))
                 except Exception:
                     driver = None
 
@@ -134,15 +136,15 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     driver = create_driver(account, accountAgent, account_idx=account_idx_for_port)
                     drivers[account] = driver
                     if is_bot_debug_enabled():
-                        _print(f"- [{account}]: browser opened for session")
+                        _print(client_log_line(account, "init", "browser opened for session"))
                 except Exception as driver_error:
-                    _print(f"- [{account}]: ERROR: Failed to create Chrome driver: {driver_error}")
+                    _print(client_log_line(account, "error", f"Failed to create Chrome driver: {driver_error}"))
                     apiClient.log_error(account_id, f"Chrome driver creation failed: {driver_error}")
                     threads_active[idx].clear()
                     continue
 
             if driver is None:
-                _print(f"- [{account}]: ERROR: create_driver returned None - skipping session")
+                _print(client_log_line(account, "error", "create_driver returned None — skipping session"))
                 apiClient.log_error(account_id, "Chrome driver creation returned None")
                 threads_active[idx].clear()
                 continue
@@ -163,10 +165,10 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     account_list_tab = settings.get("account_list_tab") or ""
 
                     if is_bot_debug_enabled():
-                        _print(f"- [{account}]: Re-read settings from API")
+                        _print(client_log_line(account, "init", "Re-read settings from API"))
             except Exception as e:
                 if is_bot_debug_enabled():
-                    _print(f"- [{account}]: Error re-reading settings, using cached: {e}")
+                    _print(client_log_line(account, "init", f"Error re-reading settings, using cached: {e}"))
 
             # Track session start time
             session_start_time = datetime.now().astimezone()
@@ -176,7 +178,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
 
             # Check schedule before attempting login
             if not check_schedule(scheduleDays, scheduleStart, scheduleEnd):
-                _print(f"- [{account}]: Skipping - outside scheduled time/day")
+                _print(client_log_line(account, "session", "skip — outside scheduled time/day"))
                 session_end_time = datetime.now().astimezone()
                 try:
                     run_seq = apiClient.get_run_count(account_id) + 1
@@ -185,7 +187,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                         "", 0, "", 0, "", 0, "", 0, "", run_sequence=run_seq
                     )
                 except Exception as e:
-                    _print(f"- [{account}]: Warning - failed to log skipped session: {e}")
+                    _print(client_log_line(account, "session", f"Warning — failed to log skipped session: {e}"))
                 threads_active[idx].clear()
                 continue
 
@@ -194,11 +196,11 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                 try:
                     current_run_count = apiClient.get_run_count(account_id)
                 except Exception as e:
-                    _print(f"- [{account}]: Error reading run count, returning to IDLE: {e}")
+                    _print(client_log_line(account, "error", f"Error reading run count, returning to IDLE: {e}"))
                     threads_active[idx].clear()
                     continue
                 if current_run_count >= scheduleMax:
-                    _print(f"- [{account}]: Skipping - max runs per day reached ({current_run_count}/{scheduleMax})")
+                    _print(client_log_line(account, "session", f"skip — max runs per day reached ({current_run_count}/{scheduleMax})"))
                     threads_active[idx].clear()
                     continue
 
@@ -208,12 +210,14 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
 
             try:
                 if stop_flag.is_set():
-                    _print(f"- [{account}]: Shutdown requested, skipping login and bot script")
+                    _print(client_log_line(account, "session", "shutdown requested — skipping login and bot script"))
                     threads_active[idx].clear()
                     break
 
                 # Get IG password from API
                 accountPass = apiClient.get_ig_password(account_id) or ""
+
+                status_store.update(account, status="running", last_action="—")
 
                 # CHECK LOGIN / ACCOUNT STATUS
                 login_success, current_user, loginFailureExit, login_attempts, verification_requested = handle_account_login(
@@ -237,18 +241,18 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                         run_count = run_seq
                         max_runs = scheduleMax
                     except Exception as e:
-                        _print(f"- [{account}]: Warning - failed to log login failure session: {e}")
+                        _print(client_log_line(account, "login", f"Warning — failed to log login failure session: {e}"))
                         run_count, max_runs = 1, scheduleMax
 
                     try:
                         send_login_failure_alert(account, error_msg, run_count, max_runs, apiClient=apiClient, account_id=account_id, _print=_print)
                     except Exception as notif_error:
-                        _print(f"- [{account}]: Warning - notification failed: {notif_error}")
+                        _print(client_log_line(account, "notify", f"Warning — notification failed: {notif_error}"))
 
                     threads_active[idx].clear()
                     session_already_handled = True
                     run_info = f"[{run_count}/{max_runs}]" if max_runs > 0 else f"[{run_count}]"
-                    _print(f"- [{account}]: returning to IDLE state due to login failure - run {run_info}")
+                    _print(client_log_line(account, "login", f"returning to IDLE — login failure — run {run_info}"))
                     status_store.update(account, status="idle", last_action="login failure")
                     continue
 
@@ -257,9 +261,18 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     try:
                         main_window = driver.current_window_handle
                         if is_bot_debug_enabled():
-                            _print(f"- [{account}]: Ready to execute actions")
+                            _print(client_log_line(account, "session", "ready to execute actions"))
                     except Exception:
                         main_window = None
+
+                    try:
+                        _next_run = apiClient.get_run_count(account_id) + 1
+                        if scheduleMax > 0:
+                            _print(client_log_line(account, "session", f"── run {_next_run}/{scheduleMax} ──"))
+                        else:
+                            _print(client_log_line(account, "session", f"── run {_next_run} ──"))
+                    except Exception:
+                        _print(client_log_line(account, "session", "── session start ──"))
 
                     # Process Actions
                     _action_slots_tuples = [
@@ -277,7 +290,8 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
 
                         if _enabled and _act_type:
                             _total = _fixed + random.randint(0, _variable)
-                            _print(f"- [{account}]: [action {_slot_num}][enabled] -  [{_act_type}][{_act_target}][{_total}]")
+                            _combo = action_combo_slug(_act_type, _act_target) or f"{(_act_type or '').strip()}-{(_act_target or '').strip()}".strip("-") or "unknown"
+                            _print(client_log_line(account, f"action{_slot_num}", f"{_combo} total={_total}"))
                             status_store.update(account, status="running", last_action=f"{_act_type} · {_act_target}")
 
                             try:
@@ -295,7 +309,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                                         if _errs:
                                             moduleErrorsLog += _errs
                                     else:
-                                        _print(f"- [{account}]: [action {_slot_num}] - [{_act_type}][{_act_target}] - ERROR: No topics specified")
+                                        _print(client_log_line(account, f"action{_slot_num}", f"{action_combo_slug(_act_type, _act_target) or 'like-topics'} ERROR: No topics specified"))
 
                                 elif _act_type == "follow" and _act_target in ["suggested", "home", "homepage", "suggested users"]:
                                     actions_run += 1
@@ -314,17 +328,21 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                                         if _errs:
                                             moduleErrorsLog += _errs
                                     else:
-                                        _print(f"- [{account}]: [action {_slot_num}] - [{_act_type}][{_act_target}] - ERROR: No target accounts specified")
+                                        _print(client_log_line(account, f"action{_slot_num}", f"{action_combo_slug(_act_type, _act_target) or 'follow-group'} ERROR: No target accounts specified"))
 
                                 elif _act_type == "unfollow" and _act_target in ["database", "previous follows"]:
                                     actions_run += 1
-                                    _count, _errs = do_unfollow_database(driver, account, _total, apiClient, account_id, unfollow_days, _print=_print)
+                                    _count, _errs = do_unfollow_database(
+                                        driver, account, _total, apiClient, account_id, unfollow_days,
+                                        _print=_print,
+                                        log_scope=action_combo_slug("unfollow", _act_target) or "unfollow-database",
+                                    )
                                     if _errs:
                                         moduleErrorsLog += _errs
 
                                 else:
                                     if is_bot_debug_enabled():
-                                        _print(f"- [{account}]: [action {_slot_num}] ({_act_type}/{_act_target}) is a placeholder")
+                                        _print(client_log_line(account, f"action{_slot_num}", f"placeholder {_act_type}/{_act_target}"))
                                     actions_run += 1
 
                             except Exception as action_error:
@@ -333,10 +351,10 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                                 _count = 0
 
                         elif _enabled:
-                            _print(f"- [{account}]: [action {_slot_num}][enabled] -  [no type]")
+                            _print(client_log_line(account, f"action{_slot_num}", "enabled but no type"))
                         else:
                             _display = _act_type if _act_type else "no type"
-                            _print(f"- [{account}]: [action {_slot_num}][disabled] -  [{_display}]")
+                            _print(client_log_line(account, f"action{_slot_num}", f"disabled — {_display}"))
 
                         action_counts[_slot_idx] = _count
 
@@ -350,7 +368,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
 
             except Exception as e:
                 error_msg = f"ERROR in active state: {e}"
-                _print(f"- [{account}]: {error_msg}")
+                _print(client_log_line(account, "error", error_msg))
                 apiClient.log_error(account_id, error_msg)
 
             finally:
@@ -371,10 +389,10 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                         )
                         run_count = run_seq
                     except Exception as log_error:
-                        _print(f"- [{account}]: ERROR in log_session_run: {log_error}")
+                        _print(client_log_line(account, "error", f"ERROR in log_session_run: {log_error}"))
                         error_details = process_exception(printError=True, noteError="log_session_run failed", logError=True, debugError=False)
                         if error_details:
-                            _print(f"- [{account}]: {error_details.strip()}")
+                            _print(client_log_line(account, "error", error_details.strip()))
 
                     try:
                         send_session_complete_notification(
@@ -393,12 +411,19 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                             _print=_print,
                         )
                     except Exception as notif_error:
-                        _print(f"- [{account}]: Warning - session notification failed: {notif_error}")
+                        _print(client_log_line(account, "notify", f"Warning — session notification failed: {notif_error}"))
                         process_exception(printError=False, noteError="session notification failed", logError=False, debugError=False)
 
                     threads_active[idx].clear()
-                    run_info = f"[{run_count}/{max_runs}]" if max_runs > 0 else f"[{run_count}]"
-                    _print(f"- [{account}]: [summary] run {run_info} - {actions_run} action(s) executed")
+                    _run_label = f"{run_count}/{max_runs}" if max_runs > 0 else str(run_count)
+                    _secs = int((session_end_time - session_start_time).total_seconds())
+                    _mm, _ss = divmod(_secs, 60)
+                    _hh, _mm = divmod(_mm, 60)
+                    _dur = f"{_hh}h{_mm}m{_ss}s" if _hh else f"{_mm}m{_ss}s"
+                    _print(client_log_line(
+                        account, "session",
+                        f"done run {_run_label} · actions={actions_run} · ~{_dur}",
+                    ))
                     status_store.update(account, status="idle", last_action="session complete")
 
                 # Close or keep browser based on config
@@ -415,7 +440,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                             time.sleep(0.5)
                             kill_chrome_processes_for_profile(chrome_user_data_dir, account)
                             if is_bot_debug_enabled():
-                                _print(f"- [{account}]: browser closed after session")
+                                _print(client_log_line(account, "init", "browser closed after session"))
                         except Exception:
                             pass
                     drivers.pop(account, None)
@@ -426,7 +451,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
             time.sleep(5)
 
     # Cleanup on exit
-    _print(f"- [{account}]: shutting down...")
+    _print(client_log_line(account, "init", "shutting down…"))
 
     close_browser_exit = True
     if CONFIG.has_section('bot_settings'):
@@ -447,7 +472,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
 
                         extra_windows = [h for h in window_handles if h != main_window]
                         if extra_windows:
-                            _print(f"- [{account}]: Closing {len(extra_windows)} extra browser window(s)...")
+                            _print(client_log_line(account, "init", f"Closing {len(extra_windows)} extra browser window(s)…"))
                             for handle in extra_windows:
                                 try:
                                     driver.switch_to.window(handle)
@@ -462,7 +487,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                             time.sleep(0.5)
                 except Exception:
                     driver_still_connected = False
-                    _print(f"- [{account}]: Driver connection already lost, will kill Chrome processes directly")
+                    _print(client_log_line(account, "init", "Driver connection already lost, will kill Chrome processes directly"))
 
                 if driver_still_connected:
                     try:
@@ -475,13 +500,13 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     chrome_user_data_dir = build_user_data_dir(account)
                     time.sleep(0.5)
                     kill_chrome_processes_for_profile(chrome_user_data_dir, account)
-                    _print(f"- [{account}]: thread exiting, browser closed.")
+                    _print(client_log_line(account, "init", "thread exiting, browser closed."))
                 except Exception as e:
-                    _print(f"- [{account}]: Error killing Chrome processes: {e}")
+                    _print(client_log_line(account, "error", f"Error killing Chrome processes: {e}"))
             else:
                 try:
-                    _print(f"- [{account}]: thread exiting, browser ready.")
+                    _print(client_log_line(account, "init", "thread exiting, browser ready."))
                 except Exception as e:
-                    _print(f"- [{account}]: Error during disconnect: {e}")
+                    _print(client_log_line(account, "error", f"Error during disconnect: {e}"))
         except Exception as e:
-            _print(f"- [{account}]: Error during cleanup: {e}")
+            _print(client_log_line(account, "error", f"Error during cleanup: {e}"))

@@ -7,6 +7,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 
+from burnBot_client_log import client_log_line
 
 _p = _builtins.print  # set per-call by do_random_action; safe because sessions run sequentially
 
@@ -52,7 +53,7 @@ def do_random_action(driver, account, _print=None):
     except Exception:
         # Never break main bot flow due to random action issues
         try:
-            _p(f"- [{account}]: [random] - warning: dispatcher failed")
+            _p(client_log_line(account, "rand", "warning: dispatcher failed"))
         except Exception:
             pass
 
@@ -71,7 +72,7 @@ def do_random_explore(driver, account, posts_to_click: int | None = None):
         posts_to_click = random.randint(1, 3)
 
     try:
-        print(f"- [{account}]: [random][explore] - starting ({posts_to_click} post(s))")
+        _p(client_log_line(account, "rand-explore", f"starting ({posts_to_click} post(s))"))
 
         driver.get("https://www.instagram.com/explore/")
         WebDriverWait(driver, 15).until(lambda d: d.execute_script("return document.readyState") == "complete")
@@ -178,11 +179,11 @@ def do_random_explore(driver, account, posts_to_click: int | None = None):
                     pass
                 _human_delay(3, 6)
 
-        print(f"- [{account}]: [random][explore] - complete ({opened}/{posts_to_click})")
+        _p(client_log_line(account, "rand-explore", f"complete ({opened}/{posts_to_click})"))
 
     except Exception:
         try:
-            _p(f"- [{account}]: [random][explore] - warning: action failed")
+            _p(client_log_line(account, "rand-explore", "warning: action failed"))
         except Exception:
             pass
 
@@ -201,7 +202,7 @@ def do_random_actions(driver, account, reels_to_watch: int = 2):
         reels_to_watch = 2
 
     try:
-        print(f"- [{account}]: [random][reels] - starting ({reels_to_watch} reel(s))")
+        _p(client_log_line(account, "rand-reels", f"starting ({reels_to_watch} reel(s))"))
 
         driver.get("https://www.instagram.com/reels/")
         WebDriverWait(driver, 15).until(lambda d: d.execute_script("return document.readyState") == "complete")
@@ -250,12 +251,12 @@ def do_random_actions(driver, account, reels_to_watch: int = 2):
 
                 _human_delay(3, 7)
 
-        print(f"- [{account}]: [random][reels] - complete")
+        _p(client_log_line(account, "rand-reels", "complete"))
 
     except Exception:
         # Random actions should never crash the main follow flow
         try:
-            _p(f"- [{account}]: [random][reels] - warning: action failed")
+            _p(client_log_line(account, "rand-reels", "warning: action failed"))
         except Exception:
             pass
 

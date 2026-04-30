@@ -4,6 +4,8 @@
 
 import builtins
 
+from burnBot_client_log import client_log_line
+
 
 def send_admin_notification(account, message, subject_prefix="Alert", sms_summary=None, subject_override=None, apiClient=None, account_id=None, _print=None):
     """
@@ -18,7 +20,7 @@ def send_admin_notification(account, message, subject_prefix="Alert", sms_summar
 
         user_config = apiClient.get_user_config() if apiClient else None
         if not user_config:
-            _print(f"- [{account}]: [NOTIFICATION] ERROR: Could not fetch notification config from API")
+            _print(client_log_line(account, "notify", "ERROR: Could not fetch notification config from API"))
             return False
 
         notices_type = (user_config.get('notices_type') or 'none').strip().lower()
@@ -27,18 +29,18 @@ def send_admin_notification(account, message, subject_prefix="Alert", sms_summar
 
         if is_bot_debug_enabled():
             redacted_phone = (phone[:3] + "...") if phone else ""
-            _print(f"- [{account}]: [NOTIFICATION] Type: {notices_type}, Phone: {redacted_phone}, Email: {email}")
+            _print(client_log_line(account, "notify", f"Type: {notices_type}, Phone: {redacted_phone}, Email: {email}"))
 
         if notices_type == 'none':
             if is_bot_debug_enabled():
-                _print(f"- [{account}]: [NOTIFICATION] Notifications disabled (type=none)")
+                _print(client_log_line(account, "notify", "Notifications disabled (type=none)"))
             return False
 
         subject = subject_override or f"SlowBurnBot {subject_prefix} - {account}"
         return _dispatch(account, notices_type, email, phone, subject, message, sms_summary, apiClient, account_id=account_id, _print=_print)
 
     except Exception as e:
-        _print(f"- [{account}]: [NOTIFICATION] Error sending notification: {e}")
+        _print(client_log_line(account, "notify", f"Error sending notification: {e}"))
         return False
 
 
@@ -51,7 +53,7 @@ def _dispatch(account, notices_type, email, phone, subject, message, sms_summary
     try:
         import burnBot_status as _ss
         if not _ss.is_notify_enabled():
-            _print(f"- [{account}]: [NOTIFICATION] suppressed (disabled at runtime)")
+            _print(client_log_line(account, "notify", "suppressed (disabled at runtime)"))
             return False
     except Exception:
         pass
@@ -63,14 +65,14 @@ def _dispatch(account, notices_type, email, phone, subject, message, sms_summary
             return False
 
     if apiClient is None:
-        _print(f"- [{account}]: [NOTIFICATION] ERROR: no apiClient")
+        _print(client_log_line(account, "notify", "ERROR: no apiClient"))
         return False
 
     success = False
 
     if notices_type in ('text', 'both'):
         if not phone:
-            _print(f"- [{account}]: [NOTIFICATION] ERROR: notification phone not set")
+            _print(client_log_line(account, "notify", "ERROR: notification phone not set"))
             if account_id:
                 apiClient.log_error(account_id, "Notification SMS failed: phone not set")
         else:
@@ -78,24 +80,24 @@ def _dispatch(account, notices_type, email, phone, subject, message, sms_summary
             if len(sms_msg) > 160:
                 sms_msg = sms_msg[:157] + "..."
             if apiClient.notify("sms", phone, sms_msg):
-                _print(f"- [{account}]: [NOTIFICATION] SMS sent")
+                _print(client_log_line(account, "notify", "SMS sent"))
                 success = True
             else:
-                _print(f"- [{account}]: [NOTIFICATION] ERROR: SMS failed to send")
+                _print(client_log_line(account, "notify", "ERROR: SMS failed to send"))
                 if account_id:
                     apiClient.log_error(account_id, "Notification SMS failed to send")
 
     if notices_type in ('email', 'both'):
         if not email:
-            _print(f"- [{account}]: [NOTIFICATION] ERROR: notification email not set")
+            _print(client_log_line(account, "notify", "ERROR: notification email not set"))
             if account_id:
                 apiClient.log_error(account_id, "Notification email failed: email not set")
         else:
             if apiClient.notify("email", email, message, subject=subject):
-                _print(f"- [{account}]: [NOTIFICATION] Email sent")
+                _print(client_log_line(account, "notify", "Email sent"))
                 success = True
             else:
-                _print(f"- [{account}]: [NOTIFICATION] ERROR: Email failed to send")
+                _print(client_log_line(account, "notify", "ERROR: Email failed to send"))
                 if account_id:
                     apiClient.log_error(account_id, "Notification email failed to send")
 
@@ -124,7 +126,7 @@ def send_login_failure_alert(account, error_message, run_count=0, max_runs=0, ap
         subject = f"SlowBurnBot Login Error - {account}"
         _dispatch(account, login_type, login_email, login_phone, subject, formatted_message, sms_summary, apiClient, account_id=account_id, _print=_print)
     except Exception as e:
-        _print(f"- [{account}]: [NOTIFICATION] Failed to send login failure alert: {e}")
+        _print(client_log_line(account, "notify", f"Failed to send login failure alert: {e}"))
 
 
 def send_session_complete_notification(account, start_time, end_time,
@@ -160,7 +162,7 @@ def send_session_complete_notification(account, start_time, end_time,
 
         user_config = apiClient.get_user_config() if apiClient else None
         if not user_config:
-            _print(f"- [{account}]: [NOTIFICATION] Could not fetch config from API, skipping session notification")
+            _print(client_log_line(account, "notify", "Could not fetch config from API, skipping session notification"))
             return
 
         if not bool(user_config.get('notices_session', True)):
@@ -226,4 +228,4 @@ def send_session_complete_notification(account, start_time, end_time,
         send_admin_notification(account, message, subject_prefix="Session Complete", sms_summary=sms_summary, subject_override=subject_override, apiClient=apiClient, account_id=account_id, _print=_print)
 
     except Exception as e:
-        _print(f"- [{account}]: [NOTIFICATION] Failed to send session complete notification: {e}")
+        _print(client_log_line(account, "notify", f"Failed to send session complete notification: {e}"))

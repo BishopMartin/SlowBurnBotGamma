@@ -5,6 +5,7 @@ from burnBot_imports import *
 from burnBot_utils import process_exception
 from burnBot_login import check_phone_verification, switch_login
 from burnBot_accountSession_setup import is_bot_debug_enabled
+from burnBot_client_log import client_log_line
 import random
 import time
 import burnBot_status as status_store
@@ -280,9 +281,9 @@ def do_like_posts_home(driver, account, target_count, apiClient=None, account_id
             ignore_list = apiClient.get_ignore_handles()
             if ignore_list:
                 if is_bot_debug_enabled():
-                    _p(f"- [{account}]: [like][home] - loaded {len(ignore_list)} ignored account(s)")
+                    _p(client_log_line(account, "like-home", f"loaded {len(ignore_list)} ignored account(s)"))
         except Exception as e:
-            _p(f"- [{account}]: [like][home] - Warning: Could not load ignore list: {e}")
+            _p(client_log_line(account, "like-home", f"Warning: Could not load ignore list: {e}"))
     
     try:
         # Always navigate to the home feed before starting — the driver may be on
@@ -317,7 +318,7 @@ def do_like_posts_home(driver, account, target_count, apiClient=None, account_id
                                 )
                                 if is_suggested:
                                     display_name = article_account[:15] if len(article_account) > 15 else article_account
-                                    _p(f"- [{account}]: [like][home][ skip ] - [{display_name}] - [suggested]")
+                                    _p(client_log_line(account, "like-home", f"skip @{display_name} reason=suggested"))
                                     if article not in processed_articles:
                                         processed_articles.append(article)
                                     continue
@@ -338,25 +339,25 @@ def do_like_posts_home(driver, account, target_count, apiClient=None, account_id
                                     )) > 0
 
                                 if is_bot_debug_enabled():
-                                    _p(f"- [{account}]: [like][home][debug] - [{article_account}] - is_ad={is_ad}")
+                                    _p(client_log_line(account, "like-home", f"debug @{article_account} is_ad={is_ad}"))
                                     if not is_ad:
                                         article_html = article.get_attribute("outerHTML")
-                                        _p(f"- [{account}]: [like][home][debug] article HTML snippet: {article_html[:800]}")
+                                        _p(client_log_line(account, "like-home", f"debug article HTML snippet: {article_html[:800]}"))
 
                                 if is_ad:
                                     display_name = article_account[:15] if len(article_account) > 15 else article_account
-                                    _p(f"- [{account}]: [like][home][ skip ] - [{display_name}] - [sponsored]")
+                                    _p(client_log_line(account, "like-home", f"skip @{display_name} reason=sponsored"))
                                     if article not in processed_articles:
                                         processed_articles.append(article)
                                     continue
                             except Exception as e:
                                 if is_bot_debug_enabled():
-                                    _p(f"- [{account}]: [like][home][debug] sponsored check error: {e}")
+                                    _p(client_log_line(account, "like-home", f"debug sponsored check error: {e}"))
 
                         # Check if account is on ignore list
                         if article_account in ignore_list:
                             display_name = article_account[:15] if len(article_account) > 15 else article_account
-                            _p(f"- [{account}]: [like][home][ skip ] - [{display_name}] - [ignored]")
+                            _p(client_log_line(account, "like-home", f"skip @{display_name} reason=ignored"))
                             continue
                         
                         like_box = WebDriverWait(article, 10).until(
@@ -368,7 +369,7 @@ def do_like_posts_home(driver, account, target_count, apiClient=None, account_id
                             likes_performed += 1
                             count_formatted = f"{likes_performed:02d}"
                             display_name = article_account[:15] if len(article_account) > 15 else article_account
-                            _p(f"- [{account}]: [like][home][{count_formatted}/{target_formatted}] - [{display_name}]")
+                            _p(client_log_line(account, "like-home", f"{count_formatted}/{target_formatted} @{display_name}"))
                             
                             like_button = WebDriverWait(article, 5).until(
                                 EC.element_to_be_clickable((By.CSS_SELECTOR, "svg[aria-label='Like']"))
@@ -382,7 +383,7 @@ def do_like_posts_home(driver, account, target_count, apiClient=None, account_id
                         else:
                             if like_status:
                                 display_name = article_account[:15] if len(article_account) > 15 else article_account
-                                _p(f"- [{account}]: [like][home][-----] - [{display_name}]")
+                                _p(client_log_line(account, "like-home", f"already liked @{display_name}"))
                         
                         if article not in processed_articles:
                             processed_articles.append(article)
@@ -404,16 +405,16 @@ def do_like_posts_home(driver, account, target_count, apiClient=None, account_id
                     break
             
             else:
-                _p(f"- [{account}]: [like][home] - No articles found, reloading page...")
+                _p(client_log_line(account, "like-home", "reload (no articles)"))
                 driver.get('https://www.instagram.com/')
                 time.sleep(5)
             
             scrolls += 1
         
         if likes_performed < target_count:
-            _p(f"- [{account}]: Like action incomplete - performed {likes_performed}/{target_count} (max scrolls reached)")
+            _p(client_log_line(account, "like-home", f"incomplete {likes_performed}/{target_count} (max scrolls reached)"))
         else:
-            _p(f"- [{account}]: Like action complete - {likes_performed} posts liked")
+            _p(client_log_line(account, "like-home", f"done {likes_performed:02d}/{target_count:02d} liked={likes_performed}"))
     
     except Exception as error:
         noteError = f"do_like_posts_home catch all: {str(error)}"

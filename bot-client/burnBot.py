@@ -14,6 +14,7 @@ from burnBot_apiClient import (
 )
 from burnBot_runCounter import RunCounter
 from burnBot_version import BOT_VERSION
+from burnBot_client_log import client_log_line, mask_email, mask_phone
 import burnBot_status as status_store
 from burnBot_app import BurnBotApp
 from datetime import datetime, timedelta
@@ -52,14 +53,14 @@ apiClient = ApiClient(api_url)
 if is_frozen():
     try:
         import _desktop_build_config as _baked  # noqa: PLC0415
-        status_store.add_log("[activation]: Activating desktop build...")
+        status_store.add_log(client_log_line(None, "api", "Activating desktop build…"))
         apiClient.activate_desktop_build(
             user_id=_baked.USER_ID,
             client_id=_baked.CLIENT_ID,
             activation_token=_baked.ACTIVATION_TOKEN,
             bot_version=BOT_VERSION,
         )
-        status_store.add_log("[activation]: Build activated.")
+        status_store.add_log(client_log_line(None, "api", "Build activated."))
     except Exception as _act_err:
         print(f"[ERROR] Desktop activation failed: {_act_err}")
         sys.exit(1)
@@ -92,10 +93,10 @@ def _migrate_ini_credentials_to_keyring(email, password):
     try:
         store_api_credentials(email, password)
     except Exception as e:
-        status_store.add_log(f"[api]: Could not store credentials in keyring: {e}")
+        status_store.add_log(client_log_line(None, "api", f"Could not store credentials in keyring: {e}"))
         return
     if clear_api_credentials_in_ini():
-        status_store.add_log("[api]: Plaintext credentials migrated from config to OS keyring.")
+        status_store.add_log(client_log_line(None, "api", "Plaintext credentials migrated from config to OS keyring."))
 
 
 def _try_api_relogin_from_config(client):
@@ -104,10 +105,10 @@ def _try_api_relogin_from_config(client):
     email, password, source = _resolve_api_credentials()
     if not email or not password:
         return False
-    status_store.add_log("[api]: Session expired — re-authenticating...")
+    status_store.add_log(client_log_line(None, "api", "Session expired — re-authenticating…"))
     ok = client.login(email, password)
     if ok:
-        status_store.add_log("[api]: Re-login OK.")
+        status_store.add_log(client_log_line(None, "api", "Re-login OK."))
         if source == "ini":
             _migrate_ini_credentials_to_keyring(email, password)
     return bool(ok)
@@ -135,12 +136,12 @@ if not apiClient.has_token():
     stored_email, stored_password, source = _resolve_api_credentials()
 
     if stored_email and stored_password:
-        status_store.add_log(f"[api]: Using stored credentials ({source})...")
+        status_store.add_log(client_log_line(None, "api", f"Using stored credentials ({source})…"))
         if apiClient.login(stored_email, stored_password):
             if source == "ini":
                 _migrate_ini_credentials_to_keyring(stored_email, stored_password)
         else:
-            status_store.add_log("[api]: Stored credentials failed. Falling back to manual entry.")
+            status_store.add_log(client_log_line(None, "api", "Stored credentials failed. Falling back to manual entry."))
 
     if not apiClient.has_token():
         print("Login required.")
@@ -156,7 +157,7 @@ if not apiClient.has_token():
         except Exception as e:
             print(f"[api]: Could not store credentials in keyring: {e}")
 
-    status_store.add_log("[api]: Login successful.")
+    status_store.add_log(client_log_line(None, "api", "Login successful."))
 
 # Account tracking data structures
 all_accounts = []
@@ -226,7 +227,7 @@ try:
                 for _acct in _init_accounts:
                     _name = _acct.get("name", "")
                     if _name:
-                        status_store.update(_name, status="starting...", next_run="—", last_action="—", run_info="—")
+                        status_store.update(_name, status="initializing", next_run="—", last_action="—", run_info="—")
         except Exception:
             pass
 
@@ -242,25 +243,24 @@ try:
                 else:
                     raise
             if not entitlement.get("active"):
-                status_store.add_log("[api]: Subscription is not active.")
-                status_store.add_log(f"[api]: Plan: {entitlement.get('plan_tier', 'free')}")
-                status_store.add_log("[api]: Please activate your subscription at the dashboard.")
+                status_store.add_log(client_log_line(None, "api", "Subscription is not active."))
+                status_store.add_log(client_log_line(None, "api", f"Plan: {entitlement.get('plan_tier', 'free')}"))
+                status_store.add_log(client_log_line(None, "api", "Please activate your subscription at the dashboard."))
                 stop_flag.set()
                 return
-            status_store.add_log(f"[api]: Subscription active (plan: {entitlement.get('plan_tier')})")
         except AuthenticationError:
-            status_store.add_log("[api]: Session expired. Add email/password under [api_credentials] in burnBot_config.ini for auto re-login, or restart and sign in when prompted.")
+            status_store.add_log(client_log_line(None, "api", "Session expired. Add email/password under [api_credentials] in burnBot_config.ini for auto re-login, or restart and sign in when prompted."))
             stop_flag.set()
             return
         except Exception as e:
-            status_store.add_log(f"[api]: Entitlement check failed: {e}")
+            status_store.add_log(client_log_line(None, "api", f"Entitlement check failed: {e}"))
             stop_flag.set()
             return
 
         # ------------------------------------------------------------------
         # Fetch user config and emit startup log
         # ------------------------------------------------------------------
-        _w = 24
+        _plan = entitlement.get("plan_tier", "free")
         _ua  = CONFIG.get('bot_settings', 'system_user_agent', fallback='').strip()
         _cs  = CONFIG.get('bot_settings', 'close_browser_session', fallback='FALSE').strip().upper()
         _ce  = CONFIG.get('bot_settings', 'close_browser_exit',    fallback='FALSE').strip().upper()
@@ -279,34 +279,40 @@ try:
 
         def _log(msg):
             status_store.add_log(msg)
-            time.sleep(0.25)
+            time.sleep(0.05)
 
         _started_at = datetime.now().strftime("%I:%M %p")
-        _log(f"SlowBurnBot Client v{BOT_VERSION}  started {_started_at}")
-        _log("=" * 60)
-        _log("Bot Settings:")
+        _client_label = _client_name or "unnamed"
+        _dbg_on = _dbg.upper() == "TRUE"
+        _cs_on = _cs.upper() == "TRUE"
+        _ce_on = _ce.upper() == "TRUE"
+        _lks_on = _lks.upper() == "TRUE"
+        _lkp_on = _lkp.upper() == "TRUE"
+        _skl_on = _skl.upper() == "TRUE"
+        _ans_on = _ans.upper() == "TRUE"
+        _log(client_log_line(
+            None, "cfg",
+            f"SlowBurnBot v{BOT_VERSION} · started {_started_at} · plan={_plan} · client {_sg} · {_client_label} · {_st or 'unknown'}",
+        ))
+        _log(client_log_line(None, "cfg", f"api_url  {api_url}"))
         if not is_frozen():
-            _log(f"{'local config file:':<{_w}}[{config_file}]")
-        _log(f"{'api_url:':<{_w}}[{api_url}]")
-        _log(f"{'client_id:':<{_w}}[{_sg}]")
-        _log(f"{'system_type:':<{_w}}[{_st}]")
-        _log(f"{'debug:':<{_w}}[{_dbg}]")
-        _ua_display = (_ua[:77] + '...') if len(_ua) > 80 else _ua
-        _log(f"{'system_user_agent:':<{_w}}[{_ua_display}]")
-        _log(f"{'close_browser_session:':<{_w}}[{_cs}]")
-        _log(f"{'close_browser_exit:':<{_w}}[{_ce}]")
-        _log(f"{'bot_idle_delay:':<{_w}}[{_idl}]")
-        _log("Session Settings (from web app):")
-        _log(f"{'like_suggested:':<{_w}}[{_lks}]")
-        _log(f"{'like_sponsored:':<{_w}}[{_lkp}]")
-        _log(f"{'skip_login_check:':<{_w}}[{_skl}]")
-        _log(f"{'login_tries:':<{_w}}[{_lgt}]")
-        _log("Notification Settings (from web app):")
-        _log(f"{'notices_type:':<{_w}}[{_ant}]")
-        _log(f"{'notices_session:':<{_w}}[{_ans}]")
-        _log(f"{'notify_email:':<{_w}}[{_ane}]")
-        _log(f"{'notify_phone:':<{_w}}[{_anp}]")
-        _log("=" * 60)
+            _log(client_log_line(None, "cfg", f"config_file  {config_file}"))
+        _log(client_log_line(
+            None, "cfg",
+            f"bot  debug={_dbg_on}  idle_delay={_idl}m  close_session={_cs_on}  close_exit={_ce_on}",
+        ))
+        _log(client_log_line(
+            None, "cfg",
+            f"session_web  like_suggested={_lks_on}  like_sponsored={_lkp_on}  skip_login_check={_skl_on}  login_tries={_lgt}",
+        ))
+        _log(client_log_line(
+            None, "cfg",
+            f"notify  type={_ant}  session={_ans_on}  email={mask_email(_ane)}  phone={mask_phone(_anp)}",
+        ))
+        _ua_display = (_ua[:120] + "…") if len(_ua) > 120 else _ua
+        if _ua_display:
+            _log(client_log_line(None, "cfg", f"user_agent  {_ua_display}"))
+        _log(client_log_line(None, "api", f"subscription active (plan={_plan})"))
         _beep('startup')
 
         # Redirect stdout so plain print() in any module routes to the TUI log
@@ -374,7 +380,7 @@ try:
             for _acct in all_accounts:
                 _name = _acct.get("name", "")
                 if _name and _name not in status_store._store:
-                    status_store.update(_name, status="starting...", next_run="—", last_action="—", run_info="—")
+                    status_store.update(_name, status="initializing", next_run="—", last_action="—", run_info="—")
 
             # Rebuild enabled accounts and update schedules
             enabled_accounts = {}
@@ -512,7 +518,7 @@ try:
                     run_info = f"[{next_run}/{schedule_max}]" if schedule_max > 0 else f"[{next_run}]"
                     console.print(f"[bot]: {account_name} - Triggering to ACTIVE state - run {run_info}")
                     console.print("-" * 60)
-                    status_store.update(account_name, status="running", next_run="—", run_info=run_info)
+                    status_store.update(account_name, status="initializing", next_run="—", run_info=run_info)
 
                     # Get or create thread on-demand
                     account_idx = account_thread_index.get(account_name)

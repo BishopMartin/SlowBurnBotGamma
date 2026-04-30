@@ -3,6 +3,7 @@
 import builtins as _builtins
 from burnBot_imports import *
 from burnBot_utils import process_exception
+from burnBot_client_log import client_log_line
 from datetime import date, datetime, timedelta
 import random
 import time
@@ -105,23 +106,14 @@ def search_for_profile(driver, username, target_username):
         return False, None
 
 
-def do_unfollow_database(driver, account, target_count, apiClient, account_id, unfollow_days=30, _print=None):
+def do_unfollow_database(driver, account, target_count, apiClient, account_id, unfollow_days=30, _print=None, log_scope="unfollow-database"):
+    """Unfollow accounts from follow targets database via API.
+
+    log_scope: TUI token, e.g. unfollow-database vs unfollow-previous (same code path).
+    """
     global _p
     _p = _print if _print is not None else _builtins.print
-    """
-    Unfollow accounts from follow targets database via API
-
-    Args:
-        driver: Selenium WebDriver instance
-        account: Account name (for logging)
-        target_count: Maximum number of accounts to unfollow
-        apiClient: ApiClient instance for API access
-        account_id: Account UUID
-        unfollow_days: Number of days to wait before unfollowing (default: 30)
-
-    Returns:
-        tuple: (unfollows_performed, errors_log)
-    """
+    _log_scope = (log_scope or "unfollow-database").strip() or "unfollow-database"
     unfollows_performed = 0
     moduleErrorsLog = ""
 
@@ -129,7 +121,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
         today = date.today()
         unfollow_date = today
 
-        print(f"- [{account}]: [unfollow][database] - loading account data...")
+        _p(client_log_line(account, _log_scope, "loading account data…"))
 
         # Get eligible follow targets from API (status=following, older than unfollow_days)
         try:
@@ -138,17 +130,17 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
                 page_size=target_count
             )
         except Exception as e:
-            _p(f"- [{account}]: [unfollow][database] - ERROR: Could not load follow targets: {e}")
+            _p(client_log_line(account, _log_scope, f"ERROR: Could not load follow targets: {e}"))
             return 0, f"Could not load follow targets: {e}"
 
         if not targets:
-            _p(f"- [{account}]: [unfollow][database] - no eligible accounts found (all too recent, done, or private)")
+            _p(client_log_line(account, _log_scope, "no eligible accounts found (all too recent, done, or private)"))
             return 0, ""
 
-        print(f"- [{account}]: [unfollow][database] - found {len(targets)} eligible account(s)")
+        _p(client_log_line(account, _log_scope, f"found {len(targets)} eligible account(s)"))
 
         # Navigate to account profile
-        print(f"- [{account}]: [unfollow][database] - loading profile page...")
+        _p(client_log_line(account, _log_scope, "loading profile page…"))
         active_account_page = f"https://www.instagram.com/{account}/"
         driver.get(active_account_page)
         WebDriverWait(driver, 10).until(lambda d: d.execute_script("return document.readyState") == "complete")
@@ -158,7 +150,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
         main_window = driver.current_window_handle
 
         # Open following in new tab
-        print(f"- [{account}]: [unfollow][database] - opening following tab...")
+        _p(client_log_line(account, _log_scope, "opening following tab…"))
         driver.switch_to.new_window('tab')
         driver.get(active_account_page)
         WebDriverWait(driver, 10).until(lambda d: d.execute_script("return document.readyState") == "complete")
@@ -172,13 +164,13 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
             ActionChains(driver).move_to_element(following_link).click().perform()
             time.sleep(random.randint(2, 4))
         except Exception as e:
-            _p(f"- [{account}]: [unfollow][database] - ERROR: Could not open following dialog")
+            _p(client_log_line(account, _log_scope, "ERROR: Could not open following dialog"))
             driver.close()
             driver.switch_to.window(main_window)
             return 0, f"Could not open following dialog: {e}"
 
         # Open followers in new tab
-        print(f"- [{account}]: [unfollow][database] - opening followers tab...")
+        _p(client_log_line(account, _log_scope, "opening followers tab…"))
         driver.switch_to.new_window('tab')
         driver.get(active_account_page)
         WebDriverWait(driver, 10).until(lambda d: d.execute_script("return document.readyState") == "complete")
@@ -192,7 +184,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
             ActionChains(driver).move_to_element(followers_link).click().perform()
             time.sleep(random.randint(2, 4))
         except Exception as e:
-            _p(f"- [{account}]: [unfollow][database] - ERROR: Could not open followers dialog")
+            _p(client_log_line(account, _log_scope, "ERROR: Could not open followers dialog"))
             driver.close()
             driver.switch_to.window(following_window)
             driver.close()
@@ -215,7 +207,6 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
             unfollows_performed += 1
             count_formatted = f"{unfollows_performed:02d}"
 
-            _unfollow_prefix = f"- [{account}]: [unfollow][database] - [{count_formatted}/{target_formatted}] - [{loop_username}]"
 
             # Create username variations to try (reversed order)
             loop_username_clean = loop_username.replace(".", "").replace("_", "")
@@ -277,7 +268,10 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
                     )
                     ActionChains(driver).move_to_element(unfollow_confirm).click().perform()
 
-                    _p(f"{_unfollow_prefix} - [{follow_back_display}] - [done]")
+                    _p(client_log_line(
+                        account, _log_scope,
+                        f"{count_formatted}/{target_formatted} @{loop_username} follow_back={follow_back_display} done",
+                    ))
 
                     # Update follow target via API
                     try:
@@ -293,12 +287,15 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
                     time.sleep(random.randint(4, 6))
 
                 except Exception as e:
-                    _p(f"{_unfollow_prefix} - [ error ]")
+                    _p(client_log_line(account, _log_scope, f"{count_formatted}/{target_formatted} @{loop_username} error"))
                     moduleErrorsLog += f"Error unfollowing {loop_username}: {e}\n"
             else:
                 # Account not found in following list (already unfollowed manually or by another process)
                 # Still mark as done in database to avoid checking again
-                _p(f"{_unfollow_prefix} - [{follow_back_display}] - [skip]")
+                _p(client_log_line(
+                    account, _log_scope,
+                    f"{count_formatted}/{target_formatted} @{loop_username} follow_back={follow_back_display} skip",
+                ))
 
                 # Update follow target via API
                 try:
@@ -315,9 +312,9 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
 
         # Summary message
         if unfollows_performed < target_count:
-            _p(f"- [{account}]: [unfollow][database] - completed {unfollows_performed} (no more eligible accounts)")
+            _p(client_log_line(account, _log_scope, f"completed {unfollows_performed} (no more eligible accounts)"))
         else:
-            _p(f"- [{account}]: [unfollow][database] - target reached ({unfollows_performed}/{target_count})")
+            _p(client_log_line(account, _log_scope, f"done {unfollows_performed:02d}/{target_count:02d} target reached"))
 
         # Close extra tabs and return to main window
         driver.switch_to.window(followers_window)
