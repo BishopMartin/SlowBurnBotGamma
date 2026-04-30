@@ -8,6 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 from burnBot_utils import process_exception
+import burnBot_status as status_store
 
 _p = _builtins.print  # set per-call by do_follow_group; safe because sessions run sequentially
 
@@ -109,8 +110,10 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
         
         # Main follow loop
         user_boxes_done = []
-        
+
         while followed_count < target_count:
+            if status_store.is_bot_paused():
+                return followed_count, moduleErrorsLog
             try:
                 # Find all user boxes in the dialog
                 user_boxes_found = driver.find_elements(By.CLASS_NAME, "xozqiw3")
@@ -140,7 +143,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
             
             # Process each new user box
             for user_box in user_boxes_new:
-                if followed_count >= target_count:
+                if status_store.is_bot_paused() or followed_count >= target_count:
                     break
                 
                 try:

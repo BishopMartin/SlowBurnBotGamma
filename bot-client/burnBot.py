@@ -538,6 +538,8 @@ try:
 
                     # Wait for account to complete and return to idle
                     while threads_active[account_idx].is_set():
+                        if status_store.is_bot_paused():
+                            threads_active[account_idx].clear()
                         time.sleep(1)
 
                     # Update last run time and increment run counter

@@ -7,6 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
+import burnBot_status as status_store
 
 _p = _builtins.print  # set per-call by do_follow_suggested; safe because sessions run sequentially
 
@@ -290,6 +291,8 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
         max_home_cycles = 2  # one pass + one reload if partial progress was made
 
         while followed_count < target_count and home_cycles < max_home_cycles:
+            if status_store.is_bot_paused():
+                return followed_count, moduleErrorsLog
             home_cycles += 1
             start_count = followed_count
 
@@ -309,7 +312,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
                 _p(f"- [{account}]: [follow][suggested] - found {len(user_boxes)} suggested user(s)")
 
                 for box_index, user_box in enumerate(user_boxes):
-                    if followed_count >= target_count:
+                    if status_store.is_bot_paused() or followed_count >= target_count:
                         break
 
                     try:

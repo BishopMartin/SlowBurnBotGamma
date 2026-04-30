@@ -271,6 +271,8 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                         random.shuffle(_action_slots_tuples)
 
                     for _slot_idx, (_slot_num, _enabled, _act_type, _act_target, _fixed, _variable) in enumerate(_action_slots_tuples):
+                        if status_store.is_bot_paused():
+                            break
                         _count = 0
 
                         if _enabled and _act_type:

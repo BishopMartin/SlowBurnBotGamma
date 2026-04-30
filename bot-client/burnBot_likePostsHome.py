@@ -7,6 +7,7 @@ from burnBot_login import check_phone_verification, switch_login
 from burnBot_accountSession_setup import is_bot_debug_enabled
 import random
 import time
+import burnBot_status as status_store
 
 _p = _builtins.print  # set per-call by do_like_posts_home; safe because sessions run sequentially
 
@@ -299,6 +300,8 @@ def do_like_posts_home(driver, account, target_count, apiClient=None, account_id
             
             if len(new_articles) > 0:
                 for article in new_articles:
+                    if status_store.is_bot_paused():
+                        return likes_performed, moduleErrorsLog
                     try:
                         try:
                             article_account = article.find_element(By.CLASS_NAME, "_ap3a").text
