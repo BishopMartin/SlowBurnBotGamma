@@ -180,7 +180,12 @@ class BurnBotApp(App):
         yield RichLog(highlight=False, markup=True, wrap=False, id="log")
         with Vertical(id="settings-overlay"):
             yield DataTable(id="settings-table", show_header=False, cursor_type="row")
-            yield Static("Enter or Tab: Toggle   Esc: Back", id="settings-hint")
+            _sh = Text()
+            _sh.append("Enter or Tab: ", style="#9A968B")
+            _sh.append("Toggle", style="#E5C07B")
+            _sh.append("   Esc: ", style="#9A968B")
+            _sh.append("Back", style="#E5C07B")
+            yield Static(_sh, id="settings-hint")
         with Vertical(id="help-overlay"):
             with Vertical(id="help-box"):
                 for cmd, desc in self._HELP_CMDS:
@@ -188,7 +193,10 @@ class BurnBotApp(App):
                     row.append(f"{cmd:<12}", style="#adcc00")
                     row.append(desc, style="#9A968B")
                     yield Static(row)
-            yield Static("Esc: Close", id="help-hint-inline")
+            _hh = Text()
+            _hh.append("Esc: ", style="#9A968B")
+            _hh.append("Close", style="#E5C07B")
+            yield Static(_hh, id="help-hint-inline")
         yield DataTable(id="accounts", show_cursor=False)
         with Horizontal(id="input-row"):
             yield Static(">", id="input-prompt")
@@ -214,6 +222,7 @@ class BurnBotApp(App):
         inp.value = "/"
         inp.focus()
         self.call_after_refresh(self._deselect_input)
+        self.call_after_refresh(self._update_ghost)
         status_store.flush_log_buffer(self)
         threading.Thread(target=self._bot_loop_fn, daemon=True).start()
 
@@ -361,11 +370,18 @@ class BurnBotApp(App):
             t = Text()
             t.append(current, style="#adcc00")
             if count > 1:
-                t.append(f"  ↑↓ - tab to select  [{self._completion_idx + 1}/{count}]", style="#4a4a45")
+                t.append(f"  [{self._completion_idx + 1}/{count}]↑↓ - tab to select", style="#4a4a45")
             else:
                 t.append("  - tab to select", style="#4a4a45")
             ghost.update(t)
         else:
+            try:
+                inp = self.query_one("#cmd-input", Input)
+                if inp.value == "/":
+                    ghost.update(Text("enter a command", style="#4a4a45"))
+                    return
+            except Exception:
+                pass
             ghost.update("")
 
     @on(Input.Changed, "#cmd-input")

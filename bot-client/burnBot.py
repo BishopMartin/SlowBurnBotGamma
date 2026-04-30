@@ -291,7 +291,8 @@ try:
         _log(f"{'client_id:':<{_w}}[{_sg}]")
         _log(f"{'system_type:':<{_w}}[{_st}]")
         _log(f"{'debug:':<{_w}}[{_dbg}]")
-        _log(f"{'system_user_agent:':<{_w}}[{_ua}]")
+        _ua_display = (_ua[:77] + '...') if len(_ua) > 80 else _ua
+        _log(f"{'system_user_agent:':<{_w}}[{_ua_display}]")
         _log(f"{'close_browser_session:':<{_w}}[{_cs}]")
         _log(f"{'close_browser_exit:':<{_w}}[{_ce}]")
         _log(f"{'bot_idle_delay:':<{_w}}[{_idl}]")
@@ -592,6 +593,7 @@ try:
     app = BurnBotApp(BOT_VERSION, _sg, _client_name, _bot_loop, stop_flag)
     status_store.set_app(app)
     app.run()
+    os._exit(0)
 
 except KeyboardInterrupt:
     print()
