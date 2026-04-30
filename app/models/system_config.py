@@ -31,6 +31,10 @@ class SystemConfig(Base):
     resend_from_address: Mapped[str | None] = mapped_column(String(255), nullable=True)
     resend_reply_to: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
+    # Desktop build versioning — auto-updated when a build completes
+    current_bot_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    current_bot_release_date: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )

@@ -15,6 +15,7 @@ from app.database import get_async_session
 from app.deps import require_active_subscription
 from app.models.desktop_build import DesktopBuild
 from app.models.subscription import Subscription
+from app.models.system_config import SystemConfig
 from app.models.user import User
 from app.plan_tiers import get_max_clients
 from app.schemas.desktop_build import (
@@ -39,6 +40,24 @@ def _mint_token() -> tuple[str, str]:
 
 
 _DL_TOKEN_TTL = 120  # seconds
+
+
+async def _get_system_config(session: AsyncSession) -> SystemConfig:
+    sc = await session.scalar(select(SystemConfig))
+    if sc is None:
+        sc = SystemConfig()
+        session.add(sc)
+        await session.commit()
+        await session.refresh(sc)
+    return sc
+
+
+def _version_gt(a: str, b: str) -> bool:
+    def parse(v): return [int(x) for x in v.split(".")]
+    try:
+        return parse(a) > parse(b)
+    except Exception:
+        return False
 
 
 def _make_download_token(build_id: uuid.UUID, user_id: uuid.UUID) -> str:
@@ -107,6 +126,11 @@ async def _poll_github_status(build: DesktopBuild, session: AsyncSession) -> Non
                 head_sha = run.get("head_sha")
                 if head_sha:
                     build.bot_version = await github_actions.get_bot_version_from_commit(head_sha)
+            if build.bot_version:
+                sc = await _get_system_config(session)
+                if sc.current_bot_version is None or _version_gt(build.bot_version, sc.current_bot_version):
+                    sc.current_bot_version = build.bot_version
+                    sc.current_bot_release_date = _now().strftime("%b %d %Y")
         else:
             build.status = "failed"
             build.failure_reason = gh_conclusion or "unknown"
@@ -120,11 +144,13 @@ async def _poll_github_status(build: DesktopBuild, session: AsyncSession) -> Non
 @router.get("/meta")
 async def get_desktop_builds_meta(
     _: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
 ):
-    """Return static metadata about desktop builds (e.g. current bot version)."""
+    """Return metadata about desktop builds — current bot version from DB."""
+    sc = await _get_system_config(session)
     return {
-        "current_bot_version": settings.current_bot_version,
-        "current_bot_release_date": settings.current_bot_release_date,
+        "current_bot_version": sc.current_bot_version or "",
+        "current_bot_release_date": sc.current_bot_release_date or "",
     }
 
 
@@ -170,13 +196,14 @@ async def create_desktop_build(
 
     now = _now()
     token, token_hash = _mint_token()
+    sc = await _get_system_config(session)
 
     build = DesktopBuild(
         user_id=user.id,
         client_id=next_client_id,
         build_options=config.model_dump(),
         status="queued",
-        bot_version=settings.current_bot_version or None,
+        bot_version=sc.current_bot_version or None,
         activation_token_hash=token_hash,
         activation_token_expires_at=now
         + timedelta(hours=settings.desktop_activation_token_ttl_hours),
@@ -343,13 +370,14 @@ async def rebuild_desktop_build(
 
     now = _now()
     token, token_hash = _mint_token()
+    sc = await _get_system_config(session)
 
     new_build = DesktopBuild(
         user_id=user.id,
         client_id=next_client_id,
         build_options=config_dict,
         status="queued",
-        bot_version=settings.current_bot_version or None,
+        bot_version=sc.current_bot_version or None,
         activation_token_hash=token_hash,
         activation_token_expires_at=now + timedelta(hours=settings.desktop_activation_token_ttl_hours),
         download_expires_at=now + timedelta(hours=settings.desktop_download_expires_hours),
