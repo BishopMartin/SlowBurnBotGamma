@@ -308,6 +308,22 @@ try:
 
     console = _BotConsole()
 
+    # Redirect stdout so that plain print() calls in any module (burnBot_login, etc.)
+    # route to the TUI log instead of disappearing behind the Textual UI.
+    import sys as _sys
+
+    class _TuiStdout:
+        def write(self, text):
+            if text and not text.isspace():
+                from rich.markup import escape
+                status_store.add_log(escape(text.rstrip()))
+        def flush(self):
+            pass
+        def isatty(self):
+            return False
+
+    _sys.stdout = _TuiStdout()
+
     def _bot_loop():
         while True:
             current_time = datetime.now().astimezone()
