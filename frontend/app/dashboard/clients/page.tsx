@@ -176,7 +176,7 @@ export default function ClientPage() {
   }, [builds]);
 
   const activeBuilds = builds
-    .filter((b) => b.status !== "revoked" && b.status !== "failed")
+    .filter((b) => b.status !== "revoked")
     .sort((a, b) => a.client_id - b.client_id);
 
   const maxClients = subInfo?.max_clients ?? 0;
@@ -265,11 +265,6 @@ export default function ClientPage() {
           -- <span className="text-[#f4f3ee]">[</span>
           <span className="text-[#E5C07B]">{loading ? "--" : currentStr}/{maxStr}</span>
           <span className="text-[#f4f3ee]">]</span>
-          {currentBotVersion && (
-            <span className="ml-3">
-              -- client ver: <span className="text-[#f4f3ee]">[</span><span className="text-[#E5C07B]">v {currentBotVersion}</span><span className="text-[#f4f3ee]">]</span>
-            </span>
-          )}
         </span>
       </div>
 
@@ -288,7 +283,10 @@ export default function ClientPage() {
 
       {justCreated && (
         <div className="border border-[#d97757] px-4 py-3 flex items-center gap-3 flex-wrap">
-          <span className="text-[#f4f3ee]">client {justCreated.client_id} queued.</span>
+          <span className="text-[#f4f3ee]">client {justCreated.client_id}</span>
+          {justCreated.status === "failed"
+            ? <span className="text-status-bad ml-1">build failed — check token permissions.</span>
+            : <span className="text-[#f4f3ee]"> queued.</span>}
           <span className="text-[#9A968B]">activation token:</span>
           <code className="text-[#E5C07B]">{justCreated.activation_token}</code>
           <button onClick={() => copyToken(justCreated.activation_token)} className="group cursor-pointer transition-colors">
@@ -334,11 +332,11 @@ export default function ClientPage() {
                         <td className="px-4 py-3 text-[#9A968B] whitespace-nowrap">{fmtDate(build.created_at)}</td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           {buildIsOutdated
-                            ? <span className="text-status-bad">old version</span>
+                            ? <span className="text-status-bad">out-dated</span>
                             : <span className={statusColor(build.status)}>{build.status}</span>}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={buildIsOutdated ? "text-status-bad" : "text-[#9A968B]"}>
+                          <span className="text-[#9A968B]">
                             {build.bot_version ? `v${build.bot_version}` : (currentBotVersion ? `v${currentBotVersion}` : "—")}
                           </span>
                         </td>
