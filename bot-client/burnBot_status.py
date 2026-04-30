@@ -62,7 +62,10 @@ def update(account_name: str, **kwargs) -> None:
     with _lock:
         _store.setdefault(account_name, {}).update(kwargs)
     if _app is not None:
-        _app.call_from_thread(_app._update_account_row, account_name, dict(kwargs))
+        try:
+            _app.call_from_thread(_app._update_account_row, account_name, dict(kwargs))
+        except Exception:
+            pass
 
 
 def add_log(line: str) -> None:

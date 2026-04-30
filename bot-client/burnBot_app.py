@@ -231,7 +231,11 @@ class BurnBotApp(App):
 
     def on_mount(self) -> None:
         table = self.query_one("#accounts", DataTable)
-        table.add_columns("Account", "Status", "Sessions Today", "Next Run", "Last Action")
+        table.add_column("Account",        key="account")
+        table.add_column("Status",         key="status")
+        table.add_column("Sessions Today", key="sessions_today")
+        table.add_column("Next Run",       key="next_run")
+        table.add_column("Last Action",    key="last_action")
         self._refresh_header()
         self.set_interval(1.0, self._refresh_header)
         self.query_one("#cmd-input", Input).focus()
@@ -288,15 +292,18 @@ class BurnBotApp(App):
         last_action  = kwargs.get("last_action", "—")
 
         try:
-            table.update_cell(account_name, "Status",         status_cell,  update_width=False)
-            table.update_cell(account_name, "Sessions Today", run_info,     update_width=False)
-            table.update_cell(account_name, "Next Run",       next_run,     update_width=False)
-            table.update_cell(account_name, "Last Action",    last_action,  update_width=False)
+            table.update_cell(account_name, "status",         status_cell,  update_width=False)
+            table.update_cell(account_name, "sessions_today", run_info,     update_width=False)
+            table.update_cell(account_name, "next_run",       next_run,     update_width=False)
+            table.update_cell(account_name, "last_action",    last_action,  update_width=False)
         except Exception:
-            table.add_row(
-                account_name, status_cell, run_info, next_run, last_action,
-                key=account_name,
-            )
+            try:
+                table.add_row(
+                    account_name, status_cell, run_info, next_run, last_action,
+                    key=account_name,
+                )
+            except Exception:
+                pass
 
     # ------------------------------------------------------------------
     # Command input
