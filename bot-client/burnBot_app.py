@@ -1,5 +1,7 @@
 # burnBot_app.py — Textual TUI for SlowBurnBot client
 
+import os
+import re
 import threading
 from datetime import datetime
 
@@ -24,7 +26,7 @@ class HelpScreen(Screen):
         align: center middle;
     }
     #help-panel {
-        width: 54;
+        width: 60;
         height: auto;
         border: solid #9A968B;
         padding: 1 2;
@@ -52,6 +54,7 @@ class HelpScreen(Screen):
         ("/start",    "Resume sessions after /stop"),
         ("/exit",     "Fully exit the bot"),
         ("/settings", "Open settings panel"),
+        ("/save-log", "Save a plain text copy of the log"),
         ("/help",     "Show this screen"),
         ("Esc",       "Return to main view"),
     ]
@@ -101,14 +104,8 @@ class BurnBotApp(App):
     #settings-overlay {
         display: none;
         background: #1a1a1a;
-        align: center middle;
-    }
-    #settings-title {
-        width: 1fr;
-        text-align: center;
-        color: #f4f3ee;
-        text-style: bold;
-        margin-bottom: 1;
+        align: left top;
+        padding: 1 0 0 1;
     }
     #settings-table {
         width: 50;
@@ -117,10 +114,10 @@ class BurnBotApp(App):
         border: solid #9A968B;
     }
     #settings-hint {
-        width: 1fr;
+        width: auto;
         color: #9A968B;
-        margin-top: 1;
-        text-align: center;
+        margin-top: 0;
+        padding: 0 0 0 1;
     }
 
     DataTable {
@@ -154,14 +151,28 @@ class BurnBotApp(App):
         background: #1a1a1a;
         content-align: center middle;
     }
-    Input {
+    #cmd-inner {
         width: 1fr;
+        height: 1fr;
+        background: #1a1a1a;
+    }
+    Input {
+        width: auto;
+        min-width: 20;
         background: #1a1a1a;
         color: #f4f3ee;
         border: none;
+        padding: 0 1;
     }
     Input:focus {
         border: none;
+    }
+    #cmd-ghost {
+        width: 1fr;
+        color: #4a4a45;
+        background: #1a1a1a;
+        content-align: left middle;
+        padding: 0;
     }
     #input-hints {
         width: auto;
@@ -176,14 +187,19 @@ class BurnBotApp(App):
         Binding("escape", "clear_input", "Clear", show=False),
     ]
 
+    _COMMANDS = ["/exit", "/help", "/save-log", "/settings", "/start", "/stop"]
+
     def __init__(self, version: str, client_id: str, client_name: str,
                  bot_loop_fn, stop_flag):
         super().__init__()
-        self._version     = version
-        self._client_id   = client_id
-        self._client_name = client_name
-        self._bot_loop_fn = bot_loop_fn
-        self._stop_flag   = stop_flag
+        self._version        = version
+        self._client_id      = client_id
+        self._client_name    = client_name
+        self._bot_loop_fn    = bot_loop_fn
+        self._stop_flag      = stop_flag
+        self._log_lines: list[str] = []
+        self._completions: list[str] = []
+        self._completion_idx: int = 0
 
     # ------------------------------------------------------------------
     # Layout
@@ -193,13 +209,14 @@ class BurnBotApp(App):
         yield Static("", id="header-bar")
         yield RichLog(highlight=False, markup=True, wrap=False, id="log")
         with Vertical(id="settings-overlay"):
-            yield Static("Settings", id="settings-title")
             yield DataTable(id="settings-table", show_header=False, cursor_type="row")
             yield Static("Enter: Toggle   Esc: Back", id="settings-hint")
         yield DataTable(id="accounts", show_cursor=False)
         with Horizontal(id="input-row"):
             yield Static(">", id="input-prompt")
-            yield Input(placeholder="enter a command", id="cmd-input")
+            with Horizontal(id="cmd-inner"):
+                yield Input(placeholder="enter a command", id="cmd-input")
+                yield Static("", id="cmd-ghost")
             yield Static("", id="input-hints")
 
     def on_mount(self) -> None:
@@ -273,11 +290,14 @@ class BurnBotApp(App):
 
     def _refresh_settings_rows(self) -> None:
         table = self.query_one("#settings-table", DataTable)
+        saved_row = table.cursor_row
         table.clear()
         for label, key in status_store._SETTINGS:
             val = status_store.get_setting_value(key)
             val_text = Text("ON", style="#adcc00") if val else Text("OFF", style="#cf3b0a")
             table.add_row(label, val_text)
+        if saved_row < len(status_store._SETTINGS):
+            table.move_cursor(row=saved_row)
 
     @on(DataTable.RowSelected)
     def on_settings_row_selected(self, event: DataTable.RowSelected) -> None:
@@ -291,6 +311,11 @@ class BurnBotApp(App):
 
     def _write_log(self, line: str) -> None:
         self.query_one("#log", RichLog).write(line)
+        try:
+            plain = Text.from_markup(line).plain
+        except Exception:
+            plain = re.sub(r'\[/?[^\]]*\]', '', line)
+        self._log_lines.append(plain)
 
     def _update_account_row(self, account_name: str, kwargs: dict) -> None:
         table  = self.query_one("#accounts", DataTable)
@@ -315,6 +340,54 @@ class BurnBotApp(App):
                 )
             except Exception:
                 pass
+
+    # ------------------------------------------------------------------
+    # Autocomplete ghost text
+    # ------------------------------------------------------------------
+
+    def _update_ghost(self) -> None:
+        ghost = self.query_one("#cmd-ghost", Static)
+        typed = self.query_one("#cmd-input", Input).value
+        if self._completions:
+            current = self._completions[self._completion_idx]
+            suffix  = current[len(typed):]
+            count   = len(self._completions)
+            label   = suffix if count == 1 else f"{suffix}  [{self._completion_idx + 1}/{count}]"
+            ghost.update(label)
+        else:
+            ghost.update("")
+
+    @on(Input.Changed, "#cmd-input")
+    def on_input_changed(self, event: Input.Changed) -> None:
+        typed = event.value
+        if typed and typed.startswith("/") and len(typed) > 1:
+            self._completions = [c for c in self._COMMANDS if c.startswith(typed) and c != typed]
+        else:
+            self._completions = []
+        self._completion_idx = 0
+        self._update_ghost()
+
+    def on_key(self, event) -> None:
+        inp = self.query_one("#cmd-input", Input)
+        if not inp.has_focus or not self._completions:
+            return
+        if event.key == "tab":
+            inp.value = self._completions[self._completion_idx]
+            inp.cursor_position = len(inp.value)
+            self._completions = []
+            self._update_ghost()
+            event.prevent_default()
+            event.stop()
+        elif event.key == "up":
+            self._completion_idx = (self._completion_idx - 1) % len(self._completions)
+            self._update_ghost()
+            event.prevent_default()
+            event.stop()
+        elif event.key == "down":
+            self._completion_idx = (self._completion_idx + 1) % len(self._completions)
+            self._update_ghost()
+            event.prevent_default()
+            event.stop()
 
     # ------------------------------------------------------------------
     # Command input
@@ -342,6 +415,15 @@ class BurnBotApp(App):
             self._open_settings()
         elif cmd == "/help":
             self.push_screen(HelpScreen())
+        elif cmd == "/save-log":
+            ts    = datetime.now().strftime("%Y%m%d_%H%M%S")
+            fname = f"slowburnbot_log_{ts}.txt"
+            try:
+                with open(fname, "w", encoding="utf-8") as f:
+                    f.write("\n".join(self._log_lines))
+                self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Log saved → {os.path.abspath(fname)}")
+            except Exception as e:
+                self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Save failed: {e}")
         else:
             self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Unknown command '{cmd}' — type /help for list")
 
