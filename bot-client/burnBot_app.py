@@ -172,7 +172,7 @@ class BurnBotApp(App):
         color: #4a4a45;
         background: #1a1a1a;
         content-align: left middle;
-        padding: 0;
+        padding: 0 0 0 1;
     }
     #input-hints {
         width: auto;
@@ -232,7 +232,10 @@ class BurnBotApp(App):
 
         self._refresh_header()
         self.set_interval(1.0, self._refresh_header)
-        self.query_one("#cmd-input", Input).focus()
+        inp = self.query_one("#cmd-input", Input)
+        inp.focus()
+        inp.value = "/"
+        inp.cursor_position = 1
         status_store.flush_log_buffer(self)
         threading.Thread(target=self._bot_loop_fn, daemon=True).start()
 
@@ -347,13 +350,14 @@ class BurnBotApp(App):
 
     def _update_ghost(self) -> None:
         ghost = self.query_one("#cmd-ghost", Static)
-        typed = self.query_one("#cmd-input", Input).value
         if self._completions:
             current = self._completions[self._completion_idx]
-            suffix  = current[len(typed):]
             count   = len(self._completions)
-            label   = suffix if count == 1 else f"{suffix}  [{self._completion_idx + 1}/{count}]"
-            ghost.update(label)
+            t = Text()
+            t.append(current, style="#adcc00")
+            if count > 1:
+                t.append(f"  ↑↓ [{self._completion_idx + 1}/{count}]", style="#4a4a45")
+            ghost.update(t)
         else:
             ghost.update("")
 
@@ -396,8 +400,11 @@ class BurnBotApp(App):
     @on(Input.Submitted)
     def handle_command(self, event: Input.Submitted) -> None:
         cmd = event.value.strip().lower()
-        event.input.clear()
-        if not cmd:
+        event.input.value = "/"
+        event.input.cursor_position = 1
+        self._completions = []
+        self._update_ghost()
+        if not cmd or cmd == "/":
             return
         if cmd == "/exit":
             self._stop_flag.set()
@@ -429,8 +436,11 @@ class BurnBotApp(App):
 
     def action_clear_input(self) -> None:
         inp = self.query_one("#cmd-input", Input)
-        if inp.value:
-            inp.clear()
+        if inp.value and inp.value != "/":
+            inp.value = "/"
+            inp.cursor_position = 1
+            self._completions = []
+            self._update_ghost()
         elif self.query_one("#settings-overlay").display:
             self._close_settings()
         elif self.screen_stack and len(self.screen_stack) > 1:
