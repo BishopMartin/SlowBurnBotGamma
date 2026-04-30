@@ -81,9 +81,9 @@ function BuildForm({
       <div>
         <BracketInput label="user agent" value={cfg.system_user_agent} onChange={(v) => set("system_user_agent", v)} width="72ch" />
       </div>
-      <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
-        <BracketInput label="chrome path" value={cfg.chrome_path} onChange={(v) => set("chrome_path", v)} width="44ch" placeholder="\PortableChrome\chrome.exe" />
-        <BracketInput label="user data dir" value={cfg.chrome_user_data_dir_base} onChange={(v) => set("chrome_user_data_dir_base", v)} width="44ch" placeholder="\PortableChrome\" />
+      <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
+        <BracketInput label="chrome path" value={cfg.chrome_path} onChange={(v) => set("chrome_path", v)} width="30ch" placeholder="\PortableChrome\chrome.exe" />
+        <BracketInput label="user data dir" value={cfg.chrome_user_data_dir_base} onChange={(v) => set("chrome_user_data_dir_base", v)} width="22ch" placeholder="\PortableChrome\" />
       </div>
       <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
         <BracketCheckbox label="headless" checked={cfg.headless} onChange={(v) => set("headless", v)} />
@@ -333,7 +333,9 @@ export default function ClientPage() {
                         <td className="px-4 py-3 text-[#9A968B] whitespace-nowrap">{cfg.client_name || "—"}</td>
                         <td className="px-4 py-3 text-[#9A968B] whitespace-nowrap">{fmtDate(build.created_at)}</td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={statusColor(build.status)}>{build.status}</span>
+                          {buildIsOutdated
+                            ? <span className="text-status-bad">old version</span>
+                            : <span className={statusColor(build.status)}>{build.status}</span>}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className={buildIsOutdated ? "text-status-bad" : "text-[#9A968B]"}>
@@ -342,9 +344,6 @@ export default function ClientPage() {
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex gap-2 justify-end items-center">
-                            {buildIsOutdated && (
-                              <span className="text-status-bad opacity-50 text-sm">outdated</span>
-                            )}
                             {canDownload && (
                               <button onClick={() => handleDownload(build.id)} disabled={downloading === build.id} className="group cursor-pointer transition-colors disabled:opacity-40">
                                 <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{downloading === build.id ? "…" : "download"}</Bracket>
