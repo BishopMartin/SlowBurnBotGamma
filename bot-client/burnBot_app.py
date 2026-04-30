@@ -5,7 +5,7 @@ from datetime import datetime
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.widgets import DataTable, Input, RichLog, Rule, Static
+from textual.widgets import DataTable, Input, RichLog, Static
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual import on
@@ -142,15 +142,12 @@ class BurnBotApp(App):
     }
 
     #header-bar {
-        height: 1;
+        height: 2;
         background: #1a1a1a;
         color: #f4f3ee;
         padding: 0 1;
-    }
-
-    Rule {
-        color: #3a3a3a;
-        margin: 0;
+        border: solid #9A968B;
+        border-top: none;
     }
 
     RichLog {
@@ -194,12 +191,20 @@ class BurnBotApp(App):
         content-align: center middle;
     }
     Input {
+        width: 1fr;
         background: #1a1a1a;
         color: #f4f3ee;
         border: none;
     }
     Input:focus {
         border: none;
+    }
+    #input-hints {
+        width: auto;
+        color: #9A968B;
+        background: #1a1a1a;
+        content-align: right middle;
+        padding: 0 1;
     }
     """
 
@@ -222,12 +227,12 @@ class BurnBotApp(App):
 
     def compose(self) -> ComposeResult:
         yield Static("", id="header-bar")
-        yield Rule()
         yield RichLog(highlight=False, markup=True, wrap=False, id="log")
         yield DataTable(id="accounts", show_cursor=False)
         with Horizontal(id="input-row"):
             yield Static(">", id="input-prompt")
-            yield Input(placeholder="type a command  ·  /stop   /exit   /settings   /help", id="cmd-input")
+            yield Input(placeholder="", id="cmd-input")
+            yield Static("", id="input-hints")
 
     def on_mount(self) -> None:
         table = self.query_one("#accounts", DataTable)
@@ -261,16 +266,21 @@ class BurnBotApp(App):
         header.append(now, style=status_store.DIM)
         header.append("  |  Current State: ", style=status_store.DIM)
         if paused:
-            header.append("[STOPPED]", style="bold #E5C07B")
+            header.append("[", style=status_store.DIM)
+            header.append("STOPPED", style="bold #E5C07B")
+            header.append("]", style=status_store.DIM)
         else:
-            header.append("[RUNNING]", style="bold #adcc00")
+            header.append("[", style=status_store.DIM)
+            header.append("RUNNING", style="bold #adcc00")
+            header.append("]", style=status_store.DIM)
 
         self.query_one("#header-bar", Static).update(header)
 
         try:
-            inp = self.query_one("#cmd-input", Input)
             hint_cmd = "/start" if paused else "/stop"
-            inp.placeholder = f"type a command  ·  {hint_cmd}   /exit   /settings   /help"
+            self.query_one("#input-hints", Static).update(
+                f"{hint_cmd}  /exit  /settings  /help"
+            )
         except Exception:
             pass
 

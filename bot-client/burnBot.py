@@ -158,51 +158,21 @@ if not apiClient.has_token():
 
     status_store.add_log("[api]: Login successful.")
 
-# ------------------------------------------------------------------
-# Entitlement check
-# ------------------------------------------------------------------
-try:
-    try:
-        entitlement = apiClient.check_entitlement()
-    except AuthenticationError:
-        if _try_api_relogin_from_config(apiClient):
-            entitlement = apiClient.check_entitlement()
-        else:
-            raise
-    if not entitlement.get("active"):
-        print("=" * 60)
-        print("Subscription is not active.")
-        print(f"Plan: {entitlement.get('plan_tier', 'free')}")
-        print("Please activate your subscription at the dashboard.")
-        print("=" * 60)
-        sys.exit(1)
-    status_store.add_log(f"[api]: Subscription active (plan: {entitlement.get('plan_tier')})")
-except AuthenticationError:
-    print("Session expired. Add email/password under [api_credentials] in burnBot_config.ini for auto re-login,")
-    print("or run again and sign in when prompted.")
-    sys.exit(1)
-except Exception as e:
-    print(f"Entitlement check failed: {e}")
-    sys.exit(1)
-
-
 # Account tracking data structures
-all_accounts = []        # All account dicts from API
-started_accounts = []    # Account names that have a running thread
-enabled_accounts = {}    # {account_id: account_dict} for accounts to process
-account_thread_index = {}  # Map account_name -> index in threads_active/threads lists
+all_accounts = []
+started_accounts = []
+enabled_accounts = {}
+account_thread_index = {}
 
-account_schedules = {}   # Store schedule data for each account (keyed by account name)
-account_last_run = {}    # Track when each account last ran (datetime)
-account_next_run = {}    # Track next scheduled run time (datetime) per account
+account_schedules = {}
+account_last_run = {}
+account_next_run = {}
 threads = []
 threads_active = []
-stop_flag = threading.Event()  # Global stop flag for clean shutdown
+stop_flag = threading.Event()
 
-# Initialize local run counter (persists across script restarts)
 run_counter = RunCounter()
 
-# Group filter
 client_id = CONFIG.get('bot_settings', 'client_id', fallback='')
 
 def normalize_group(value):
@@ -216,113 +186,148 @@ def normalize_group(value):
 
 client_id_norm = normalize_group(client_id)
 
+# Fast config reads needed by the app constructor (no API calls)
+_sg = str(CONFIG.get('bot_settings', 'client_id', fallback='')).strip()
 try:
-    # --- Startup display ---
-    _w = 24  # label column width
-    _sg = str(CONFIG.get('bot_settings', 'client_id', fallback='')).strip()
-    try:
-        _sg = f"{int(_sg):02d}"
-    except Exception:
+    _sg = f"{int(_sg):02d}"
+except Exception:
+    pass
+_client_name = CONFIG.get('bot_settings', 'client_name', fallback='').strip()
+
+
+class _BotConsole:
+    @staticmethod
+    def print(*args, **kwargs):
+        status_store.add_log(" ".join(str(a) for a in args))
+
+console = _BotConsole()
+
+
+class _TuiStdout:
+    def write(self, text):
+        if text and not text.isspace():
+            status_store.add_log(text.rstrip())
+    def flush(self):
         pass
-    _client_name = CONFIG.get('bot_settings', 'client_name', fallback='').strip()
-    _ua  = CONFIG.get('bot_settings', 'system_user_agent', fallback='').strip()
-    _cs  = CONFIG.get('bot_settings', 'close_browser_session', fallback='FALSE').strip().upper()
-    _ce  = CONFIG.get('bot_settings', 'close_browser_exit',    fallback='FALSE').strip().upper()
-    _dbg = CONFIG.get('bot_settings', 'bot_debug',             fallback='FALSE').strip().upper()
-    _idl = str(bot_idle_delay_minutes).zfill(2)
-    _st  = CONFIG.get('bot_settings', 'system_type',           fallback='').strip()
-    _notif_cfg = apiClient.get_user_config() or {}
-    _skl = str(_notif_cfg.get('skip_login_check', False)).upper()
-    _lgt = str(_notif_cfg.get('login_tries', 3)).zfill(2)
-    _lks = str(_notif_cfg.get('like_suggested', False)).upper()
-    _lkp = str(_notif_cfg.get('like_sponsored', False)).upper()
-    _ant = (_notif_cfg.get('notices_type') or 'none').strip()
-    _ans = str(_notif_cfg.get('notices_session', False)).upper()
-    _ane = (_notif_cfg.get('notify_email') or '').strip()
-    _anp = (_notif_cfg.get('notify_phone') or '').strip()
+    def isatty(self):
+        return False
 
-    _p = 0.04  # seconds between each printed line
 
-    # Pre-populate log buffer — visible in body panel from the first frame of Live
-    _started_at = datetime.now().strftime("%I:%M %p")
-    status_store.add_log(f"SlowBurnBot Client v{BOT_VERSION}  started {_started_at}")
-    status_store.add_log("=" * 60)
-    status_store.add_log("Bot Settings:")
-    if not is_frozen():
-        status_store.add_log(f"{'local config file:':<{_w}}[{config_file}]")
-    status_store.add_log(f"{'api_url:':<{_w}}[{api_url}]")
-    status_store.add_log(f"{'client_id:':<{_w}}[{_sg}]")
-    status_store.add_log(f"{'system_type:':<{_w}}[{_st}]")
-    status_store.add_log(f"{'debug:':<{_w}}[{_dbg}]")
-    status_store.add_log(f"{'system_user_agent:':<{_w}}[{_ua}]")
-    status_store.add_log(f"{'close_browser_session:':<{_w}}[{_cs}]")
-    status_store.add_log(f"{'close_browser_exit:':<{_w}}[{_ce}]")
-    status_store.add_log(f"{'bot_idle_delay:':<{_w}}[{_idl}]")
-    status_store.add_log("Session Settings (from web app):")
-    status_store.add_log(f"{'like_suggested:':<{_w}}[{_lks}]")
-    status_store.add_log(f"{'like_sponsored:':<{_w}}[{_lkp}]")
-    status_store.add_log(f"{'skip_login_check:':<{_w}}[{_skl}]")
-    status_store.add_log(f"{'login_tries:':<{_w}}[{_lgt}]")
-    status_store.add_log("Notification Settings (from web app):")
-    status_store.add_log(f"{'notices_type:':<{_w}}[{_ant}]")
-    status_store.add_log(f"{'notices_session:':<{_w}}[{_ans}]")
-    status_store.add_log(f"{'notify_email:':<{_w}}[{_ane}]")
-    status_store.add_log(f"{'notify_phone:':<{_w}}[{_anp}]")
-    status_store.add_log("=" * 60)
-    _beep('startup')
+try:
+    def _bot_loop():
+        # Wait for TUI to finish rendering before generating any log output
+        time.sleep(1.5)
 
-    # Resolve local IP for heartbeat reporting
-    try:
-        _local_ip = socket.gethostbyname(socket.gethostname())
-    except Exception:
-        _local_ip = ""
-    _heartbeat_system_type = _st
-
-    # Background heartbeat: backend marks clients offline after 2 min, but the
-    # main loop's bot_idle_delay can exceed that. Resend last known state every 60s.
-    _hb_lock = threading.Lock()
-    _hb_state = {"status": "idle", "account": None}
-
-    def _send_hb(status, account):
-        with _hb_lock:
-            _hb_state["status"] = status
-            _hb_state["account"] = account
-        apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, status, account)
-
-    def _heartbeat_loop():
-        while not stop_flag.is_set():
-            if stop_flag.wait(60):
+        # ------------------------------------------------------------------
+        # Entitlement check (runs post-TUI so the result appears in the log)
+        # ------------------------------------------------------------------
+        try:
+            try:
+                entitlement = apiClient.check_entitlement()
+            except AuthenticationError:
+                if _try_api_relogin_from_config(apiClient):
+                    entitlement = apiClient.check_entitlement()
+                else:
+                    raise
+            if not entitlement.get("active"):
+                status_store.add_log("[api]: Subscription is not active.")
+                status_store.add_log(f"[api]: Plan: {entitlement.get('plan_tier', 'free')}")
+                status_store.add_log("[api]: Please activate your subscription at the dashboard.")
+                stop_flag.set()
                 return
+            status_store.add_log(f"[api]: Subscription active (plan: {entitlement.get('plan_tier')})")
+        except AuthenticationError:
+            status_store.add_log("[api]: Session expired. Add email/password under [api_credentials] in burnBot_config.ini for auto re-login, or restart and sign in when prompted.")
+            stop_flag.set()
+            return
+        except Exception as e:
+            status_store.add_log(f"[api]: Entitlement check failed: {e}")
+            stop_flag.set()
+            return
+
+        # ------------------------------------------------------------------
+        # Fetch user config and emit startup log
+        # ------------------------------------------------------------------
+        _w = 24
+        _ua  = CONFIG.get('bot_settings', 'system_user_agent', fallback='').strip()
+        _cs  = CONFIG.get('bot_settings', 'close_browser_session', fallback='FALSE').strip().upper()
+        _ce  = CONFIG.get('bot_settings', 'close_browser_exit',    fallback='FALSE').strip().upper()
+        _dbg = CONFIG.get('bot_settings', 'bot_debug',             fallback='FALSE').strip().upper()
+        _idl = str(bot_idle_delay_minutes).zfill(2)
+        _st  = CONFIG.get('bot_settings', 'system_type',           fallback='').strip()
+        _notif_cfg = apiClient.get_user_config() or {}
+        _skl = str(_notif_cfg.get('skip_login_check', False)).upper()
+        _lgt = str(_notif_cfg.get('login_tries', 3)).zfill(2)
+        _lks = str(_notif_cfg.get('like_suggested', False)).upper()
+        _lkp = str(_notif_cfg.get('like_sponsored', False)).upper()
+        _ant = (_notif_cfg.get('notices_type') or 'none').strip()
+        _ans = str(_notif_cfg.get('notices_session', False)).upper()
+        _ane = (_notif_cfg.get('notify_email') or '').strip()
+        _anp = (_notif_cfg.get('notify_phone') or '').strip()
+
+        _started_at = datetime.now().strftime("%I:%M %p")
+        status_store.add_log(f"SlowBurnBot Client v{BOT_VERSION}  started {_started_at}")
+        status_store.add_log("=" * 60)
+        status_store.add_log("Bot Settings:")
+        if not is_frozen():
+            status_store.add_log(f"{'local config file:':<{_w}}[{config_file}]")
+        status_store.add_log(f"{'api_url:':<{_w}}[{api_url}]")
+        status_store.add_log(f"{'client_id:':<{_w}}[{_sg}]")
+        status_store.add_log(f"{'system_type:':<{_w}}[{_st}]")
+        status_store.add_log(f"{'debug:':<{_w}}[{_dbg}]")
+        status_store.add_log(f"{'system_user_agent:':<{_w}}[{_ua}]")
+        status_store.add_log(f"{'close_browser_session:':<{_w}}[{_cs}]")
+        status_store.add_log(f"{'close_browser_exit:':<{_w}}[{_ce}]")
+        status_store.add_log(f"{'bot_idle_delay:':<{_w}}[{_idl}]")
+        status_store.add_log("Session Settings (from web app):")
+        status_store.add_log(f"{'like_suggested:':<{_w}}[{_lks}]")
+        status_store.add_log(f"{'like_sponsored:':<{_w}}[{_lkp}]")
+        status_store.add_log(f"{'skip_login_check:':<{_w}}[{_skl}]")
+        status_store.add_log(f"{'login_tries:':<{_w}}[{_lgt}]")
+        status_store.add_log("Notification Settings (from web app):")
+        status_store.add_log(f"{'notices_type:':<{_w}}[{_ant}]")
+        status_store.add_log(f"{'notices_session:':<{_w}}[{_ans}]")
+        status_store.add_log(f"{'notify_email:':<{_w}}[{_ane}]")
+        status_store.add_log(f"{'notify_phone:':<{_w}}[{_anp}]")
+        status_store.add_log("=" * 60)
+        _beep('startup')
+
+        # Redirect stdout so plain print() in any module routes to the TUI log
+        import sys as _sys
+        _sys.stdout = _TuiStdout()
+
+        # ------------------------------------------------------------------
+        # Heartbeat setup
+        # ------------------------------------------------------------------
+        try:
+            _local_ip = socket.gethostbyname(socket.gethostname())
+        except Exception:
+            _local_ip = ""
+        _heartbeat_system_type = _st
+
+        _hb_lock = threading.Lock()
+        _hb_state = {"status": "idle", "account": None}
+
+        def _send_hb(status, account):
             with _hb_lock:
-                status = _hb_state["status"]
-                account = _hb_state["account"]
+                _hb_state["status"] = status
+                _hb_state["account"] = account
             apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, status, account)
 
-    threading.Thread(target=_heartbeat_loop, daemon=True).start()
+        def _heartbeat_loop():
+            while not stop_flag.is_set():
+                if stop_flag.wait(60):
+                    return
+                with _hb_lock:
+                    status = _hb_state["status"]
+                    account = _hb_state["account"]
+                apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, status, account)
 
-    class _BotConsole:
-        @staticmethod
-        def print(*args, **kwargs):
-            status_store.add_log(" ".join(str(a) for a in args))
+        threading.Thread(target=_heartbeat_loop, daemon=True).start()
 
-    console = _BotConsole()
-
-    # Redirect stdout so that plain print() calls in any module (burnBot_login, etc.)
-    # route to the TUI log instead of disappearing behind the Textual UI.
-    import sys as _sys
-
-    class _TuiStdout:
-        def write(self, text):
-            if text and not text.isspace():
-                status_store.add_log(text.rstrip())
-        def flush(self):
-            pass
-        def isatty(self):
-            return False
-
-    _sys.stdout = _TuiStdout()
-
-    def _bot_loop():
+        # ------------------------------------------------------------------
+        # Main loop
+        # ------------------------------------------------------------------
         while True:
             current_time = datetime.now().astimezone()
 
@@ -347,6 +352,12 @@ try:
 
             if refreshed_accounts is not None:
                 all_accounts = refreshed_accounts
+
+            # Pre-populate table so all accounts appear immediately on first loop
+            for _acct in all_accounts:
+                _name = _acct.get("name", "")
+                if _name and _name not in status_store._store:
+                    status_store.update(_name, status="starting...", next_run="—", last_action="—", run_info="—")
 
             # Rebuild enabled accounts and update schedules
             enabled_accounts = {}
@@ -504,13 +515,10 @@ try:
                             time.sleep(1)
 
                     # Send running heartbeat before session starts
-                    console.print(f"[diag]: {account_name} - sending heartbeat...")
                     _send_hb("running", account_name)
 
                     # Set account to active
-                    console.print(f"[diag]: {account_name} - activating session thread...")
                     threads_active[account_idx].set()
-                    console.print(f"[diag]: {account_name} - waiting for session to complete...")
 
                     # Wait for account to complete and return to idle
                     while threads_active[account_idx].is_set():
