@@ -504,10 +504,13 @@ try:
                             time.sleep(1)
 
                     # Send running heartbeat before session starts
+                    console.print(f"[diag]: {account_name} - sending heartbeat...")
                     _send_hb("running", account_name)
 
                     # Set account to active
+                    console.print(f"[diag]: {account_name} - activating session thread...")
                     threads_active[account_idx].set()
+                    console.print(f"[diag]: {account_name} - waiting for session to complete...")
 
                     # Wait for account to complete and return to idle
                     while threads_active[account_idx].is_set():

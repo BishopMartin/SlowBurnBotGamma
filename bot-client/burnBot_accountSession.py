@@ -102,6 +102,7 @@ def accountSession(account, account_id, idx, threads_active, stop_flag, apiClien
         if threads_active[idx].is_set():
             # ACTIVE STATE
             # ========================================
+            _print(f"- [{account}]: [diag] ACTIVE state entered")
 
             # Open browser for this session
             account_idx_for_port = permanent_idx if permanent_idx is not None else idx
@@ -115,9 +116,11 @@ def accountSession(account, account_id, idx, threads_active, stop_flag, apiClien
                     driver = None
 
             if driver is None:
+                _print(f"- [{account}]: [diag] calling create_driver...")
                 try:
                     driver = create_driver(account, accountAgent, account_idx=account_idx_for_port)
                     drivers[account] = driver
+                    _print(f"- [{account}]: [diag] create_driver returned")
                     if is_bot_debug_enabled():
                         _print(f"- [{account}]: browser opened for session")
                 except Exception as driver_error:
