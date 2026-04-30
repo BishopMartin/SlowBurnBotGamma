@@ -61,9 +61,10 @@ def flush_log_buffer(app) -> None:
 def update(account_name: str, **kwargs) -> None:
     with _lock:
         _store.setdefault(account_name, {}).update(kwargs)
+        full_state = dict(_store[account_name])
     if _app is not None:
         try:
-            _app.call_from_thread(_app._update_account_row, account_name, dict(kwargs))
+            _app.call_from_thread(_app._update_account_row, account_name, full_state)
         except Exception:
             pass
 
