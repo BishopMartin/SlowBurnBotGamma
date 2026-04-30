@@ -9,70 +9,11 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import DataTable, Input, RichLog, Static
 from textual.containers import Horizontal, Vertical
-from textual.screen import Screen
 from textual import on
 from rich.text import Text
 
 import burnBot_status as status_store
 
-
-# ---------------------------------------------------------------------------
-# Help overlay screen
-# ---------------------------------------------------------------------------
-
-class HelpScreen(Screen):
-    CSS = """
-    HelpScreen {
-        align: center middle;
-    }
-    #help-panel {
-        width: 60;
-        height: auto;
-        border: solid #9A968B;
-        padding: 1 2;
-        background: #1e1e1e;
-        color: #c9c7c0;
-    }
-    .help-title {
-        text-align: center;
-        text-style: bold;
-        margin-bottom: 1;
-    }
-    #help-hint {
-        color: #9A968B;
-        margin-top: 1;
-        text-align: center;
-    }
-    """
-
-    BINDINGS = [
-        Binding("escape", "dismiss", "Back"),
-    ]
-
-    _CMDS = [
-        ("/stop",     "Stop all sessions (bot stays running)"),
-        ("/start",    "Resume sessions after /stop"),
-        ("/exit",     "Fully exit the bot"),
-        ("/settings", "Open settings panel"),
-        ("/save-log", "Save a plain text copy of the log"),
-        ("/help",     "Show this screen"),
-        ("Esc",       "Return to main view"),
-    ]
-
-    def compose(self) -> ComposeResult:
-        with Vertical(id="help-panel"):
-            yield Static("Help", classes="help-title")
-            for cmd, desc in self._CMDS:
-                row = Text()
-                row.append(f"{cmd:<12}", style="#adcc00")
-                row.append(desc, style="#9A968B")
-                yield Static(row)
-            yield Static("Esc: Close", id="help-hint")
-
-
-# ---------------------------------------------------------------------------
-# Main application
-# ---------------------------------------------------------------------------
 
 class BurnBotApp(App):
 
@@ -114,6 +55,25 @@ class BurnBotApp(App):
         border: solid #9A968B;
     }
     #settings-hint {
+        width: auto;
+        color: #9A968B;
+        margin-top: 0;
+        padding: 0 0 0 1;
+    }
+
+    #help-overlay {
+        display: none;
+        background: #1a1a1a;
+        align: left top;
+        padding: 1 0 0 1;
+    }
+    #help-box {
+        width: 62;
+        height: auto;
+        border: solid #9A968B;
+        padding: 0 1;
+    }
+    #help-hint-inline {
         width: auto;
         color: #9A968B;
         margin-top: 0;
@@ -189,6 +149,16 @@ class BurnBotApp(App):
 
     _COMMANDS = ["/exit", "/help", "/save-log", "/settings", "/start", "/stop"]
 
+    _HELP_CMDS = [
+        ("/stop",     "Stop all sessions (bot stays running)"),
+        ("/start",    "Resume sessions after /stop"),
+        ("/exit",     "Fully exit the bot"),
+        ("/settings", "Open settings panel"),
+        ("/save-log", "Save a plain text copy of the log"),
+        ("/help",     "Show this screen"),
+        ("Esc",       "Return to main view"),
+    ]
+
     def __init__(self, version: str, client_id: str, client_name: str,
                  bot_loop_fn, stop_flag):
         super().__init__()
@@ -210,7 +180,15 @@ class BurnBotApp(App):
         yield RichLog(highlight=False, markup=True, wrap=False, id="log")
         with Vertical(id="settings-overlay"):
             yield DataTable(id="settings-table", show_header=False, cursor_type="row")
-            yield Static("Enter: Toggle   Esc: Back", id="settings-hint")
+            yield Static("Enter or Tab: Toggle   Esc: Back", id="settings-hint")
+        with Vertical(id="help-overlay"):
+            with Vertical(id="help-box"):
+                for cmd, desc in self._HELP_CMDS:
+                    row = Text()
+                    row.append(f"{cmd:<12}", style="#adcc00")
+                    row.append(desc, style="#9A968B")
+                    yield Static(row)
+            yield Static("Esc: Close", id="help-hint-inline")
         yield DataTable(id="accounts", show_cursor=False)
         with Horizontal(id="input-row"):
             yield Static(">", id="input-prompt")
@@ -233,11 +211,15 @@ class BurnBotApp(App):
         self._refresh_header()
         self.set_interval(1.0, self._refresh_header)
         inp = self.query_one("#cmd-input", Input)
-        inp.focus()
         inp.value = "/"
-        inp.cursor_position = 1
+        inp.focus()
+        self.call_after_refresh(self._deselect_input)
         status_store.flush_log_buffer(self)
         threading.Thread(target=self._bot_loop_fn, daemon=True).start()
+
+    def _deselect_input(self) -> None:
+        inp = self.query_one("#cmd-input", Input)
+        inp.cursor_position = len(inp.value)
 
     # ------------------------------------------------------------------
     # Header
@@ -281,6 +263,7 @@ class BurnBotApp(App):
     # ------------------------------------------------------------------
 
     def _open_settings(self) -> None:
+        self.query_one("#help-overlay").display = False
         self.query_one("#log").display = False
         self.query_one("#settings-overlay").display = True
         self._refresh_settings_rows()
@@ -289,7 +272,11 @@ class BurnBotApp(App):
     def _close_settings(self) -> None:
         self.query_one("#settings-overlay").display = False
         self.query_one("#log").display = True
-        self.query_one("#cmd-input", Input).focus()
+        inp = self.query_one("#cmd-input", Input)
+        inp.focus()
+        if not inp.value:
+            inp.value = "/"
+            inp.cursor_position = 1
 
     def _refresh_settings_rows(self) -> None:
         table = self.query_one("#settings-table", DataTable)
@@ -307,6 +294,24 @@ class BurnBotApp(App):
         if event.data_table.id == "settings-table":
             status_store.toggle_setting(event.cursor_row)
             self._refresh_settings_rows()
+
+    # ------------------------------------------------------------------
+    # Help panel (inline, replaces log area)
+    # ------------------------------------------------------------------
+
+    def _open_help(self) -> None:
+        self.query_one("#settings-overlay").display = False
+        self.query_one("#log").display = False
+        self.query_one("#help-overlay").display = True
+
+    def _close_help(self) -> None:
+        self.query_one("#help-overlay").display = False
+        self.query_one("#log").display = True
+        inp = self.query_one("#cmd-input", Input)
+        inp.focus()
+        if not inp.value:
+            inp.value = "/"
+            inp.cursor_position = 1
 
     # ------------------------------------------------------------------
     # Log + accounts table (called from bot threads via call_from_thread)
@@ -356,7 +361,9 @@ class BurnBotApp(App):
             t = Text()
             t.append(current, style="#adcc00")
             if count > 1:
-                t.append(f"  ↑↓ [{self._completion_idx + 1}/{count}]", style="#4a4a45")
+                t.append(f"  ↑↓ - tab to select  [{self._completion_idx + 1}/{count}]", style="#4a4a45")
+            else:
+                t.append("  - tab to select", style="#4a4a45")
             ghost.update(t)
         else:
             ghost.update("")
@@ -364,7 +371,14 @@ class BurnBotApp(App):
     @on(Input.Changed, "#cmd-input")
     def on_input_changed(self, event: Input.Changed) -> None:
         typed = event.value
-        if typed and typed.startswith("/") and len(typed) > 1:
+        if not typed:
+            self._completions = []
+            self._update_ghost()
+            inp = self.query_one("#cmd-input", Input)
+            inp.value = "/"
+            inp.cursor_position = 1
+            return
+        if typed.startswith("/") and len(typed) > 1:
             self._completions = [c for c in self._COMMANDS if c.startswith(typed) and c != typed]
         else:
             self._completions = []
@@ -372,6 +386,20 @@ class BurnBotApp(App):
         self._update_ghost()
 
     def on_key(self, event) -> None:
+        # Tab toggle in settings table
+        if event.key == "tab":
+            try:
+                table = self.query_one("#settings-table", DataTable)
+                if table.has_focus and self.query_one("#settings-overlay").display:
+                    status_store.toggle_setting(table.cursor_row)
+                    self._refresh_settings_rows()
+                    event.prevent_default()
+                    event.stop()
+                    return
+            except Exception:
+                pass
+
+        # Autocomplete in command input
         inp = self.query_one("#cmd-input", Input)
         if not inp.has_focus or not self._completions:
             return
@@ -421,7 +449,7 @@ class BurnBotApp(App):
         elif cmd == "/settings":
             self._open_settings()
         elif cmd == "/help":
-            self.push_screen(HelpScreen())
+            self._open_help()
         elif cmd == "/save-log":
             ts    = datetime.now().strftime("%Y%m%d_%H%M%S")
             fname = f"slowburnbot_log_{ts}.txt"
@@ -441,7 +469,7 @@ class BurnBotApp(App):
             inp.cursor_position = 1
             self._completions = []
             self._update_ghost()
+        elif self.query_one("#help-overlay").display:
+            self._close_help()
         elif self.query_one("#settings-overlay").display:
             self._close_settings()
-        elif self.screen_stack and len(self.screen_stack) > 1:
-            self.pop_screen()
