@@ -90,6 +90,26 @@ async def get_workflow_run(run_id: str) -> dict:
     return resp.json()
 
 
+async def get_bot_version_from_commit(sha: str) -> str | None:
+    """
+    Fetch burnBot_version.py at the given commit SHA and return the BOT_VERSION value.
+    Returns None on any error so callers can treat it as optional.
+    """
+    url = f"{_GH_API}/repos/{settings.github_repo}/contents/bot-client/burnBot_version.py"
+    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+        resp = await client.get(url, params={"ref": sha}, headers=_headers())
+    if resp.status_code != 200:
+        return None
+    try:
+        content = base64.b64decode(resp.json()["content"]).decode()
+        for line in content.splitlines():
+            if line.startswith("BOT_VERSION"):
+                return line.split("=", 1)[1].strip().strip('"').strip("'")
+    except Exception:
+        pass
+    return None
+
+
 async def download_artifact(run_id: str, artifact_name: str) -> tuple[bytes, str]:
     """
     Download a named artifact from a completed workflow run.

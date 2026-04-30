@@ -103,6 +103,10 @@ async def _poll_github_status(build: DesktopBuild, session: AsyncSession) -> Non
         if gh_conclusion == "success":
             build.status = "ready"
             build.artifact_name = "SlowBurnBot.exe"
+            if not build.bot_version:
+                head_sha = run.get("head_sha")
+                if head_sha:
+                    build.bot_version = await github_actions.get_bot_version_from_commit(head_sha)
         else:
             build.status = "failed"
             build.failure_reason = gh_conclusion or "unknown"
