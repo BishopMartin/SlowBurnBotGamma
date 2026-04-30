@@ -370,9 +370,9 @@ class BurnBotApp(App):
             t = Text()
             t.append(current, style="#adcc00")
             if count > 1:
-                t.append(f"  [{self._completion_idx + 1}/{count}]↑↓ - tab to select", style="#4a4a45")
+                t.append(f" [{self._completion_idx + 1}/{count}]↑↓ - tab to select", style="#4a4a45")
             else:
-                t.append("  - tab to select", style="#4a4a45")
+                t.append(" - tab to select", style="#4a4a45")
             ghost.update(t)
         else:
             try:
