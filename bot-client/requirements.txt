@@ -1,6 +1,7 @@
 # Selenium desktop client; use a separate venv from the FastAPI app (../requirements.txt).
 httpx==0.28.1
 keyring>=25.0.0
+keyrings.alt>=5.0.0  # headless Linux fallback (no desktop keyring daemon)
 selenium>=4.27.0
 webdriver-manager>=4.0.2
 pandas>=2.2.0

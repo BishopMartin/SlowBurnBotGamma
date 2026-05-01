@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+burnBot_runs.json
+*.log
+*.txt.bak

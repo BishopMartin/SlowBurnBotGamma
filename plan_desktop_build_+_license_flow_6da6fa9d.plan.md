@@ -1,12 +1,12 @@
----
+dsf---
 name: Desktop build + license flow
-overview: Add a server-orchestrated “request Windows build → GitHub Actions produces SlowBurnBot.exe → backend stores artifact → dashboard serves time-limited download,” with activation tied to your existing user/subscription model and bot `client_id` semantics—not a second parallel identity system.
+overview: Add a server-orchestrated “configure build in dashboard → GitHub Actions bakes customer choices into SlowBurnBot.exe → artifact download,” with activation tied to users/subscriptions and bot `client_id`. **Distribution goal:** eliminate the separate `burnBot_config.ini` for customers—all safe, customer-selected settings from today’s INI are captured at build request time, persisted, passed into CI, and compiled into the binary (secrets still never baked; JWT/keyring flow unchanged).
 todos:
   - id: schema-settings
     content: Add desktop_builds (+ activation fields), Alembic migration, and settings for GitHub + optional object storage
     status: pending
   - id: github-workflow
-    content: Create .github/workflows/build-desktop.yml (windows-latest, generate ini from dispatch inputs, PyInstaller from bot-client/SlowBurnBot.spec, upload artifact/storage)
+    content: Create .github/workflows/build-desktop.yml (windows-latest, materialize baked config from dispatch JSON, PyInstaller with bundled config—no customer INI, upload artifact/storage)
     status: pending
   - id: api-dispatch-download
     content: "Implement POST/GET desktop-build endpoints: dispatch workflow, poll/webhook status, presigned download with expiry and entitlement checks"
@@ -23,6 +23,12 @@ todos:
   - id: github-webhook-or-poll
     content: Implement either GitHub workflow_run webhook receiver or server-side poll to terminal build status
     status: pending
+  - id: build-config-schema-ui
+    content: Define DesktopBuildConfig schema (Pydantic) + dashboard wizard for customer options mirroring burnBot_config.ini safe fields; validate before dispatch
+    status: pending
+  - id: embedded-config-runtime
+    content: Bot-client: frozen build loads baked config (generated Python module or JSON in datas); dev/python path keeps optional burnBot_config.ini
+    status: pending
 isProject: false
 ---
 
@@ -36,7 +42,7 @@ isProject: false
 | clientID | Already in bot INI as `client_id` (int) under `[bot_settings]` in [`bot-client/burnBot_config.ini.example`](bot-client/burnBot_config.ini.example); used with [`ClientHeartbeat`](app/models/client_heartbeat.py) / [`/accounts/client-status`](app/routers/accounts.py) |
 | License / phone-home | Extend backend with **short-lived activation tokens** (opaque, stored hashed, revocable) validated before or alongside existing JWT login in [`bot-client/burnBot_apiClient.py`](bot-client/burnBot_apiClient.py)—do **not** put `secret_key`, Stripe keys, or GitHub PAT in the EXE |
 | Build | [`bot-client/SlowBurnBot.spec`](bot-client/SlowBurnBot.spec) already targets `burnBot.py` → `SlowBurnBot.exe`; workflow should mirror local `pip install -r bot-client/requirements.txt` + `pyinstaller bot-client/SlowBurnBot.spec` on **windows-latest** |
-| Config injection | Bot today **requires** an on-disk INI path ([`burnBot_config.load_config`](bot-client/burnBot_config.py)); CI should generate a **non-secret** `burnBot_config.ini` (e.g. `api_url`, `client_id`, empty credentials) and add it via PyInstaller `--add-data` or extend the spec `datas=`—optional follow-up is a tiny bootstrap path (env vars) if you want true onefile without adjacent ini |
+| Config / no INI for customers | Bot today loads [`burnBot_config.ini`](bot-client/burnBot_config.ini.example) via [`burnBot_config.load_config`](bot-client/burnBot_config.py). **Target:** customer-chosen options (Chrome paths, headless, delays, driver section, user agent, debug flags, etc.—everything that is **not** a secret) are collected in the dashboard, stored on the build row, passed to Actions, and **baked into the EXE** (e.g. generated `desktop_build_config.py` or `config.json` + `importlib` / one-time INI embedded only inside the bundle). **Developer / Linux runs** can keep using a real `burnBot_config.ini` beside the repo; frozen Windows EXE has no required external INI file. |
 
 ## Architecture (recommended)
 
@@ -48,12 +54,12 @@ sequenceDiagram
   participant GH as GitHub_Actions
   participant Store as Object_storage_or_DB_blob
 
-  User->>Web: Request_desktop_build
-  Web->>API: POST_desktop_builds
-  API->>API: Create_build_row_activation_token
-  API->>GH: workflow_dispatch_inputs
+  User->>Web: Configure_desktop_build_options
+  Web->>API: POST_desktop_builds_with_config
+  API->>API: Validate_options_store_snapshot_token
+  API->>GH: workflow_dispatch_inputs_plus_config_blob
   Note over API,GH: PAT_in_Railway_only
-  GH->>GH: PyInstaller_SlowBurnBot
+  GH->>GH: Emit_baked_config_and_PyInstaller
   GH->>Store: Upload_exe_or_artifact
   GH->>API: webhook_or_API_poll_done
   API->>API: Mark_build_ready_store_pointer
@@ -72,10 +78,11 @@ sequenceDiagram
 
 2. **Data model** — new table e.g. `desktop_builds`:
    - `id` (uuid), `user_id` (fk), `client_id` (int, unique per user with your chosen rule), `status` (`queued|running|ready|failed|revoked`), `github_run_id`, `artifact_sha256`, `storage_key` or `download_url` (internal), `created_at`, `expires_at`, `download_count`, `failure_reason`.
+   - **`build_options` (JSONB)** — immutable snapshot of customer configuration at request time (mirrors safe subset of [`burnBot_config.ini.example`](bot-client/burnBot_config.ini.example): `system_type`, chrome paths, `headless`, `detach`, `chrome_user_data_dir_base`, schedule-related bot_settings if desired, `bot_debug`, optional `add_argument` lines as structured list, etc.). **Excluded:** `api_credentials` email/password (never stored here for build; runtime login only). `api_url` may be defaulted from server env (`PUBLIC_API_URL`) with optional override if product allows.
    - Separate table or columns for **activation**: `activation_token_hash`, `activation_token_expires`, `activated_at` (nullable).
 
 3. **API routes** (authenticated, entitlement-gated using existing subscription checks like other bot routes):
-   - `POST /desktop-builds` — allocates `client_id` (e.g. next free integer for that user consistent with heartbeat uniqueness), mints one-time activation secret (show once or never show; can be embedded only in CI inputs), calls [GitHub “create a workflow dispatch event”](https://docs.github.com/en/rest/actions/workflows?apiVersion=2022#create-a-workflow-dispatch-event) with inputs: `user_id`, `client_id`, `api_base_url`, `activation_token`, `build_id`.
+   - `POST /desktop-builds` — body includes **validated `DesktopBuildConfig`** (Pydantic schema aligned with bot INI sections). Server allocates `client_id`, merges defaults (production API URL, sane driver args), stores `build_options` JSONB, mints activation token, dispatches GitHub with **workflow_dispatch `inputs`**: small scalar fields + either **base64-encoded JSON** (under GitHub’s input size limits) or **reference to stored config** only if workflow can read from API (avoid unless using OIDC to call back). Prefer **split inputs** (e.g. `config_json_b64`) under size cap or compress; if payload too large, CI step `curl`s an authenticated one-time **config bundle URL** from your API using a short-lived build token (repo secret + build id)—document in plan when implementing.
    - `GET /desktop-builds/{id}` — poll status for the dashboard.
    - `GET /desktop-builds/{id}/download` — if `ready`, return **302 to presigned URL** or streaming response; enforce expiry + max downloads + user ownership.
    - `POST /bot/desktop/activate` (or under existing [`app/routers/bot.py`](app/routers/bot.py)) — EXE startup calls with `user_id` + `activation_token` + `client_id` → server validates, marks activated, optionally returns “continue with normal JWT login” instructions. Keeps revocation/expiry on your side.
@@ -86,8 +93,8 @@ sequenceDiagram
 
 Add [`.github/workflows/build-desktop.yml`](.github/workflows/build-desktop.yml) (name can match `github_workflow_file`):
 
-- `on: workflow_dispatch` with inputs matching backend dispatch (`user_id`, `client_id`, `api_base_url`, `activation_token`, `build_id`).
-- Steps: checkout monorepo, setup Python on Windows, install `bot-client/requirements.txt` + `pyinstaller`, write `bot-client/burnBot_config.generated.ini` from inputs (no email/password), run `pyinstaller` using updated spec or CLI with `--add-data` for that ini, upload **artifact** for debugging, then **upload release binary** to your chosen store (recommended) via OIDC or scoped token **stored as GitHub repo secret** (not the same as user-facing license).
+- `on: workflow_dispatch` with inputs matching backend dispatch: at minimum `user_id`, `client_id`, `api_base_url`, `activation_token`, `build_id`, plus **serialized customer config** (same shape as `build_options` JSON—`config_json_b64` or one-time URL fetch as noted above).
+- Steps: checkout monorepo, setup Python on Windows, install `bot-client/requirements.txt` + `pyinstaller`, **materialize baked config** (write `bot-client/_desktop_build_config.py` from decoded JSON—constants only—or emit a single embedded `config.json` in `datas=`), **do not** emit a standalone `burnBot_config.ini` for the customer deliverable. Run PyInstaller with spec updated to **include the generated module/json in `datas` or as a hidden import**, then build `SlowBurnBot.exe`. Upload **artifact** for debugging, then **upload release binary** to object storage (recommended) using repo secrets.
 
 ## 1. Website interface changes (Next.js dashboard / UX)
 
@@ -99,10 +106,11 @@ These are user-visible surfaces; implement after backend contracts exist.
 - **Nav:** Add a link in [`frontend/app/dashboard/layout.tsx`](frontend/app/dashboard/layout.tsx) (sidebar / header list) labeled e.g. `desktop` or `download` so it matches your bracket styling.
 - **Content blocks:**
   - **Eligibility callout:** If subscription/plan does not allow desktop builds, show short explanation and link to [`frontend/app/dashboard/plan/page.tsx`](frontend/app/dashboard/plan/page.tsx) (reuse same rules the API enforces—don’t rely on UI alone).
-  - **“Request new Windows build”** primary action: confirms they understand one build = one `client_id` slot (align copy with [`frontend/app/dashboard/page.tsx`](frontend/app/dashboard/page.tsx) client status table).
-  - **Build history table:** columns e.g. requested time, `client_id`, status (`queued` / `building` / `ready` / `failed` / `revoked`), version/build id, error snippet if failed.
+  - **Build configuration wizard (required for this scope):** Before “Build,” walk the customer through fields that today live in [`burnBot_config.ini.example`](bot-client/burnBot_config.ini.example): e.g. `system_type` (Windows build likely fixed to `windows`), portable Chrome path vs installed Chrome, `chrome_user_data_dir_base`, `headless`, `detach`, `bot_debug`, `bot_idle_delay`, browser close flags, optional custom `add_argument` list (with guardrails / max length). Use sensible defaults from server (`api_url` = production). **Do not** collect password in this form; copy should say login happens at first run. Show a **read-only summary** of what will be baked into the EXE before submit.
+  - **“Request new Windows build”** primary action: only enabled after validation passes; confirms one build = one `client_id` slot (align with [`frontend/app/dashboard/page.tsx`](frontend/app/dashboard/page.tsx) client status table). Optional: “Clone settings from my last build” pre-fills wizard from prior `build_options`.
+  - **Build history table:** columns e.g. requested time, `client_id`, status (`queued` / `building` / `ready` / `failed` / `revoked`), version/build id, short **config summary** (e.g. “headless, portable Chrome”), error snippet if failed.
   - **Download area (only when `ready`):** button “Download SlowBurnBot.exe” that hits your API download endpoint (redirect or blob); show **expiry time** and **remaining downloads** if you enforce limits.
-  - **Post-download instructions:** 1) run EXE on Windows, 2) log in with dashboard credentials (or OAuth later), 3) first run may call activation—keep copy vague enough that you can change flow without rewriting marketing copy.
+  - **Post-download instructions:** 1) run EXE on Windows—**no `burnBot_config.ini` required**; 2) log in with dashboard credentials; 3) first run runs activation if needed.
 
 ### Optional: registration / onboarding
 
@@ -144,7 +152,7 @@ Mount new router in [`app/main.py`](app/main.py) (or wherever routers are regist
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `POST` | `/desktop-builds` | Create build row, mint activation token (hash stored), allocate `client_id`, dispatch GitHub workflow, return `{ id, status, client_id }` (token only if you choose “show once” UX) |
+| `POST` | `/desktop-builds` | Body: validated **`DesktopBuildConfig`** (customer options). Create row + `build_options` JSONB snapshot, mint activation token, allocate `client_id`, dispatch workflow with serialized config, return `{ id, status, client_id, build_options_summary }` (activation token only if “show once” UX) |
 | `GET` | `/desktop-builds` | List current user’s builds (pagination optional) |
 | `GET` | `/desktop-builds/{build_id}` | Poll single build status + metadata for UI |
 | `GET` | `/desktop-builds/{build_id}/download` | Authorized download: redirect to presigned URL or stream file; increment counter; enforce expiry |
@@ -167,6 +175,7 @@ Suggested columns:
 - `id` — `UUID`, primary key, default `gen_random_uuid()` or app-generated.
 - `user_id` — `UUID`, FK → `users.id`, indexed, `ON DELETE CASCADE` or restrict per product policy.
 - `client_id` — `Integer`, **not** globally unique; enforce **`UNIQUE (user_id, client_id)`** to match [`ClientHeartbeat`](app/models/client_heartbeat.py) uniqueness intent.
+- **`build_options`** — `JSONB`, **required**: full customer configuration snapshot used for this binary (auditable; supports “rebuild same settings” and support debugging).
 - `status` — `String` or PostgreSQL enum: `queued`, `running`, `ready`, `failed`, `revoked`.
 - `github_run_id` — `BigInteger` or `String` (GitHub uses large numeric ids as string in JSON—store as string for safety).
 - `github_workflow_run_url` — optional `Text` for support links.
@@ -200,14 +209,14 @@ Suggested columns:
 
 ### Frontend files (typical set)
 
-- [`frontend/lib/api.ts`](frontend/lib/api.ts) — add `request`-wrapped functions: `createDesktopBuild`, `listDesktopBuilds`, `getDesktopBuild`, `getDesktopBuildDownloadUrl` (or window open to API URL with auth cookie pattern—match how [`downloadAccountDatabaseCsv`](frontend/lib/api.ts) works).
-- New page [`frontend/app/dashboard/desktop/page.tsx`](frontend/app/dashboard/desktop/page.tsx) — UI described in section 1; use `useEffect` polling with backoff while `status` is non-terminal, clear interval on unmount.
+- [`frontend/lib/api.ts`](frontend/lib/api.ts) — add `request`-wrapped functions and shared **TypeScript types** mirroring `DesktopBuildConfig` (or generate from OpenAPI later): `createDesktopBuild(config)`, `listDesktopBuilds`, `getDesktopBuild`, `getDesktopBuildDownloadUrl`.
+- New page [`frontend/app/dashboard/desktop/page.tsx`](frontend/app/dashboard/desktop/page.tsx) — wizard + summary + polling as in section 1; validate required Chrome paths / enums client-side before POST to reduce failed builds.
 - [`frontend/app/dashboard/layout.tsx`](frontend/app/dashboard/layout.tsx) — nav entry.
 - Optional new admin page e.g. [`frontend/app/admin/desktop-builds/page.tsx`](frontend/app/admin/desktop-builds/page.tsx) — table + actions calling admin-only API routes (reuse `current_superuser` pattern from existing [`frontend/app/admin/`](frontend/app/admin/) pages).
 
 ### Backend application code (FastAPI “website backend”)
 
-- New package files e.g. `app/models/desktop_build.py`, `app/schemas/desktop_build.py`, `app/routers/desktop_builds.py`, `app/services/github_actions.py`, `app/services/desktop_build_storage.py`.
+- New package files e.g. `app/models/desktop_build.py` (include `build_options` JSONB), `app/schemas/desktop_build.py` (**`DesktopBuildConfig`** with field validators and max sizes for free-text lists), `app/routers/desktop_builds.py`, `app/services/github_actions.py`, `app/services/desktop_build_storage.py`, optional `app/services/desktop_build_config_serialize.py` (normalize → JSON for dispatch / size check).
 - [`app/settings.py`](app/settings.py) — new env vars (section 2).
 - [`app/main.py`](app/main.py) (or router aggregator) — include new router.
 - **Entitlement:** reuse the same dependency used by [`app/routers/bot.py`](app/routers/bot.py) / plan enforcement ([`app/services/plan_enforcement.py`](app/services/plan_enforcement.py) or equivalent) so trial/active/past_due behavior stays consistent.
@@ -223,21 +232,21 @@ Suggested columns:
 
 Goals: baked non-secrets in the Windows binary, one-time activation, then existing JWT + keyring behavior unchanged.
 
-### Configuration / packaging
+### Configuration / packaging (no external INI for customers)
 
-- **CI-generated INI** embedded next to or inside the frozen app: extend [`bot-client/SlowBurnBot.spec`](bot-client/SlowBurnBot.spec) `datas=` to include `burnBot_config.generated.ini` produced in the workflow from `workflow_dispatch` inputs (`api_url`, `client_id`, `user_id` if you want it explicit—prefer server validates token without relying on client-trusted `user_id` alone).
-- **Default argv:** ensure frozen entry still passes path to generated ini (PyInstaller `EXE` may need a small wrapper or adjust [`burnBot_config.load_config`](bot-client/burnBot_config.py) to prefer bundled path when `sys.frozen`—this is the main mechanical change).
+- **Baked config artifact:** CI writes a generated module e.g. `bot-client/_desktop_build_config.py` (or `config.json` in `datas=`) containing **only** the customer snapshot + `client_id` + `api_url` + activation token placeholder constant. Extend [`bot-client/SlowBurnBot.spec`](bot-client/SlowBurnBot.spec) so this file is bundled; it is overwritten per build in Actions.
+- **Entry / argv:** For frozen EXE, **do not require** `sys.argv[1]` pointing at `burnBot_config.ini`. Prefer: if `getattr(sys, "frozen", False)` then load baked config; else keep current behavior (`burnBot_config.ini` for developers). Refactor [`burnBot_config.py`](bot-client/burnBot_config.py) (and call sites in [`burnBot.py`](bot-client/burnBot.py)) so `CONFIG` is populated either from **INI file** (dev) or **baked dict** (prod EXE), preserving the same `CONFIG.get(...)` access patterns used across the client.
 
 ### Runtime flow
 
-- [`bot-client/burnBot.py`](bot-client/burnBot.py) (early startup, after config load): if `activation_token` present in ini (or separate `desktop.env` data file) and `activated_at` not yet recorded locally (optional tiny local flag file under `%APPDATA%` or skip if server is source of truth), call new `POST /bot/desktop/activate` via [`burnBot_apiClient.py`](bot-client/burnBot_apiClient.py) using `httpx` base URL from config—**no JWT required** for this one call.
+- [`bot-client/burnBot.py`](bot-client/burnBot.py) (early startup): if baked `activation_token` present and server not yet marked activated for this build, call `POST /bot/desktop/activate` via [`burnBot_apiClient.py`](bot-client/burnBot_apiClient.py) using `api_url` from baked config—**no JWT required** for this one call.
 - [`bot-client/burnBot_apiClient.py`](bot-client/burnBot_apiClient.py) — add `activate_desktop_build(...)` with clear errors (401/403/410 for expired/revoked).
-- After successful activation: remove or blank activation material from on-disk copy if writable (optional); at minimum do not log the token.
+- After successful activation: at minimum do not log the token; baked token in memory-only is acceptable (it cannot be removed from binary on disk—design activation as **one-time server-side consume** so replay does not matter after `activated_at` is set).
 - [`bot-client/burnBot_version.py`](bot-client/burnBot_version.py) — bump per release; send as header on activate for support correlation.
 
 ### Documentation
 
-- [`bot-client/README.md`](bot-client/README.md) — document dashboard-driven build flow vs manual ini for developers on Linux.
+- [`bot-client/README.md`](bot-client/README.md) — document: **customers:** dashboard-built EXE, no INI; **developers:** optional local `burnBot_config.ini` when running `python burnBot.py …` unfrozen.
 
 ### Tests (optional but valuable)
 
@@ -249,11 +258,11 @@ Goals: baked non-secrets in the Windows binary, one-time activation, then existi
 - GitHub PAT: **Railway secret only**; never in repo, never in EXE.
 - Activation token: **high entropy**, single-use or short TTL, stored **hashed**; revocable per build.
 - Download links: **time-limited** + **user-scoped** + rate limit; log access.
-- Do not bake master API secrets; EXE only needs public `api_url`, `client_id`, activation material, and version string.
+- Do not bake master API secrets or dashboard passwords; EXE may bake **all non-secret INI-equivalent settings** the customer chose (paths, headless, chrome args, delays, `client_id`, `api_url`, activation token). Treat anything in the binary as extractable—never use baked data as the sole proof of identity (server validates activation + JWT for API calls).
 
 ## Rollout order
 
-1. DB migration + settings + internal “dispatch workflow” smoke test (manual `workflow_dispatch` from `curl`).
-2. Workflow produces `.exe` and uploads to chosen storage; backend marks build ready via webhook or poll.
-3. Dashboard download UX + activation endpoint + bot startup handshake.
-4. Hardening: webhook signatures, idempotency on GitHub delivery, admin “revoke build” action.
+1. DB migration + `DesktopBuildConfig` schema + settings + internal “dispatch workflow” smoke test (manual `workflow_dispatch` from `curl`).
+2. Workflow emits baked config module/json and produces `.exe` without external INI; upload to storage; backend marks build ready via webhook or poll.
+3. Dashboard **configuration wizard** + download UX + activation endpoint + bot startup path (`frozen` vs dev INI).
+4. Hardening: webhook signatures, idempotency on GitHub delivery, admin “revoke build” action, payload size limits / one-time config URL if `workflow_dispatch` inputs overflow.

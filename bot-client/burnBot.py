@@ -227,7 +227,13 @@ try:
                 for _acct in _init_accounts:
                     _name = _acct.get("name", "")
                     if _name:
-                        status_store.update(_name, status="initializing", next_run="—", last_action="—", run_info="—")
+                        if _acct.get("system_disabled"):
+                            _init_st = "system-disabled"
+                        elif not _acct.get("enabled", False):
+                            _init_st = "disabled"
+                        else:
+                            _init_st = "initializing"
+                        status_store.update(_name, status=_init_st, next_run="—", last_action="—", run_info="—")
         except Exception:
             pass
 
@@ -380,7 +386,13 @@ try:
             for _acct in all_accounts:
                 _name = _acct.get("name", "")
                 if _name and _name not in status_store._store:
-                    status_store.update(_name, status="initializing", next_run="—", last_action="—", run_info="—")
+                    if _acct.get("system_disabled"):
+                        _pre_st = "system-disabled"
+                    elif not _acct.get("enabled", False):
+                        _pre_st = "disabled"
+                    else:
+                        _pre_st = "initializing"
+                    status_store.update(_name, status=_pre_st, next_run="—", last_action="—", run_info="—")
 
             # Rebuild enabled accounts and update schedules
             enabled_accounts = {}

@@ -1,5 +1,10 @@
 {
+  "model": "opusplan",
   "env": {
     "ENABLE_CLAUDEAI_MCP_SERVERS": "false"
+  },
+  "enabledPlugins": {
+    "railway@claude-plugins-official": true,
+    "github@claude-plugins-official": true
   }
 }

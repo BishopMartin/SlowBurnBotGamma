@@ -414,13 +414,13 @@ export default function ClientPage() {
             <table className="w-full">
               <thead>
                 <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
-                  <th className="px-4 py-2 font-normal whitespace-nowrap">client</th>
-                  <th className="px-4 py-2 font-normal whitespace-nowrap">name</th>
-                  <th className="px-4 py-2 font-normal whitespace-nowrap">platform</th>
-                  <th className="px-4 py-2 font-normal whitespace-nowrap">build date</th>
-                  <th className="px-4 py-2 font-normal whitespace-nowrap">status</th>
-                  <th className="px-4 py-2 font-normal whitespace-nowrap">client ver</th>
-                  <th className="px-4 py-2 font-normal w-full"></th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">client</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">name</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">platform</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">build date</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">status</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">client ver</th>
+                  <th className="px-3 py-2 font-normal w-full"></th>
                 </tr>
               </thead>
               <tbody>
@@ -433,21 +433,21 @@ export default function ClientPage() {
                   return (
                     <>
                       <tr key={build.id} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors">
-                        <td className="px-4 py-3 text-[#f4f3ee] whitespace-nowrap">#{String(build.client_id).padStart(2, "0")}</td>
-                        <td className="px-4 py-3 text-[#9A968B] whitespace-nowrap">{cfg.client_name || "—"}</td>
-                        <td className="px-4 py-3 text-[#9A968B] whitespace-nowrap">{cfg.system_type === "linux" ? "linux" : "windows"}</td>
-                        <td className="px-4 py-3 text-[#9A968B] whitespace-nowrap">{fmtDate(build.created_at)}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="px-3 py-3 text-[#f4f3ee] whitespace-nowrap">#{String(build.client_id).padStart(2, "0")}</td>
+                        <td className="px-3 py-3 text-[#9A968B] whitespace-nowrap">{cfg.client_name || "—"}</td>
+                        <td className="px-3 py-3 text-[#9A968B] whitespace-nowrap">{cfg.system_type === "linux" ? "linux" : "windows"}</td>
+                        <td className="px-3 py-3 text-[#9A968B] whitespace-nowrap">{fmtDate(build.created_at)}</td>
+                        <td className="px-3 py-3 whitespace-nowrap">
                           {buildIsOutdated
                             ? <span className="text-status-bad">out-dated</span>
                             : <span className={statusColor(build.status)}>{build.status}</span>}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="px-3 py-3 whitespace-nowrap">
                           <span className="text-[#9A968B]">
                             {build.bot_version ? `v${build.bot_version}` : (currentBotVersion ? `v${currentBotVersion}` : "—")}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-3 py-3 text-right">
                           <div className="flex gap-2 justify-end items-center">
                             {canDownload && (
                               <button onClick={() => handleDownload(build)} disabled={downloading === build.id} className="group cursor-pointer transition-colors disabled:opacity-40">
@@ -498,13 +498,13 @@ export default function ClientPage() {
                   return (
                     <>
                       <tr key={slotKey} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors">
-                        <td className="px-4 py-3 text-[#3d3d3a]">#{String(slotNum).padStart(2, "0")}</td>
-                        <td className="px-4 py-3 text-[#3d3d3a]">—</td>
-                        <td className="px-4 py-3 text-[#3d3d3a]">—</td>
-                        <td className="px-4 py-3 text-[#3d3d3a]">—</td>
-                        <td className="px-4 py-3 text-[#3d3d3a]">—</td>
-                        <td className="px-4 py-3 text-[#3d3d3a]">—</td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-3 py-3 text-[#3d3d3a]">#{String(slotNum).padStart(2, "0")}</td>
+                        <td className="px-3 py-3 text-[#3d3d3a]">—</td>
+                        <td className="px-3 py-3 text-[#3d3d3a]">—</td>
+                        <td className="px-3 py-3 text-[#3d3d3a]">—</td>
+                        <td className="px-3 py-3 text-[#3d3d3a]">—</td>
+                        <td className="px-3 py-3 text-[#3d3d3a]">—</td>
+                        <td className="px-3 py-3 text-right">
                           <button onClick={() => toggleExpand(slotKey)} className="group cursor-pointer transition-colors">
                             <Bracket className={isExpanded ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>settings/build</Bracket>
                           </button>

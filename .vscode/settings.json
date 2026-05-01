@@ -1,0 +1,12 @@
+{
+  "terminal.integrated.profiles.linux": {
+    "SlowBurnBotGamma tmux": {
+      "path": "bash",
+      "args": [
+        "--rcfile",
+        "${workspaceFolder}/.vscode/tmux-bashrc",
+        "-i"
+      ]
+    }
+  }
+}

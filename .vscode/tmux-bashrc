@@ -1,0 +1,7 @@
+if [ -f "${HOME}/.bashrc" ]; then
+  . "${HOME}/.bashrc"
+fi
+
+if [ -z "${TMUX:-}" ]; then
+  exec tmux new-session -A -s slowburn-gamma
+fi

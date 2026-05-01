@@ -14,10 +14,17 @@ _log_buffer: deque = deque(maxlen=300)
 
 # Kept for toggle_setting() / _get_setting_value()
 _SETTINGS = [
-    ("Pause sessions", "_bot_paused"),
-    ("Debug output",   "bot_debug"),
-    ("Notifications",  "_notify_enabled"),
+    ("Pause sessions",    "_bot_paused"),
+    ("Notifications",     "_notify_enabled"),
+    ("Debug mode",        "bot_debug"),
+    ("Browser only mode", "_browser_only"),
 ]
+
+_browser_only: bool = False
+
+_NOTIFY_OPTIONS = ["none", "email", "sms", "both"]
+_session_notify: str = "none"
+_login_notify: str = "none"
 
 # Status colour palette (used by burnBot_app.py)
 COLOR = {
@@ -127,12 +134,29 @@ def toggle_setting(idx: int) -> None:
         _toggle_setting_locked(idx)
 
 
+def cycle_notify(key: str) -> None:
+    global _session_notify, _login_notify
+    with _lock:
+        if key == "_session_notify":
+            _session_notify = _NOTIFY_OPTIONS[(_NOTIFY_OPTIONS.index(_session_notify) + 1) % len(_NOTIFY_OPTIONS)]
+        elif key == "_login_notify":
+            _login_notify = _NOTIFY_OPTIONS[(_NOTIFY_OPTIONS.index(_login_notify) + 1) % len(_NOTIFY_OPTIONS)]
+
+
+def get_notify_value(key: str) -> str:
+    if key == "_session_notify":
+        return _session_notify
+    if key == "_login_notify":
+        return _login_notify
+    return "none"
+
+
 # ---------------------------------------------------------------------------
 # Private helpers
 # ---------------------------------------------------------------------------
 
 def _toggle_setting_locked(idx: int) -> None:
-    global _bot_paused, _notify_enabled
+    global _bot_paused, _notify_enabled, _browser_only
     if idx < 0 or idx >= len(_SETTINGS):
         return
     _, key = _SETTINGS[idx]
@@ -143,6 +167,8 @@ def _toggle_setting_locked(idx: int) -> None:
     elif key == "bot_debug":
         cur = CONFIG.getboolean('bot_settings', 'bot_debug', fallback=False)
         CONFIG.set('bot_settings', 'bot_debug', str(not cur))
+    elif key == "_browser_only":
+        _browser_only = not _browser_only
 
 
 def get_setting_value(key: str) -> bool:
@@ -152,4 +178,6 @@ def get_setting_value(key: str) -> bool:
         return _notify_enabled
     if key == "bot_debug":
         return CONFIG.getboolean('bot_settings', 'bot_debug', fallback=False)
+    if key == "_browser_only":
+        return _browser_only
     return False
