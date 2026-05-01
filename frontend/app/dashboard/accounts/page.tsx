@@ -42,7 +42,7 @@ function fmtPct(v: number | null): string {
 type Tab = "settings" | "activity" | "stats" | "database";
 type SortKey = "name" | "enabled" | "group" | "following" | "unfollow_ready" | "complete" | "ignored" | "total" | "success" | "last_25" | "all_time" | "sessions" | "likes" | "follows" | "unfollows" | "fb_rate" | "followed" | "followed_back";
 type SortDir = "asc" | "desc";
-type Period = "day" | "week" | "month";
+type Period = "day" | "week" | "month" | "all";
 
 export default function AccountsPage() {
   const { user } = useAuth();
@@ -195,6 +195,7 @@ export default function AccountsPage() {
     { value: "day", label: "today" },
     { value: "week", label: "last 7 days" },
     { value: "month", label: "last 30 days" },
+    { value: "all", label: "all time" },
   ];
 
   const tabs: { key: Tab; label: string }[] = [

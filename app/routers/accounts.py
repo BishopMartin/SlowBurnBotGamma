@@ -107,6 +107,7 @@ async def get_client_status(
             "ip_address": r.ClientHeartbeat.ip_address,
             "status": r.ClientHeartbeat.status,
             "current_account": r.ClientHeartbeat.current_account,
+            "last_session_account": r.ClientHeartbeat.last_session_account,
             "last_heartbeat": r.ClientHeartbeat.last_heartbeat.isoformat() if r.ClientHeartbeat.last_heartbeat else None,
             "connected": bool(r.connected),
         }
@@ -178,6 +179,9 @@ async def log_summary(
         for i in range(1, 5)
     )
 
+    where_clauses = [SL.user_id == user.id]
+    if period != "all":
+        where_clauses.append(SL.run_date >= _period_start(period))
     result = await session.execute(
         select(
             SL.account_id,
@@ -186,7 +190,7 @@ async def log_summary(
             follows.label("follows"),
             unfollows.label("unfollows"),
         )
-        .where(SL.user_id == user.id, SL.run_date >= since)
+        .where(*where_clauses)
         .group_by(SL.account_id)
     )
     return {
@@ -210,16 +214,16 @@ async def followback_summary(
     since = _period_start(period)
     FT = FollowTarget
 
+    where_clauses = [FT.user_id == user.id]
+    if period != "all":
+        where_clauses.append(FT.follow_date >= _period_start(period))
     result = await session.execute(
         select(
             FT.account_id,
             func.count().label("followed"),
             func.sum(case((FT.follow_back == True, 1), else_=0)).label("followed_back"),
         )
-        .where(
-            FT.user_id == user.id,
-            FT.follow_date >= since,
-        )
+        .where(*where_clauses)
         .group_by(FT.account_id)
     )
     rows = result.all()

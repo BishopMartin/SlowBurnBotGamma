@@ -263,6 +263,7 @@ export interface ClientStatus {
   ip_address: string;
   status: string;
   current_account: string | null;
+  last_session_account: string | null;
   last_heartbeat: string;
   connected: boolean;
 }

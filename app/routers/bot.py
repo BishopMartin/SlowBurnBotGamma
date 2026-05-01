@@ -291,6 +291,8 @@ async def post_heartbeat(
     hb.system_type = body.system_type
     hb.ip_address = body.ip_address
     hb.status = body.status
+    if body.current_account is not None:
+        hb.last_session_account = body.current_account
     hb.current_account = body.current_account
     hb.last_heartbeat = datetime.now(timezone.utc)
     await session.commit()

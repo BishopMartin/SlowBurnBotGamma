@@ -231,9 +231,11 @@ export default function DashboardPage() {
               <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
                 <th className="px-2 py-2 font-normal">Client</th>
                 <th className="px-2 py-2 font-normal">Status</th>
+                <th className="px-2 py-2 font-normal">State</th>
                 <th className="px-2 py-2 font-normal">OS</th>
                 <th className="px-2 py-2 font-normal">IP</th>
                 <th className="px-2 py-2 font-normal w-full">Current Action</th>
+                <th className="px-2 py-2 font-normal">Last Session</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#3d3d3a]">
@@ -249,6 +251,16 @@ export default function DashboardPage() {
                       </span>
                     )}
                   </td>
+                  <td className="px-2 py-2 whitespace-nowrap">
+                    {cs.status === "running"
+                      ? <span className="text-status-ok">active</span>
+                      : cs.status === "paused"
+                      ? <span className="text-[#E5C07B]">paused</span>
+                      : cs.status === "delay"
+                      ? <span className="text-[#9A968B]">delay</span>
+                      : <span className="text-[#9A968B]">{cs.status || "----"}</span>
+                    }
+                  </td>
                   <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
                     {cs.system_type || "----"}
                   </td>
@@ -261,6 +273,9 @@ export default function DashboardPage() {
                       : cs.status === "delay"
                       ? "session delay"
                       : "no active accounts"}
+                  </td>
+                  <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
+                    {cs.last_session_account || "----"}
                   </td>
                 </tr>
               ))}

@@ -27,6 +27,7 @@ class ClientHeartbeat(Base):
     ip_address: Mapped[str] = mapped_column(String(100), default="")
     status: Mapped[str] = mapped_column(String(50), default="idle")
     current_account: Mapped[str | None] = mapped_column(Text, nullable=True)
+    last_session_account: Mapped[str | None] = mapped_column(Text, nullable=True)
     last_heartbeat: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
