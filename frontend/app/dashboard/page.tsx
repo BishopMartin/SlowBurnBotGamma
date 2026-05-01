@@ -244,8 +244,8 @@ export default function DashboardPage() {
                 <th className="px-2 py-2 font-normal">OS</th>
                 <th className="px-2 py-2 font-normal">Status</th>
                 <th className="px-2 py-2 font-normal">State</th>
-                <th className="px-2 py-2 font-normal">Current Action</th>
-                <th className="px-2 py-2 font-normal w-full">Last Session</th>
+                <th className="px-2 py-2 font-normal whitespace-nowrap w-full">Current Action</th>
+                <th className="px-2 py-2 font-normal whitespace-nowrap">Last Session</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#3d3d3a]">
@@ -273,7 +273,7 @@ export default function DashboardPage() {
                       : <span className="text-[#9A968B]">{cs.status || "----"}</span>
                     }
                   </td>
-                  <td className="px-2 py-2 text-[#9A968B]">
+                  <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
                     {cs.status === "running" && cs.current_account
                       ? <span className="text-[#f4f3ee]">running {cs.current_account}</span>
                       : cs.status === "delay"
@@ -281,7 +281,7 @@ export default function DashboardPage() {
                       : "------"}
                   </td>
                   <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
-                    {cs.last_session_account || "----"}
+                    {cs.last_session_account || "------"}
                   </td>
                 </tr>
               ))}
