@@ -235,7 +235,7 @@ export default function DashboardPage() {
                 <th className="px-2 py-2 font-normal">Status</th>
                 <th className="px-2 py-2 font-normal">State</th>
                 <th className="px-2 py-2 font-normal w-full">Current Action</th>
-                <th className="px-2 py-2 font-normal">Last Session</th>
+                <th className="px-2 py-2 font-normal whitespace-nowrap">Last Session</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#3d3d3a]">
