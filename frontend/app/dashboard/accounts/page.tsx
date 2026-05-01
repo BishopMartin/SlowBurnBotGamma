@@ -66,6 +66,7 @@ export default function AccountsPage() {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [newName, setNewName] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState("");
   const [adding, setAdding] = useState(false);
 
@@ -176,8 +177,12 @@ export default function AccountsPage() {
     setAdding(true);
     setError("");
     try {
-      await createAccount({ name: newName.trim(), enabled: false, group_number: 1 });
+      const account = await createAccount({ name: newName.trim(), enabled: false, group_number: 1 });
+      if (newPassword.trim()) {
+        await updateAccount(account.id, { ig_password: newPassword.trim() } as Partial<Account>);
+      }
       setNewName("");
+      setNewPassword("");
       await load();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create account.");
@@ -393,18 +398,23 @@ export default function AccountsPage() {
 
       </div>
 
-      <form onSubmit={handleAdd} className="flex flex-wrap items-center gap-3 font-mono">
-        <BracketInput label="new account" value={newName} onChange={setNewName} placeholder="----" width="24ch" />
-        <button
-          type="submit"
-          disabled={adding}
-          className="group font-mono disabled:opacity-50 transition-colors"
-        >
-          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">add</Bracket>
-        </button>
-      </form>
-
-      {error && <p className="font-mono text-status-bad">{error}</p>}
+      <div className="border border-[#3d3d3a] font-mono">
+        <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918]">
+          <span className="text-[#9A968B]">New Account</span>
+        </div>
+        <form onSubmit={handleAdd} className="px-4 py-3 space-y-2">
+          <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
+            <BracketInput label="user name" value={newName} onChange={setNewName} placeholder="----" width="24ch" />
+            <BracketInput label="password" value={newPassword} onChange={setNewPassword} placeholder="----" width="24ch" type="password" />
+          </div>
+          <div className="flex items-center gap-3 pt-1">
+            <button type="submit" disabled={adding} className="group cursor-pointer disabled:opacity-40 transition-colors">
+              <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{adding ? "adding…" : "add"}</Bracket>
+            </button>
+            {error && <span className="text-status-bad">{error}</span>}
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
