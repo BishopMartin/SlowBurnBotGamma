@@ -403,11 +403,16 @@ try:
                     delay_base = settings.get("delay_base_minutes", 60) or 60
                     delay_random = settings.get("delay_random_minutes", 0) or 0
                     schedule_max = settings.get("max_runs_per_day", 0) or 0
+                    schedule_max_random = settings.get("max_runs_random_per_day", 0) or 0
 
                     old_delay = account_schedules.get(account_name, {}).get('delay_sig')
                     new_delay_sig = (float(delay_base), float(delay_random))
                     if old_delay is not None and old_delay != new_delay_sig:
                         account_next_run[account_name] = None
+
+                    old_max_sig = account_schedules.get(account_name, {}).get('max_sig')
+                    new_max_sig = (int(schedule_max), int(schedule_max_random))
+                    max_sig_changed = old_max_sig is not None and old_max_sig != new_max_sig
 
                     account_schedules[account_name] = {
                         'days': schedule_days,
@@ -415,9 +420,13 @@ try:
                         'end': schedule_end,
                         'delay': {'base': float(delay_base), 'random': float(delay_random)},
                         'delay_sig': new_delay_sig,
-                        'max': int(schedule_max),
+                        'max': account_schedules.get(account_name, {}).get('max', int(schedule_max)),
+                        'max_base': int(schedule_max),
+                        'max_random': int(schedule_max_random),
+                        'max_sig': new_max_sig,
+                        'max_random_offset': account_schedules.get(account_name, {}).get('max_random_offset'),
                         'start_random_offset': account_schedules.get(account_name, {}).get('start_random_offset'),
-                        'last_offset_date': account_schedules.get(account_name, {}).get('last_offset_date'),
+                        'last_offset_date': None if max_sig_changed else account_schedules.get(account_name, {}).get('last_offset_date'),
                     }
 
                 # Ensure last run is loaded
@@ -458,13 +467,20 @@ try:
                 delay_config = schedule.get('delay', {'base': 60.0, 'random': 0.0})
                 next_run_time = account_next_run.get(account_name)
 
-                # Calculate daily random offset for start time
+                # Calculate daily random offsets (start time and max runs)
                 today_date = current_time.date()
                 if schedule.get('last_offset_date') != today_date:
                     random_start_offset = 0
                     if isinstance(delay_config, dict) and delay_config.get('random', 0) > 0:
                         random_start_offset = random.uniform(0, delay_config['random'])
                     schedule['start_random_offset'] = random_start_offset
+
+                    max_base = schedule.get('max_base', schedule.get('max', 0)) or 0
+                    max_rng = schedule.get('max_random', 0) or 0
+                    max_offset = random.randint(0, max_rng) if max_rng > 0 else 0
+                    schedule['max_random_offset'] = max_offset
+                    schedule['max'] = (max_base + max_offset) if max_base > 0 else 0
+
                     schedule['last_offset_date'] = today_date
 
                 # Apply random offset to start time

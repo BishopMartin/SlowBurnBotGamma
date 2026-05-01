@@ -373,6 +373,7 @@ export interface AccountSettings {
   delay_base_minutes: number;
   delay_random_minutes: number;
   max_runs_per_day: number;
+  max_runs_random_per_day: number;
   actions: ActionBlock[] | null;
   actions_random_order: boolean;
   unfollow_days: number;

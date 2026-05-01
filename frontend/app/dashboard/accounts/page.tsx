@@ -329,7 +329,7 @@ export default function AccountsPage() {
                           {settingsMap[account.id] ? `${settingsMap[account.id].delay_base_minutes ?? 0}/${settingsMap[account.id].delay_random_minutes ?? 0}` : "—"}
                         </td>
                         <td className="px-2 py-2 whitespace-nowrap">
-                          {settingsMap[account.id]?.max_runs_per_day ?? "—"}
+                          {settingsMap[account.id] ? `${settingsMap[account.id].max_runs_per_day ?? 0}/${settingsMap[account.id].max_runs_random_per_day ?? 0}` : "—"}
                         </td>
                       </>
                     )}

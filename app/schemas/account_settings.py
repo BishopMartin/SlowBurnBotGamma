@@ -19,6 +19,7 @@ class AccountSettingsUpdate(BaseModel):
     delay_base_minutes: int = 60
     delay_random_minutes: int = 0
     max_runs_per_day: int = 1
+    max_runs_random_per_day: int = 0
     actions: list[ActionBlock] | None = None
     actions_random_order: bool = False
     unfollow_days: int = 30
@@ -39,6 +40,7 @@ class AccountSettingsRead(BaseModel):
     delay_base_minutes: int
     delay_random_minutes: int
     max_runs_per_day: int
+    max_runs_random_per_day: int
     actions: list | None
     actions_random_order: bool
     unfollow_days: int

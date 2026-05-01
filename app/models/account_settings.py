@@ -34,6 +34,7 @@ class AccountSettings(Base):
     delay_base_minutes: Mapped[int] = mapped_column(Integer, default=60)
     delay_random_minutes: Mapped[int] = mapped_column(Integer, default=0)
     max_runs_per_day: Mapped[int] = mapped_column(Integer, default=1)
+    max_runs_random_per_day: Mapped[int] = mapped_column(Integer, default=0)
 
     # Actions (up to 4, stored as JSONB)
     actions: Mapped[list | None] = mapped_column(JSONB, nullable=True)
