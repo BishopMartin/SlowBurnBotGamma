@@ -6,7 +6,7 @@ export function BracketInput({
   value,
   onChange,
   width = "20ch",
-  placeholder = "----",
+  placeholder,
   type = "text",
   autoComplete,
 }: {
@@ -18,6 +18,8 @@ export function BracketInput({
   type?: string;
   autoComplete?: string;
 }) {
+  const chCount = width.endsWith("ch") ? parseInt(width) : 4;
+  const resolvedPlaceholder = placeholder ?? "-".repeat(chCount);
   return (
     <span className="inline-flex items-center gap-0 pr-5">
       {label && <span className="text-[#9A968B]">{label}: </span>}
@@ -26,7 +28,7 @@ export function BracketInput({
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         autoComplete={autoComplete}
         style={{ width, paddingLeft: "1ch", paddingRight: "1ch", boxSizing: "content-box" }}
         className={INPUT_CLS}

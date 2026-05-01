@@ -400,8 +400,8 @@ export default function AccountsPage() {
 
       <form onSubmit={handleAdd} className="border border-[#d97757] px-4 py-3 font-mono flex items-center gap-3 flex-wrap">
         <span className="text-[#9A968B]">New Account --</span>
-        <BracketInput value={newName} onChange={setNewName} placeholder="----" width="16ch" autoComplete="off" />
-        <BracketInput value={newPassword} onChange={setNewPassword} placeholder="----" width="24ch" type="password" autoComplete="new-password" />
+        <BracketInput value={newName} onChange={setNewName} width="16ch" autoComplete="off" />
+        <BracketInput value={newPassword} onChange={setNewPassword} width="24ch" type="password" autoComplete="new-password" />
         {error && <span className="text-status-bad">{error}</span>}
         <button type="submit" disabled={adding} className="group cursor-pointer disabled:opacity-40 transition-colors ml-auto">
           <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{adding ? "adding…" : "add"}</Bracket>
