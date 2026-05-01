@@ -92,6 +92,14 @@ async def get_client_status(
         select(
             ClientHeartbeat,
             (ClientHeartbeat.last_heartbeat >= cutoff).label("connected"),
+            DesktopBuild.build_options["client_name"].astext.label("client_name"),
+        )
+        .join(
+            DesktopBuild,
+            (DesktopBuild.user_id == ClientHeartbeat.user_id)
+            & (DesktopBuild.client_id == ClientHeartbeat.client_id)
+            & DesktopBuild.status.notin_(["revoked", "failed"]),
+            isouter=True,
         )
         .where(
             ClientHeartbeat.user_id == user.id,
@@ -103,8 +111,8 @@ async def get_client_status(
     return [
         {
             "client_id": r.ClientHeartbeat.client_id,
+            "client_name": r.client_name or "",
             "system_type": r.ClientHeartbeat.system_type,
-            "ip_address": r.ClientHeartbeat.ip_address,
             "status": r.ClientHeartbeat.status,
             "current_account": r.ClientHeartbeat.current_account,
             "last_session_account": r.ClientHeartbeat.last_session_account,

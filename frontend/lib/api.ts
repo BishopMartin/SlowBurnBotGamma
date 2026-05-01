@@ -259,8 +259,8 @@ export async function getAccountSourceStats(id: string, period: string = "week")
 
 export interface ClientStatus {
   client_id: number;
+  client_name: string;
   system_type: string;
-  ip_address: string;
   status: string;
   current_account: string | null;
   last_session_account: string | null;

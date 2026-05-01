@@ -230,10 +230,10 @@ export default function DashboardPage() {
             <thead>
               <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
                 <th className="px-2 py-2 font-normal">Client</th>
+                <th className="px-2 py-2 font-normal">Name</th>
+                <th className="px-2 py-2 font-normal">OS</th>
                 <th className="px-2 py-2 font-normal">Status</th>
                 <th className="px-2 py-2 font-normal">State</th>
-                <th className="px-2 py-2 font-normal">OS</th>
-                <th className="px-2 py-2 font-normal">IP</th>
                 <th className="px-2 py-2 font-normal w-full">Current Action</th>
                 <th className="px-2 py-2 font-normal">Last Session</th>
               </tr>
@@ -242,6 +242,8 @@ export default function DashboardPage() {
               {clientStatus.map((cs) => (
                 <tr key={cs.client_id} className="hover:bg-[#1f1e1d] transition-colors">
                   <td className="px-2 py-2 text-[#f4f3ee] whitespace-nowrap">{String(cs.client_id).padStart(2, "0")}</td>
+                  <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{cs.client_name || "----"}</td>
+                  <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{cs.system_type || "----"}</td>
                   <td className="px-2 py-2 whitespace-nowrap">
                     {cs.connected ? (
                       <span className="text-status-ok">connected</span>
@@ -260,12 +262,6 @@ export default function DashboardPage() {
                       ? <span className="text-[#9A968B]">delay</span>
                       : <span className="text-[#9A968B]">{cs.status || "----"}</span>
                     }
-                  </td>
-                  <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
-                    {cs.system_type || "----"}
-                  </td>
-                  <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
-                    {cs.ip_address || "----"}
                   </td>
                   <td className="px-2 py-2 text-[#9A968B]">
                     {cs.status === "running" && cs.current_account
