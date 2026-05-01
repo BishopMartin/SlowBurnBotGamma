@@ -166,36 +166,3 @@ async def download_artifact(run_id: str, artifact_name: str) -> tuple[bytes, str
 
     sha256 = hashlib.sha256(exe_bytes).hexdigest()
     return exe_bytes, sha256
-
-
-async def download_text_artifact(run_id: str, artifact_name: str) -> str:
-    """
-    Download a named text artifact from a completed workflow run.
-
-    Returns the text content of the first .txt file in the artifact zip.
-    Used to retrieve Linux build instructions (image_ref, pull/run commands).
-    """
-    list_url = f"{_GH_API}/repos/{settings.github_repo}/actions/runs/{run_id}/artifacts"
-    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-        list_resp = await client.get(list_url, headers=_headers())
-    list_resp.raise_for_status()
-
-    artifacts = list_resp.json().get("artifacts", [])
-    target = next((a for a in artifacts if a["name"] == artifact_name), None)
-    if target is None:
-        raise FileNotFoundError(
-            f"Artifact '{artifact_name}' not found in run {run_id}"
-        )
-
-    download_url = target["archive_download_url"]
-    async with httpx.AsyncClient(
-        timeout=httpx.Timeout(120.0), follow_redirects=True
-    ) as client:
-        dl_resp = await client.get(download_url, headers=_headers())
-    dl_resp.raise_for_status()
-
-    with zipfile.ZipFile(io.BytesIO(dl_resp.content)) as zf:
-        txt_names = [n for n in zf.namelist() if n.lower().endswith(".txt")]
-        if not txt_names:
-            raise FileNotFoundError("No .txt found inside artifact zip")
-        return zf.read(txt_names[0]).decode()
