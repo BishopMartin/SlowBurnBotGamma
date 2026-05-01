@@ -398,23 +398,15 @@ export default function AccountsPage() {
 
       </div>
 
-      <div className="border border-[#3d3d3a] font-mono">
-        <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918]">
-          <span className="text-[#9A968B]">New Account</span>
-        </div>
-        <form onSubmit={handleAdd} className="px-4 py-3 space-y-2">
-          <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
-            <BracketInput label="user name" value={newName} onChange={setNewName} placeholder="----" width="24ch" autoComplete="off" />
-            <BracketInput label="password" value={newPassword} onChange={setNewPassword} placeholder="----" width="24ch" type="password" autoComplete="new-password" />
-          </div>
-          <div className="flex items-center gap-3 pt-1">
-            <button type="submit" disabled={adding} className="group cursor-pointer disabled:opacity-40 transition-colors">
-              <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{adding ? "adding…" : "add"}</Bracket>
-            </button>
-            {error && <span className="text-status-bad">{error}</span>}
-          </div>
-        </form>
-      </div>
+      <form onSubmit={handleAdd} className="border border-[#d97757] px-4 py-3 font-mono flex items-center gap-3 flex-wrap">
+        <span className="text-[#9A968B]">New Account</span>
+        <BracketInput label="user name" value={newName} onChange={setNewName} placeholder="----" width="24ch" autoComplete="off" />
+        <BracketInput label="password" value={newPassword} onChange={setNewPassword} placeholder="----" width="24ch" type="password" autoComplete="new-password" />
+        {error && <span className="text-status-bad">{error}</span>}
+        <button type="submit" disabled={adding} className="group cursor-pointer disabled:opacity-40 transition-colors ml-auto">
+          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{adding ? "adding…" : "add"}</Bracket>
+        </button>
+      </form>
     </div>
   );
 }
