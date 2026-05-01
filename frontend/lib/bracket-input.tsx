@@ -8,6 +8,7 @@ export function BracketInput({
   width = "20ch",
   placeholder = "----",
   type = "text",
+  autoComplete,
 }: {
   label: string;
   value: string;
