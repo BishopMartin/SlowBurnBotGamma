@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -70,6 +70,16 @@ export default function DashboardPage() {
   const [clientStatus, setClientStatus] = useState<ClientStatus[]>([]);
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null);
   const [recentLog, setRecentLog] = useState<RecentSessionLogEntry[]>([]);
+  const [expandedErrors, setExpandedErrors] = useState<Set<string>>(new Set());
+
+  const toggleError = useCallback((id: string) => {
+    setExpandedErrors((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
   const [planTier, setPlanTier] = useState<string>("free");
   const [tab, setTab] = useState<Tab>("settings");
   const [activityPeriod, setActivityPeriod] = useState<Period>("week");
@@ -504,6 +514,7 @@ export default function DashboardPage() {
                   const prevDate = idx > 0 ? recentLog[idx - 1].run_date : null;
                   const isNewDay = idx > 0 && entry.run_date !== prevDate;
                   return (
+                  <>
                   <tr key={entry.id} className={`hover:bg-[#1f1e1d] transition-colors ${isNewDay ? "border-t-2 border-[#3d3d3a]" : "border-t border-[#3d3d3a]"}`}>
                     <td className="px-2 py-1.5 whitespace-nowrap">
                       <Link
@@ -531,14 +542,25 @@ export default function DashboardPage() {
                     </td>
                     <td className="px-2 py-1.5 whitespace-nowrap">
                       {entry.error_message ? (
-                        <span className="text-status-bad text-xs" title={entry.error_message}>
-                          error
-                        </span>
+                        <button
+                          onClick={() => toggleError(entry.id)}
+                          className="text-status-bad hover:text-status-bad-hover cursor-pointer transition-colors text-xs"
+                        >
+                          {expandedErrors.has(entry.id) ? "▾ error" : "▸ error"}
+                        </button>
                       ) : (
                         <span className="text-[#3d3d3a] text-xs">none</span>
                       )}
                     </td>
                   </tr>
+                  {entry.error_message && expandedErrors.has(entry.id) && (
+                    <tr key={`${entry.id}-err`} className="bg-[#1f1e1d]">
+                      <td colSpan={10} className="px-2 py-1 text-status-bad text-xs whitespace-pre-wrap">
+                        {entry.error_message.split("\n").map((line) => `- ${line}`).join("\n")}
+                      </td>
+                    </tr>
+                  )}
+                  </>
                   );
                 })}
               </tbody>
