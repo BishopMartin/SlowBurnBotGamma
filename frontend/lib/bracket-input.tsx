@@ -15,6 +15,7 @@ export function BracketInput({
   width?: string;
   placeholder?: string;
   type?: string;
+  autoComplete?: string;
 }) {
   return (
     <span className="inline-flex items-center gap-0 pr-5">
@@ -25,6 +26,7 @@ export function BracketInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        autoComplete={autoComplete}
         style={{ width, paddingLeft: "1ch", paddingRight: "1ch", boxSizing: "content-box" }}
         className={INPUT_CLS}
       />

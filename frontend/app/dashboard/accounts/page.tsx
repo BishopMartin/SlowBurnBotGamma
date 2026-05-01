@@ -404,8 +404,8 @@ export default function AccountsPage() {
         </div>
         <form onSubmit={handleAdd} className="px-4 py-3 space-y-2">
           <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
-            <BracketInput label="user name" value={newName} onChange={setNewName} placeholder="----" width="24ch" />
-            <BracketInput label="password" value={newPassword} onChange={setNewPassword} placeholder="----" width="24ch" type="password" />
+            <BracketInput label="user name" value={newName} onChange={setNewName} placeholder="----" width="24ch" autoComplete="off" />
+            <BracketInput label="password" value={newPassword} onChange={setNewPassword} placeholder="----" width="24ch" type="password" autoComplete="new-password" />
           </div>
           <div className="flex items-center gap-3 pt-1">
             <button type="submit" disabled={adding} className="group cursor-pointer disabled:opacity-40 transition-colors">
