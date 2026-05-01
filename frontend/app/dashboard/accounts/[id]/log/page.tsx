@@ -126,12 +126,19 @@ export default function AccountLogPage() {
                 </tr>
               </thead>
               <tbody>
-                {items.map((entry, idx) => {
-                  const prevDate = idx > 0 ? items[idx - 1].run_date : null;
-                  const isNewDay = idx > 0 && entry.run_date !== prevDate;
+                {(() => {
+                  const dayGroups = new Map<string, number>();
+                  let gi = 0;
+                  for (const e of items) {
+                    const k = e.run_date ?? "";
+                    if (!dayGroups.has(k)) dayGroups.set(k, gi++);
+                  }
+                  return items.map((entry) => {
+                  const altDay = (dayGroups.get(entry.run_date ?? "") ?? 0) % 2 === 1;
+                  const rowBg = altDay ? "bg-[#1a1918]" : "";
                   return (
                   <>
-                    <tr key={entry.id} className={`hover:bg-[#1f1e1d] transition-colors ${isNewDay ? "border-t-4 border-[#3d3d3a]" : "border-t border-[#3d3d3a]"}`}>
+                    <tr key={entry.id} className={`hover:bg-[#1f1e1d] transition-colors border-t border-[#3d3d3a] ${rowBg}`}>
                       <td className="px-2 py-1.5 text-[#f4f3ee] whitespace-nowrap">{entry.run_date ?? "—"}</td>
                       <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">{entry.run_sequence}</td>
                       <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">{fmtTime(entry.start_time)}</td>
@@ -163,7 +170,8 @@ export default function AccountLogPage() {
                     )}
                   </>
                   );
-                })}
+                  });
+                })()}
               </tbody>
             </table>
           </div>

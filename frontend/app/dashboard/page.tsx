@@ -510,12 +510,19 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {recentLog.map((entry, idx) => {
-                  const prevDate = idx > 0 ? recentLog[idx - 1].run_date : null;
-                  const isNewDay = idx > 0 && entry.run_date !== prevDate;
+                {(() => {
+                  const dayGroups = new Map<string, number>();
+                  let gi = 0;
+                  for (const e of recentLog) {
+                    const k = e.run_date ?? "";
+                    if (!dayGroups.has(k)) dayGroups.set(k, gi++);
+                  }
+                  return recentLog.map((entry) => {
+                  const altDay = (dayGroups.get(entry.run_date ?? "") ?? 0) % 2 === 1;
+                  const rowBg = altDay ? "bg-[#1a1918]" : "";
                   return (
                   <>
-                  <tr key={entry.id} className={`hover:bg-[#1f1e1d] transition-colors ${isNewDay ? "border-t-4 border-[#3d3d3a]" : "border-t border-[#3d3d3a]"}`}>
+                  <tr key={entry.id} className={`hover:bg-[#1f1e1d] transition-colors border-t border-[#3d3d3a] ${rowBg}`}>
                     <td className="px-2 py-1.5 whitespace-nowrap">
                       <Link
                         href={`/dashboard/accounts/${entry.account_id}/log`}
@@ -562,7 +569,8 @@ export default function DashboardPage() {
                   )}
                   </>
                   );
-                })}
+                  });
+                })()}
               </tbody>
             </table>
           </div>
