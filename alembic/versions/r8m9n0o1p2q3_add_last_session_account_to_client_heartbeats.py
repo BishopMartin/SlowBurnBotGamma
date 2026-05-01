@@ -15,7 +15,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("client_heartbeats", sa.Column("last_session_account", sa.Text(), nullable=True))
+    op.execute("ALTER TABLE client_heartbeats ADD COLUMN IF NOT EXISTS last_session_account TEXT")
 
 
 def downgrade() -> None:
