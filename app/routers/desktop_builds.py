@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -96,6 +96,16 @@ async def _get_owned_build(
     return build
 
 
+def _system_type(build: DesktopBuild) -> str:
+    return build.build_options.get("system_type", "windows")
+
+
+def _workflow_file(build: DesktopBuild) -> str:
+    if _system_type(build) == "linux":
+        return settings.github_workflow_file_linux
+    return settings.github_workflow_file
+
+
 async def _poll_github_status(build: DesktopBuild, session: AsyncSession) -> None:
     """Update build status by querying GitHub if still in-flight."""
     if build.status not in ("queued", "running"):
@@ -103,7 +113,7 @@ async def _poll_github_status(build: DesktopBuild, session: AsyncSession) -> Non
 
     if build.github_run_id is None:
         run_id = await github_actions.find_run_for_build(
-            str(build.id), build.created_at
+            str(build.id), build.created_at, workflow_file=_workflow_file(build)
         )
         if run_id:
             build.github_run_id = run_id
@@ -121,7 +131,13 @@ async def _poll_github_status(build: DesktopBuild, session: AsyncSession) -> Non
     if gh_status == "completed":
         if gh_conclusion == "success":
             build.status = "ready"
-            build.artifact_name = "SlowBurnBot.exe"
+            if _system_type(build) == "linux":
+                # artifact_name stores the GHCR image reference for Linux builds
+                build.artifact_name = (
+                    f"{settings.ghcr_namespace}/slowburnbot-client:{build.id}"
+                )
+            else:
+                build.artifact_name = "SlowBurnBot.exe"
             if not build.bot_version:
                 head_sha = run.get("head_sha")
                 if head_sha:
@@ -214,6 +230,11 @@ async def create_desktop_build(
     await session.refresh(build)
 
     # Dispatch GitHub Actions workflow (non-blocking failure rolls back to queued)
+    wf_file = (
+        settings.github_workflow_file_linux
+        if config.system_type == "linux"
+        else None
+    )
     try:
         await github_actions.dispatch_workflow(
             build_id=str(build.id),
@@ -222,6 +243,7 @@ async def create_desktop_build(
             api_url=api_url,
             activation_token=token,
             build_options=config.model_dump(),
+            workflow_file=wf_file,
         )
     except Exception as exc:
         build.status = "failed"
@@ -285,7 +307,7 @@ async def download_desktop_build(
     user: User | None = Depends(current_active_user_optional),
     session: AsyncSession = Depends(get_async_session),
 ):
-    """Stream the built EXE to the user via GitHub artifact proxy."""
+    """Return build artifact. Linux: JSON with docker pull/run commands. Windows: stream EXE."""
     # Auth: either Bearer token (user dep) or short-lived download token (?dt=)
     if dt:
         build = await session.scalar(
@@ -308,6 +330,18 @@ async def download_desktop_build(
             status_code=status.HTTP_410_GONE,
             detail="Download link has expired.",
         )
+
+    # Linux builds: return docker pull/run instructions rather than a binary download
+    if _system_type(build) == "linux":
+        image_ref = build.artifact_name or (
+            f"{settings.ghcr_namespace}/slowburnbot-client:{build.id}"
+        )
+        return JSONResponse({
+            "image_ref": image_ref,
+            "pull_cmd": f"docker pull {image_ref}",
+            "run_cmd": f"docker run -it --rm {image_ref}",
+        })
+
     if not build.github_run_id or not build.artifact_name:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -386,6 +420,11 @@ async def rebuild_desktop_build(
     await session.commit()
     await session.refresh(new_build)
 
+    wf_file = (
+        settings.github_workflow_file_linux
+        if config_dict.get("system_type") == "linux"
+        else None
+    )
     try:
         await github_actions.dispatch_workflow(
             build_id=str(new_build.id),
@@ -394,6 +433,7 @@ async def rebuild_desktop_build(
             api_url=api_url,
             activation_token=token,
             build_options=config_dict,
+            workflow_file=wf_file,
         )
     except Exception as exc:
         new_build.status = "failed"

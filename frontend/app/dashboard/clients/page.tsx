@@ -9,10 +9,12 @@ import {
   getDesktopBuildDownloadUrl,
   getDesktopBuildDownloadToken,
   getDesktopBuildsMeta,
+  getLinuxBuildInstructions,
   getSubscriptionInfo,
   DesktopBuild,
   DesktopBuildConfig,
   DesktopBuildWithToken,
+  LinuxBuildInstructions,
   SubscriptionInfo,
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
@@ -28,6 +30,23 @@ const DEFAULT_CONFIG: DesktopBuildConfig = {
   chrome_version: "143",
   chrome_user_data_dir_base: "PortableChrome",
   headless: false,
+  detach: false,
+  close_browser_session: false,
+  close_browser_exit: false,
+  bot_idle_delay: 5,
+  bot_debug: false,
+  system_user_agent: DEFAULT_USER_AGENT,
+  add_arguments: [],
+  api_url: "",
+};
+
+const DEFAULT_LINUX_CONFIG: DesktopBuildConfig = {
+  client_name: "",
+  system_type: "linux",
+  chrome_path: "",         // Chrome is installed in the Docker image
+  chrome_version: "",
+  chrome_user_data_dir_base: "",
+  headless: true,          // forced by backend; no visible Chrome window in container
   detach: false,
   close_browser_session: false,
   close_browser_exit: false,
@@ -72,29 +91,67 @@ function BuildForm({
   function set<K extends keyof DesktopBuildConfig>(k: K, v: DesktopBuildConfig[K]) {
     setCfg((p) => ({ ...p, [k]: v }));
   }
+
+  function switchPlatform(platform: "windows" | "linux") {
+    if (platform === "linux") {
+      setCfg((p) => ({ ...DEFAULT_LINUX_CONFIG, client_name: p.client_name, system_user_agent: p.system_user_agent, api_url: p.api_url }));
+    } else {
+      setCfg((p) => ({ ...DEFAULT_CONFIG, client_name: p.client_name, system_user_agent: p.system_user_agent, api_url: p.api_url }));
+    }
+  }
+
+  const isLinux = cfg.system_type === "linux";
+  const canSubmit = !submitting && (isLinux || cfg.chrome_path.trim().length > 0);
+
   return (
     <div className="px-4 py-3 space-y-2 bg-[#1a1918] border-t border-[#3d3d3a]">
+      {/* Platform selector */}
+      <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
+        <button
+          onClick={() => switchPlatform("windows")}
+          className={`group cursor-pointer transition-colors ${cfg.system_type === "windows" ? "" : "opacity-50"}`}
+        >
+          <Bracket className={cfg.system_type === "windows" ? "text-[#f4f3ee]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>windows</Bracket>
+        </button>
+        <button
+          onClick={() => switchPlatform("linux")}
+          className={`group cursor-pointer transition-colors ${cfg.system_type === "linux" ? "" : "opacity-50"}`}
+        >
+          <Bracket className={cfg.system_type === "linux" ? "text-[#f4f3ee]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>linux / docker</Bracket>
+        </button>
+      </div>
       <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
-        <BracketInput label="chrome version" value={cfg.chrome_version} onChange={(v) => set("chrome_version", v)} width="5ch" placeholder="143" />
+        {!isLinux && (
+          <BracketInput label="chrome version" value={cfg.chrome_version} onChange={(v) => set("chrome_version", v)} width="5ch" placeholder="143" />
+        )}
         <BracketInput label="client name" value={cfg.client_name} onChange={(v) => set("client_name", v.slice(0, 15))} width="15ch" placeholder="my laptop" />
       </div>
       <div>
         <BracketInput label="user agent" value={cfg.system_user_agent} onChange={(v) => set("system_user_agent", v)} width="72ch" />
       </div>
-      <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
-        <BracketInput label="chrome path" value={cfg.chrome_path} onChange={(v) => set("chrome_path", v)} width="30ch" placeholder="\PortableChrome\chrome.exe" />
-        <BracketInput label="user data dir" value={cfg.chrome_user_data_dir_base} onChange={(v) => set("chrome_user_data_dir_base", v)} width="22ch" placeholder="\PortableChrome\" />
-      </div>
+      {!isLinux && (
+        <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
+          <BracketInput label="chrome path" value={cfg.chrome_path} onChange={(v) => set("chrome_path", v)} width="30ch" placeholder="\PortableChrome\chrome.exe" />
+          <BracketInput label="user data dir" value={cfg.chrome_user_data_dir_base} onChange={(v) => set("chrome_user_data_dir_base", v)} width="22ch" placeholder="\PortableChrome\" />
+        </div>
+      )}
       <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
-        <BracketCheckbox label="headless" checked={cfg.headless} onChange={(v) => set("headless", v)} />
-        <BracketCheckbox label="detach" checked={cfg.detach} onChange={(v) => set("detach", v)} />
+        {!isLinux && (
+          <>
+            <BracketCheckbox label="headless" checked={cfg.headless} onChange={(v) => set("headless", v)} />
+            <BracketCheckbox label="detach" checked={cfg.detach} onChange={(v) => set("detach", v)} />
+          </>
+        )}
         <BracketCheckbox label="close on session end" checked={cfg.close_browser_session} onChange={(v) => set("close_browser_session", v)} />
         <BracketCheckbox label="close on exit" checked={cfg.close_browser_exit} onChange={(v) => set("close_browser_exit", v)} />
       </div>
+      {isLinux && (
+        <p className="text-[#9A968B] text-sm">Chrome is included in the Docker image. Run with <code className="text-[#E5C07B]">docker run -it</code> for the TUI.</p>
+      )}
       <div className="flex items-center gap-3 pt-1">
         <button
           onClick={() => onSubmit(cfg)}
-          disabled={submitting || !cfg.chrome_path.trim()}
+          disabled={!canSubmit}
           className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{submitting ? "requesting…" : submitLabel}</Bracket>
@@ -133,6 +190,9 @@ export default function ClientPage() {
 
   const [justCreated, setJustCreated] = useState<DesktopBuildWithToken | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const [linuxInstructions, setLinuxInstructions] = useState<(LinuxBuildInstructions & { buildId: string }) | null>(null);
+  const [copiedCmd, setCopiedCmd] = useState<string | null>(null);
 
   const [pageError, setPageError] = useState<string | null>(null);
 
@@ -218,11 +278,24 @@ export default function ClientPage() {
     }
   }
 
-  async function handleDownload(buildId: string) {
-    setDownloading(buildId);
+  async function handleDownload(build: DesktopBuild) {
+    const isLinux = (build.build_options as DesktopBuildConfig).system_type === "linux";
+    if (isLinux) {
+      setDownloading(build.id);
+      try {
+        const instructions = await getLinuxBuildInstructions(build.id);
+        setLinuxInstructions({ ...instructions, buildId: build.id });
+      } catch (e: unknown) {
+        setPageError(e instanceof Error ? e.message : "Failed to fetch build instructions.");
+      } finally {
+        setDownloading(null);
+      }
+      return;
+    }
+    setDownloading(build.id);
     try {
-      const dt = await getDesktopBuildDownloadToken(buildId);
-      const url = getDesktopBuildDownloadUrl(buildId) + `?dt=${encodeURIComponent(dt)}`;
+      const dt = await getDesktopBuildDownloadToken(build.id);
+      const url = getDesktopBuildDownloadUrl(build.id) + `?dt=${encodeURIComponent(dt)}`;
       window.location.href = url;
       await load();
     } catch (e: unknown) {
@@ -230,6 +303,13 @@ export default function ClientPage() {
     } finally {
       setDownloading(null);
     }
+  }
+
+  function copyCmd(text: string, key: string) {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedCmd(key);
+      setTimeout(() => setCopiedCmd(null), 2000);
+    });
   }
 
   async function handleRevoke(buildId: string) {
@@ -298,6 +378,31 @@ export default function ClientPage() {
         </div>
       )}
 
+      {linuxInstructions && (
+        <div className="border border-[#3d3d3a] px-4 py-3 space-y-2 bg-[#1a1918]">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-[#f4f3ee]">docker commands — client {builds.find(b => b.id === linuxInstructions.buildId)?.client_id ?? ""}</span>
+            <button onClick={() => setLinuxInstructions(null)} className="group cursor-pointer transition-colors ml-auto">
+              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
+            </button>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-[#9A968B]">pull:</span>
+            <code className="text-[#E5C07B] break-all">{linuxInstructions.pull_cmd}</code>
+            <button onClick={() => copyCmd(linuxInstructions.pull_cmd, "pull")} className="group cursor-pointer transition-colors">
+              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === "pull" ? "copied!" : "copy"}</Bracket>
+            </button>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-[#9A968B]">run:</span>
+            <code className="text-[#E5C07B] break-all">{linuxInstructions.run_cmd}</code>
+            <button onClick={() => copyCmd(linuxInstructions.run_cmd, "run")} className="group cursor-pointer transition-colors">
+              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === "run" ? "copied!" : "copy"}</Bracket>
+            </button>
+          </div>
+        </div>
+      )}
+
       {pageError && <div className="text-status-bad">{pageError}</div>}
 
       {/* Builds / slots table */}
@@ -311,6 +416,7 @@ export default function ClientPage() {
                 <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
                   <th className="px-4 py-2 font-normal whitespace-nowrap">client</th>
                   <th className="px-4 py-2 font-normal whitespace-nowrap">name</th>
+                  <th className="px-4 py-2 font-normal whitespace-nowrap">platform</th>
                   <th className="px-4 py-2 font-normal whitespace-nowrap">build date</th>
                   <th className="px-4 py-2 font-normal whitespace-nowrap">status</th>
                   <th className="px-4 py-2 font-normal whitespace-nowrap">client ver</th>
@@ -329,6 +435,7 @@ export default function ClientPage() {
                       <tr key={build.id} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors">
                         <td className="px-4 py-3 text-[#f4f3ee] whitespace-nowrap">#{String(build.client_id).padStart(2, "0")}</td>
                         <td className="px-4 py-3 text-[#9A968B] whitespace-nowrap">{cfg.client_name || "—"}</td>
+                        <td className="px-4 py-3 text-[#9A968B] whitespace-nowrap">{cfg.system_type === "linux" ? "linux" : "windows"}</td>
                         <td className="px-4 py-3 text-[#9A968B] whitespace-nowrap">{fmtDate(build.created_at)}</td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           {buildIsOutdated
@@ -343,8 +450,10 @@ export default function ClientPage() {
                         <td className="px-4 py-3 text-right">
                           <div className="flex gap-2 justify-end items-center">
                             {canDownload && (
-                              <button onClick={() => handleDownload(build.id)} disabled={downloading === build.id} className="group cursor-pointer transition-colors disabled:opacity-40">
-                                <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{downloading === build.id ? "…" : "download"}</Bracket>
+                              <button onClick={() => handleDownload(build)} disabled={downloading === build.id} className="group cursor-pointer transition-colors disabled:opacity-40">
+                                <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">
+                                  {downloading === build.id ? "…" : cfg.system_type === "linux" ? "get commands" : "download"}
+                                </Bracket>
                               </button>
                             )}
                             <button
@@ -365,7 +474,7 @@ export default function ClientPage() {
                       </tr>
                       {isExpanded && (
                         <tr key={`${build.id}-form`} className="border-t border-[#3d3d3a]">
-                          <td colSpan={6} className="p-0">
+                          <td colSpan={7} className="p-0">
                             <BuildForm
                               initial={cfg}
                               submitLabel="request re-build"
@@ -394,6 +503,7 @@ export default function ClientPage() {
                         <td className="px-4 py-3 text-[#3d3d3a]">—</td>
                         <td className="px-4 py-3 text-[#3d3d3a]">—</td>
                         <td className="px-4 py-3 text-[#3d3d3a]">—</td>
+                        <td className="px-4 py-3 text-[#3d3d3a]">—</td>
                         <td className="px-4 py-3 text-right">
                           <button onClick={() => toggleExpand(slotKey)} className="group cursor-pointer transition-colors">
                             <Bracket className={isExpanded ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>settings/build</Bracket>
@@ -402,7 +512,7 @@ export default function ClientPage() {
                       </tr>
                       {isExpanded && (
                         <tr key={`${slotKey}-form`} className="border-t border-[#3d3d3a]">
-                          <td colSpan={6} className="p-0">
+                          <td colSpan={7} className="p-0">
                             <BuildForm
                               initial={DEFAULT_CONFIG}
                               submitLabel="request build"
@@ -420,7 +530,7 @@ export default function ClientPage() {
 
                 {maxClients === 0 && !loading && (
                   <tr className="border-t border-[#3d3d3a]">
-                    <td colSpan={6} className="px-4 py-4 text-[#9A968B]">No active subscription.</td>
+                    <td colSpan={7} className="px-4 py-4 text-[#9A968B]">No active subscription.</td>
                   </tr>
                 )}
               </tbody>
@@ -434,11 +544,19 @@ export default function ClientPage() {
         <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918]">
           <span className="text-[#f4f3ee]">getting started</span>
         </div>
-        <div className="px-4 py-4 space-y-2 text-[#9A968B]">
-          <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">settings/build</span> on an empty slot and configure your client settings.</p>
-          <p><span className="text-[#f4f3ee]">2.</span> Download <code className="text-[#E5C07B]">SlowBurnBot.exe</code> when the build status shows <span className="text-status-ok">ready</span>.</p>
-          <p><span className="text-[#f4f3ee]">3.</span> Run the EXE on Windows and log in with your dashboard credentials.</p>
-          <p><span className="text-[#f4f3ee]">4.</span> The client activates on first launch and runs normally from there.</p>
+        <div className="px-4 py-4 space-y-4 text-[#9A968B]">
+          <div className="space-y-1">
+            <p className="text-[#f4f3ee]">windows</p>
+            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">settings/build</span> on an empty slot, select <span className="text-[#f4f3ee]">windows</span>, and configure your Chrome path.</p>
+            <p><span className="text-[#f4f3ee]">2.</span> Download <code className="text-[#E5C07B]">SlowBurnBot.exe</code> when status shows <span className="text-status-ok">ready</span>.</p>
+            <p><span className="text-[#f4f3ee]">3.</span> Run the EXE on Windows and log in with your dashboard credentials. Activates on first launch.</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-[#f4f3ee]">linux / docker</p>
+            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">settings/build</span> on an empty slot, select <span className="text-[#f4f3ee]">linux / docker</span>.</p>
+            <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">get commands</span> when status shows <span className="text-status-ok">ready</span> to see your <code className="text-[#E5C07B]">docker pull</code> and <code className="text-[#E5C07B]">docker run</code> commands.</p>
+            <p><span className="text-[#f4f3ee]">3.</span> Run <code className="text-[#E5C07B]">docker run -it</code> on your Linux machine. Log in with your dashboard credentials. The TUI runs in your terminal.</p>
+          </div>
         </div>
       </div>
     </div>

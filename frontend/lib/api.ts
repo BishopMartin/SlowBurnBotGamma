@@ -473,7 +473,7 @@ export interface FollowTarget {
 // Desktop builds
 export interface DesktopBuildConfig {
   client_name: string;
-  system_type: "windows";
+  system_type: "windows" | "linux";
   chrome_path: string;
   chrome_version: string;
   chrome_user_data_dir_base: string;
@@ -542,4 +542,14 @@ export async function revokeDesktopBuild(id: string): Promise<DesktopBuild> {
 
 export async function rebuildDesktopBuild(id: string): Promise<DesktopBuildWithToken> {
   return request<DesktopBuildWithToken>(`/desktop-builds/${id}/rebuild`, { method: "POST" });
+}
+
+export interface LinuxBuildInstructions {
+  image_ref: string;
+  pull_cmd: string;
+  run_cmd: string;
+}
+
+export async function getLinuxBuildInstructions(id: string): Promise<LinuxBuildInstructions> {
+  return request<LinuxBuildInstructions>(`/desktop-builds/${id}/download`);
 }
