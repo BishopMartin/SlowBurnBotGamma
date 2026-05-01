@@ -27,7 +27,11 @@ class Settings(BaseSettings):
     github_token: str = ""
     github_repo: str = ""            # "owner/repo"
     github_workflow_file: str = "build-desktop.yml"
+    github_workflow_file_linux: str = "build-linux.yml"
     github_webhook_secret: str = ""  # optional; used by webhook receiver
+
+    # GHCR — Linux Docker image delivery
+    ghcr_namespace: str = ""  # e.g. "ghcr.io/bishopmartin/slowburnbotgamma"
 
     # Desktop build policy
     desktop_activation_token_ttl_hours: int = 168  # 7 days

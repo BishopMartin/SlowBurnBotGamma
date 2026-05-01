@@ -9,8 +9,8 @@ CONFIG_FILE_PATH = None
 
 
 def is_frozen() -> bool:
-    """True when running as a PyInstaller-built EXE."""
-    return getattr(sys, "frozen", False)
+    """True when running as a compiled build (PyInstaller EXE or Nuitka/Docker image)."""
+    return getattr(sys, "frozen", False) or bool(os.environ.get("SLOWBURN_FROZEN"))
 
 
 def _baked_to_configparser(baked_cfg: dict) -> configparser.ConfigParser:
@@ -40,8 +40,12 @@ def _baked_to_configparser(baked_cfg: dict) -> configparser.ConfigParser:
         "bot_idle_delay": str(baked_cfg.get("bot_idle_delay", 5)),
     }
     add_args = baked_cfg.get("add_arguments", [])
+    # Linux Docker image ships Chrome at a fixed path; Windows requires an explicit path
+    chrome_path = baked_cfg.get("chrome_path") or (
+        "/usr/bin/google-chrome" if system_type == "linux" else ""
+    )
     cp[driver_section] = {
-        "chrome_path": baked_cfg.get("chrome_path", ""),
+        "chrome_path": chrome_path,
         "chrome_version": baked_cfg.get("chrome_version", ""),
         "driverType": "webdriver.Chrome",
         "headless": str(baked_cfg.get("headless", False)),

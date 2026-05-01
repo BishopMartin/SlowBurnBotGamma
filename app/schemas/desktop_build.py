@@ -2,15 +2,16 @@ import uuid
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class DesktopBuildConfig(BaseModel):
-    """Customer-configurable settings baked into the EXE — no secrets."""
+    """Customer-configurable settings baked into the EXE or Docker image — no secrets."""
 
     client_name: str = Field(default="", max_length=15)
-    system_type: Literal["windows"] = "windows"
-    chrome_path: str = Field(..., min_length=1, max_length=500)
+    system_type: Literal["windows", "linux"] = "windows"
+    # Optional for linux (Chrome is installed in the Docker image at /usr/bin/google-chrome)
+    chrome_path: str = Field(default="", max_length=500)
     chrome_version: str = Field(default="", max_length=20)
     chrome_user_data_dir_base: str = Field(default="PortableChrome", max_length=500)
     headless: bool = False
@@ -30,6 +31,15 @@ class DesktopBuildConfig(BaseModel):
             if len(arg) > 200:
                 raise ValueError("Each add_argument must be ≤ 200 characters")
         return v
+
+    @model_validator(mode="after")
+    def validate_platform(self) -> "DesktopBuildConfig":
+        if self.system_type == "linux":
+            # Chrome runs headlessly inside the Docker image; pyautogui window-focus not used
+            self.headless = True
+        elif self.system_type == "windows" and not self.chrome_path:
+            raise ValueError("chrome_path is required for Windows builds")
+        return self
 
 
 class DesktopBuildCreate(BaseModel):
