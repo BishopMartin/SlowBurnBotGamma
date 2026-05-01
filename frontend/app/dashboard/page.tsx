@@ -278,7 +278,7 @@ export default function DashboardPage() {
                       ? <span className="text-[#f4f3ee]">running {cs.current_account}</span>
                       : cs.status === "delay"
                       ? "session delay"
-                      : "no active accounts"}
+                      : "------"}
                   </td>
                   <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
                     {cs.last_session_account || "----"}
@@ -519,7 +519,7 @@ export default function DashboardPage() {
                   }
                   return recentLog.map((entry) => {
                   const altDay = (dayGroups.get(entry.run_date ?? "") ?? 0) % 2 === 1;
-                  const rowBg = altDay ? "bg-[#1a1918]" : "";
+                  const rowBg = altDay ? "bg-[#252322]" : "";
                   return (
                   <>
                   <tr key={entry.id} className={`hover:bg-[#1f1e1d] transition-colors border-t border-[#3d3d3a] ${rowBg}`}>
@@ -562,7 +562,7 @@ export default function DashboardPage() {
                   </tr>
                   {entry.error_message && expandedErrors.has(entry.id) && (
                     <tr key={`${entry.id}-err`} className="bg-[#1f1e1d]">
-                      <td colSpan={10} className="px-2 py-1 text-status-bad text-xs whitespace-pre-wrap">
+                      <td colSpan={10} className="px-2 py-1 text-[#9A968B] text-xs whitespace-pre-wrap">
                         {entry.error_message.split("\n").map((line) => `- ${line}`).join("\n")}
                       </td>
                     </tr>

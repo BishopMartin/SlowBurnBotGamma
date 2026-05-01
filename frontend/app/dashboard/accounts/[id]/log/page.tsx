@@ -135,7 +135,7 @@ export default function AccountLogPage() {
                   }
                   return items.map((entry) => {
                   const altDay = (dayGroups.get(entry.run_date ?? "") ?? 0) % 2 === 1;
-                  const rowBg = altDay ? "bg-[#1a1918]" : "";
+                  const rowBg = altDay ? "bg-[#252322]" : "";
                   return (
                   <>
                     <tr key={entry.id} className={`hover:bg-[#1f1e1d] transition-colors border-t border-[#3d3d3a] ${rowBg}`}>
@@ -163,7 +163,7 @@ export default function AccountLogPage() {
                     </tr>
                     {entry.error_message && expandedErrors.has(entry.id) && (
                       <tr key={`${entry.id}-err`} className="bg-[#1f1e1d]">
-                        <td colSpan={COL_COUNT} className="px-2 py-1 text-status-bad text-xs whitespace-pre-wrap">
+                        <td colSpan={COL_COUNT} className="px-2 py-1 text-[#9A968B] text-xs whitespace-pre-wrap">
                           {entry.error_message.split("\n").map((line) => `- ${line}`).join("\n")}
                         </td>
                       </tr>
