@@ -2,7 +2,7 @@ const INPUT_CLS =
   "bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0";
 
 export function BracketInput({
-  label,
+  label = "",
   value,
   onChange,
   width = "20ch",
@@ -10,7 +10,7 @@ export function BracketInput({
   type = "text",
   autoComplete,
 }: {
-  label: string;
+  label?: string;
   value: string;
   onChange: (v: string) => void;
   width?: string;
@@ -20,7 +20,7 @@ export function BracketInput({
 }) {
   return (
     <span className="inline-flex items-center gap-0 pr-5">
-      <span className="text-[#9A968B]">{label}: </span>
+      {label && <span className="text-[#9A968B]">{label}: </span>}
       <span className="text-[#f4f3ee]">[</span>
       <input
         type={type}
