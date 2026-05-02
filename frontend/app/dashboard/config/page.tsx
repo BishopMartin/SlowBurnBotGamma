@@ -142,7 +142,7 @@ export default function ConfigPage() {
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">notifications</div>
 
         <div className="divide-y divide-[#3d3d3a]">
-          <div className="px-4 py-2 flex items-center gap-x-5 gap-y-2 flex-wrap">
+          <div className="px-4 py-2 flex items-center gap-x-3">
             <span className="inline-flex min-w-[28ch]"><BracketCheckbox label="Session Notification" checked={noticesSession} onChange={setNoticesSession} /></span>
             <span className="inline-flex items-center gap-0 pr-5">
               <span className="text-[#9A968B]">{"type: "}</span>
@@ -151,9 +151,9 @@ export default function ConfigPage() {
               <span className="text-[#f4f3ee]">{"]"}</span>
             </span>
             <BracketInput label="email" value={notifyEmail} onChange={setNotifyEmail} type="email" placeholder="email@example.com" width="20ch" />
-            <BracketInput label="phone" value={formatPhone(notifyPhone)} onChange={(v) => setNotifyPhone(stripPhone(v))} type="tel" placeholder="(123) 456-7890" width="15ch" />
+            <BracketInput label="phone" value={formatPhone(notifyPhone)} onChange={(v) => setNotifyPhone(stripPhone(v))} type="tel" placeholder="(123) 456-7890" width="14ch" />
           </div>
-          <div className="px-4 py-2 flex items-center gap-x-5 gap-y-2 flex-wrap">
+          <div className="px-4 py-2 flex items-center gap-x-3">
             <span className="inline-flex min-w-[28ch]"><BracketCheckbox label="Login/Error Notification" checked={noticesLogin} onChange={setNoticesLogin} /></span>
             <span className="inline-flex items-center gap-0 pr-5">
               <span className="text-[#9A968B]">{"type: "}</span>
@@ -162,7 +162,7 @@ export default function ConfigPage() {
               <span className="text-[#f4f3ee]">{"]"}</span>
             </span>
             <BracketInput label="email" value={loginNotifyEmail} onChange={setLoginNotifyEmail} type="email" width="20ch" />
-            <BracketInput label="phone" value={formatPhone(loginNotifyPhone)} onChange={(v) => setLoginNotifyPhone(stripPhone(v))} type="tel" width="15ch" />
+            <BracketInput label="phone" value={formatPhone(loginNotifyPhone)} onChange={(v) => setLoginNotifyPhone(stripPhone(v))} type="tel" width="14ch" />
           </div>
         </div>
       </div>
