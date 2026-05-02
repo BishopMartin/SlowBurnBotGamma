@@ -36,21 +36,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Read BOT_VERSION
-        id: ver
-        shell: python
-        run: |
-          import re, os
-          text = open("bot-client/burnBot_version.py").read()
-          m = re.search(r'BOT_VERSION\s*=\s*["\']([^"\']+)["\']', text)
-          version = m.group(1) if m else "unknown"
-          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-              f.write(f"bot_version={version}\n")
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Read BOT_VERSION
+        id: ver
+        shell: bash
+        run: |
+          BOT_VERSION=$(python -c "import re; m=re.search(r'BOT_VERSION\s*=\s*[\"\']([\d.]+)[\"\']', open('bot-client/burnBot_version.py').read()); print(m.group(1) if m else 'unknown')")
+          echo "bot_version=${BOT_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "BOT_VERSION=${BOT_VERSION}"
 
       - name: Install dependencies
         run: pip install -r bot-client/requirements.txt pyinstaller
@@ -60,16 +57,17 @@ jobs:
         run: pyinstaller SlowBurnBot.spec --distpath ../dist --workpath ../build
 
       - name: Upload EXE to object storage
+        shell: bash
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.BUCKET_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.BUCKET_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.BUCKET_REGION || 'us-east-1' }}
+          AWS_DEFAULT_REGION: ${{ secrets.BUCKET_REGION }}
           ENDPOINT_URL: ${{ secrets.BUCKET_ENDPOINT_URL }}
           BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
           BOT_VERSION: ${{ steps.ver.outputs.bot_version }}
         run: |
           pip install awscli
-          aws s3 cp dist/SlowBurnBot.exe "s3://${BUCKET_NAME}/releases/windows/SlowBurnBot-${BOT_VERSION}.exe" --endpoint-url "${ENDPOINT_URL}"
+          aws s3 cp dist/SlowBurnBot.exe "s3://${BUCKET_NAME}/releases/windows/SlowBurnBot-${BOT_VERSION}.exe" --endpoint-url "${ENDPOINT_URL}" --region "${AWS_DEFAULT_REGION}"
           echo "Uploaded SlowBurnBot-${BOT_VERSION}.exe"
 
   # ──────────────────────────────────────────────────────────────
