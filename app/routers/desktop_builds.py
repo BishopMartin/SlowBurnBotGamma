@@ -31,9 +31,15 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
-def _mint_token() -> tuple[str, str]:
-    """Return (plaintext_token, sha256_hex_hash)."""
-    token = secrets.token_urlsafe(32)
+def _mint_token(user_id: uuid.UUID, client_id: int) -> tuple[str, str]:
+    """Return (plaintext_token, sha256_hex_hash).
+
+    Token format: {user_id}_{client_id}_{random_secret}
+    The client can parse user_id and client_id from the token directly,
+    eliminating the need to prompt for them separately on first run.
+    """
+    secret = secrets.token_urlsafe(32)
+    token = f"{user_id}_{client_id}_{secret}"
     return token, hashlib.sha256(token.encode()).hexdigest()
 
 
@@ -115,7 +121,7 @@ async def create_desktop_build(
             next_client_id += 1
 
     now = _now()
-    token, token_hash = _mint_token()
+    token, token_hash = _mint_token(user.id, next_client_id)
     sc = await _get_system_config(session)
 
     build = DesktopBuild(
@@ -234,7 +240,7 @@ async def rebuild_desktop_build(
     build = await _get_owned_build(build_id, user, session)
 
     now = _now()
-    token, token_hash = _mint_token()
+    token, token_hash = _mint_token(build.user_id, build.client_id)
 
     build.status = "pending_activation"
     build.activation_token_hash = token_hash

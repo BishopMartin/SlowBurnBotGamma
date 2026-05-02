@@ -44,65 +44,98 @@ def _default_config_path():
     return os.path.join(exe_dir, "burnBot_config.ini")
 
 
+_DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+)
+
+
 def _write_ini_from_activation(response: dict, config_path: str) -> None:
-    """Write a burnBot_config.ini from the /bot/desktop/activate response."""
+    """Write a burnBot_config.ini from the /bot/desktop/activate response.
+
+    Browser/driver settings are written to [browser] using hardcoded defaults.
+    Only client_name and system_type come from the server (build_options).
+    """
     import configparser
     opts = response.get("build_options", {})
     system_type = opts.get("system_type", "windows")
-    driver_section = f"driver.uchrome.{system_type}"
-    add_args = opts.get("add_arguments", [])
-    chrome_path = opts.get("chrome_path") or (
-        "/usr/bin/google-chrome" if system_type == "linux" else ""
-    )
 
     cp = configparser.ConfigParser()
-    cp["api"] = {"api_url": response.get("api_url", "")}
+    cp["api"] = {"api_url": _HARDCODED_API_URL}
     cp["api_credentials"] = {"email": "", "password": ""}
     cp["bot_settings"] = {
         "client_id": str(response.get("client_id", 1)),
         "client_name": opts.get("client_name", ""),
         "system_type": system_type,
-        "bot_debug": str(opts.get("bot_debug", False)),
-        "system_user_agent": opts.get("system_user_agent", ""),
-        "close_browser_session": str(opts.get("close_browser_session", False)),
-        "close_browser_exit": str(opts.get("close_browser_exit", False)),
-        "bot_idle_delay": str(opts.get("bot_idle_delay", 5)),
+        "bot_debug": "False",
     }
-    cp[driver_section] = {
-        "chrome_path": chrome_path,
-        "chrome_version": opts.get("chrome_version", ""),
-        "driverType": "webdriver.Chrome",
-        "headless": str(opts.get("headless", False)),
-        "detach": str(opts.get("detach", False)),
-        "chrome_user_data_dir_base": opts.get("chrome_user_data_dir_base", "PortableChrome"),
-        "add_argument": "\n".join(add_args) if add_args else "",
-    }
+
+    if system_type == "linux":
+        cp["browser"] = {
+            "chrome_path": "/usr/bin/google-chrome",
+            "chrome_version": "",
+            "chrome_user_data_dir_base": "",
+            "headless": "True",
+            "detach": "False",
+            "close_browser_session": "False",
+            "close_browser_exit": "False",
+            "bot_idle_delay": "5",
+            "system_user_agent": _DEFAULT_USER_AGENT,
+            "add_argument": "",
+        }
+    else:
+        cp["browser"] = {
+            "chrome_path": "PortableChrome\\chrome.exe",
+            "chrome_version": "143",
+            "chrome_user_data_dir_base": "PortableChrome",
+            "headless": "False",
+            "detach": "False",
+            "close_browser_session": "False",
+            "close_browser_exit": "False",
+            "bot_idle_delay": "5",
+            "system_user_agent": _DEFAULT_USER_AGENT,
+            "add_argument": "",
+        }
+
     with open(config_path, "w") as fh:
         cp.write(fh)
 
 
-def _run_activation_prompt(api_url_default: str) -> dict:
+_HARDCODED_API_URL = "https://slowburnbotgamma-production.up.railway.app"
+
+
+def _parse_activation_token(token: str) -> tuple[str, int]:
+    """
+    Parse user_id and client_id from a token formatted as:
+      {user_id}_{client_id}_{random_secret}
+    Returns (user_id, client_id) or exits with an error message.
+    """
+    parts = token.split("_", 2)
+    if len(parts) != 3:
+        print("ERROR: Invalid activation token format. Copy the token exactly from your dashboard.")
+        sys.exit(1)
+    user_id, client_id_str, _ = parts
+    try:
+        client_id_int = int(client_id_str)
+    except ValueError:
+        print("ERROR: Invalid activation token format. Copy the token exactly from your dashboard.")
+        sys.exit(1)
+    return user_id, client_id_int
+
+
+def _run_activation_prompt() -> dict:
     """
     Show a simple console prompt for activation on first run.
     Returns the parsed activation response from the server.
     """
     print("=" * 60)
     print("  SlowBurnBot — First Run Setup")
-    print("  Enter the details from your dashboard → Clients page.")
+    print("  Paste the Activation Token from your dashboard → Clients page.")
     print("=" * 60)
-    api_url_input = input(f"API URL [{api_url_default or 'https://'}]: ").strip()
-    if not api_url_input:
-        api_url_input = api_url_default
-    user_id = input("User ID (UUID from dashboard): ").strip()
-    client_id_str = input("Client ID (number from dashboard): ").strip()
-    token = input("Activation Token (paste from dashboard): ").strip()
-    try:
-        client_id_int = int(client_id_str)
-    except ValueError:
-        print("ERROR: Client ID must be a number.")
-        sys.exit(1)
+    token = input("Activation Token: ").strip()
+    user_id, client_id_int = _parse_activation_token(token)
 
-    tmp_client = ApiClient(api_url_input)
+    tmp_client = ApiClient(_HARDCODED_API_URL)
     result = tmp_client.activate_desktop_build(
         user_id=user_id,
         client_id=client_id_int,
@@ -120,7 +153,7 @@ if config_file is None:
     # First run: prompt for activation, write INI, then reload
     print(f"No config file found at {config_path}. Starting activation…")
     try:
-        _activation_result = _run_activation_prompt(api_url_default="")
+        _activation_result = _run_activation_prompt()
     except Exception as _act_err:
         print(f"[ERROR] Activation failed: {_act_err}")
         sys.exit(1)

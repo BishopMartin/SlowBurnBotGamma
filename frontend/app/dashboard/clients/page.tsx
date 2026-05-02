@@ -15,42 +15,15 @@ import {
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
 import { BracketInput } from "@/lib/bracket-input";
-import { BracketCheckbox } from "@/lib/bracket-checkbox";
-
-const DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36";
 
 const DEFAULT_CONFIG: DesktopBuildConfig = {
   client_name: "",
   system_type: "windows",
-  chrome_path: "PortableChrome\\chrome.exe",
-  chrome_version: "143",
-  chrome_user_data_dir_base: "PortableChrome",
-  headless: false,
-  detach: false,
-  close_browser_session: false,
-  close_browser_exit: false,
-  bot_idle_delay: 5,
-  bot_debug: false,
-  system_user_agent: DEFAULT_USER_AGENT,
-  add_arguments: [],
-  api_url: "",
 };
 
 const DEFAULT_LINUX_CONFIG: DesktopBuildConfig = {
   client_name: "",
   system_type: "linux",
-  chrome_path: "",
-  chrome_version: "",
-  chrome_user_data_dir_base: "",
-  headless: true,
-  detach: false,
-  close_browser_session: false,
-  close_browser_exit: false,
-  bot_idle_delay: 5,
-  bot_debug: false,
-  system_user_agent: DEFAULT_USER_AGENT,
-  add_arguments: [],
-  api_url: "",
 };
 
 const sectionCls = "border border-[#3d3d3a]";
@@ -87,14 +60,13 @@ function BuildForm({
 
   function switchPlatform(platform: "windows" | "linux") {
     if (platform === "linux") {
-      setCfg((p) => ({ ...DEFAULT_LINUX_CONFIG, client_name: p.client_name, system_user_agent: p.system_user_agent, api_url: p.api_url }));
+      setCfg((p) => ({ ...DEFAULT_LINUX_CONFIG, client_name: p.client_name }));
     } else {
-      setCfg((p) => ({ ...DEFAULT_CONFIG, client_name: p.client_name, system_user_agent: p.system_user_agent, api_url: p.api_url }));
+      setCfg((p) => ({ ...DEFAULT_CONFIG, client_name: p.client_name }));
     }
   }
 
-  const isLinux = cfg.system_type === "linux";
-  const canSubmit = !submitting && (isLinux || cfg.chrome_path.trim().length > 0);
+  const canSubmit = !submitting;
 
   return (
     <div className="px-4 py-3 space-y-2 bg-[#1a1918] border-t border-[#3d3d3a]">
@@ -113,31 +85,9 @@ function BuildForm({
         </button>
       </div>
       <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
-        {!isLinux && (
-          <BracketInput label="chrome version" value={cfg.chrome_version} onChange={(v) => set("chrome_version", v)} width="5ch" placeholder="143" />
-        )}
         <BracketInput label="client name" value={cfg.client_name} onChange={(v) => set("client_name", v.slice(0, 15))} width="15ch" placeholder="my laptop" />
       </div>
-      <div>
-        <BracketInput label="user agent" value={cfg.system_user_agent} onChange={(v) => set("system_user_agent", v)} width="72ch" />
-      </div>
-      {!isLinux && (
-        <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
-          <BracketInput label="chrome path" value={cfg.chrome_path} onChange={(v) => set("chrome_path", v)} width="30ch" placeholder="\PortableChrome\chrome.exe" />
-          <BracketInput label="user data dir" value={cfg.chrome_user_data_dir_base} onChange={(v) => set("chrome_user_data_dir_base", v)} width="22ch" placeholder="\PortableChrome\" />
-        </div>
-      )}
-      <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
-        {!isLinux && (
-          <>
-            <BracketCheckbox label="headless" checked={cfg.headless} onChange={(v) => set("headless", v)} />
-            <BracketCheckbox label="detach" checked={cfg.detach} onChange={(v) => set("detach", v)} />
-          </>
-        )}
-        <BracketCheckbox label="close on session end" checked={cfg.close_browser_session} onChange={(v) => set("close_browser_session", v)} />
-        <BracketCheckbox label="close on exit" checked={cfg.close_browser_exit} onChange={(v) => set("close_browser_exit", v)} />
-      </div>
-      {isLinux && (
+      {cfg.system_type === "linux" && (
         <p className="text-[#9A968B] text-sm">Chrome is included in the Docker image. Run with <code className="text-[#E5C07B]">docker run -it</code> for the TUI.</p>
       )}
       <div className="flex items-center gap-3 pt-1">

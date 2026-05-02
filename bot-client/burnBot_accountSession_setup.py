@@ -63,12 +63,8 @@ def build_user_data_dir(account):
     Returns:
         str: Path to the user data directory
     """
-    # Get driver config section name
-    driver_config_name = get_driver_config_name()
-    driver_config_section = f'driver.{driver_config_name}'
-    
     # Get base directory from config
-    chrome_user_data_dir_base = CONFIG[driver_config_section].get(
+    chrome_user_data_dir_base = CONFIG['browser'].get(
         'chrome_user_data_dir_base', 
         'ChromeUserData'
     )
@@ -718,9 +714,7 @@ def kill_chrome_processes_for_profile(chrome_user_data_dir, account, portable_ch
     # Get Portable Chrome path from config if not provided
     if portable_chrome_path is None:
         try:
-            driver_config_name = get_driver_config_name()
-            driver_config_section = f'driver.{driver_config_name}'
-            portable_chrome_path = CONFIG[driver_config_section].get('chrome_path', '').strip()
+            portable_chrome_path = CONFIG['browser'].get('chrome_path', '').strip()
             if portable_chrome_path:
                 # Resolve path relative to project directory if specified
                 portable_chrome_path = resolve_path(portable_chrome_path)
@@ -964,19 +958,16 @@ def update_profile_preferences(account, chrome_user_data_dir):
                 print(f"- [{account}]: Could not update Preferences: {e}")
 
 
-def load_base_arguments(driver_config_section):
+def load_base_arguments():
     """
-    Load base Chrome arguments from config file.
-    
-    Args:
-        driver_config_section: Name of the driver config section
-        
+    Load base Chrome arguments from the [browser] section of the config file.
+
     Returns:
         list: List of base argument strings
     """
     base_arguments = []
-    if 'add_argument' in CONFIG[driver_config_section]:
-        add_arg_str = CONFIG[driver_config_section]['add_argument']
+    if 'add_argument' in CONFIG['browser']:
+        add_arg_str = CONFIG['browser']['add_argument']
         # Parse multi-line arguments (split by newline, strip whitespace, filter empty/commented lines)
         for line in add_arg_str.split('\n'):
             line = line.strip()
@@ -1033,7 +1024,7 @@ def build_chrome_arguments(account, accountAgent, chrome_user_data_dir, base_arg
     # User agent (prefer explicit value, otherwise setup.system_user_agent, otherwise any --user-agent= in base args)
     ua = normalize_user_agent(accountAgent)
     if not ua:
-        ua = normalize_user_agent(CONFIG.get('bot_settings', 'system_user_agent', fallback=''))
+        ua = normalize_user_agent(CONFIG.get('browser', 'system_user_agent', fallback=''))
     if ua:
         arguments.append(f'--user-agent={ua}')
     else:
@@ -1070,12 +1061,8 @@ def setup_chrome_options(account, accountAgent, chrome_user_data_dir, debugging_
     Returns:
         ChromeOptions: Configured Chrome options object
     """
-    # Get driver config section name
-    driver_config_name = get_driver_config_name()
-    driver_config_section = f'driver.{driver_config_name}'
-    
     # Load base arguments from config file
-    base_arguments = load_base_arguments(driver_config_section)
+    base_arguments = load_base_arguments()
     
     # Build final arguments list
     arguments = build_chrome_arguments(account, accountAgent, chrome_user_data_dir, base_arguments, debugging_port)
@@ -1154,21 +1141,15 @@ def create_driver(account, accountAgent, account_idx=0):
     if is_bot_debug_enabled():
         print(f"- [{account}]: using remote debugging port: {debugging_port}")
     
-    # Get driver config section name
-    driver_config_name = get_driver_config_name()
-    driver_config_section = f'driver.{driver_config_name}'
-    
-    # Load configuration from .ini file (defaults)
+    # Load configuration from [browser] section
     # If chrome_path is empty, Selenium will use system Chrome
-    chrome_path = CONFIG[driver_config_section].get('chrome_path', '').strip()
+    chrome_path = CONFIG['browser'].get('chrome_path', '').strip()
     if chrome_path:
-        # Resolve path relative to project directory if specified
         chrome_path = resolve_path(chrome_path)
     else:
-        # Empty string means use system Chrome (Selenium will find it automatically)
         chrome_path = None
-    chrome_version = int(CONFIG[driver_config_section].get('chrome_version', '136'))
-    HEADLESS = CONFIG.getboolean(driver_config_section, 'headless', fallback=False)
+    chrome_version = int(CONFIG['browser'].get('chrome_version', '143') or '143')
+    HEADLESS = CONFIG.getboolean('browser', 'headless', fallback=False)
     
     # Detect if running via SSH or remote session (Windows)
     is_remote_session = False
