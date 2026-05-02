@@ -474,18 +474,6 @@ export interface FollowTarget {
 export interface DesktopBuildConfig {
   client_name: string;
   system_type: "windows" | "linux";
-  chrome_path: string;
-  chrome_version: string;
-  chrome_user_data_dir_base: string;
-  headless: boolean;
-  detach: boolean;
-  close_browser_session: boolean;
-  close_browser_exit: boolean;
-  bot_idle_delay: number;
-  bot_debug: boolean;
-  system_user_agent: string;
-  add_arguments: string[];
-  api_url: string;
 }
 
 export interface DesktopBuild {
