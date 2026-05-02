@@ -141,29 +141,26 @@ export default function ConfigPage() {
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">notifications</div>
 
-        <div className="divide-y divide-[#3d3d3a]">
-          <div className="px-4 py-2 flex items-center gap-x-3">
-            <span className="inline-flex min-w-[28ch]"><BracketCheckbox label="Session Notification" checked={noticesSession} onChange={setNoticesSession} /></span>
-            <span className="inline-flex items-center gap-0 pr-5">
-              <span className="text-[#9A968B]">{"type: "}</span>
-              <span className="text-[#f4f3ee]">{"["}</span>
-              <Dropdown value={noticesType} onChange={(v) => setNoticesType(v)} placeholder="----" options={NOTICES_OPTIONS} />
-              <span className="text-[#f4f3ee]">{"]"}</span>
-            </span>
-            <BracketInput label="email" value={notifyEmail} onChange={setNotifyEmail} type="email" placeholder="email@example.com" width="20ch" />
-            <BracketInput label="phone" value={formatPhone(notifyPhone)} onChange={(v) => setNotifyPhone(stripPhone(v))} type="tel" placeholder="(123) 456-7890" width="14ch" />
+        <div className="px-4 grid items-center gap-x-3" style={{ gridTemplateColumns: "28ch auto auto auto" }}>
+          <div className="py-2 border-b border-[#3d3d3a]"><BracketCheckbox label="Session Notification" checked={noticesSession} onChange={setNoticesSession} /></div>
+          <div className="py-2 border-b border-[#3d3d3a] inline-flex items-center gap-0 pr-5">
+            <span className="text-[#9A968B]">{"type: "}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
+            <Dropdown value={noticesType} onChange={(v) => setNoticesType(v)} placeholder="----" options={NOTICES_OPTIONS} />
+            <span className="text-[#f4f3ee]">{"]"}</span>
           </div>
-          <div className="px-4 py-2 flex items-center gap-x-3">
-            <span className="inline-flex min-w-[28ch]"><BracketCheckbox label="Login/Error Notification" checked={noticesLogin} onChange={setNoticesLogin} /></span>
-            <span className="inline-flex items-center gap-0 pr-5">
-              <span className="text-[#9A968B]">{"type: "}</span>
-              <span className="text-[#f4f3ee]">{"["}</span>
-              <Dropdown value={loginNoticesType} onChange={(v) => setLoginNoticesType(v)} placeholder="----" options={NOTICES_OPTIONS} />
-              <span className="text-[#f4f3ee]">{"]"}</span>
-            </span>
-            <BracketInput label="email" value={loginNotifyEmail} onChange={setLoginNotifyEmail} type="email" width="20ch" />
-            <BracketInput label="phone" value={formatPhone(loginNotifyPhone)} onChange={(v) => setLoginNotifyPhone(stripPhone(v))} type="tel" width="14ch" />
+          <div className="py-2 border-b border-[#3d3d3a]"><BracketInput label="email" value={notifyEmail} onChange={setNotifyEmail} type="email" placeholder="email@example.com" width="20ch" /></div>
+          <div className="py-2 border-b border-[#3d3d3a]"><BracketInput label="phone" value={formatPhone(notifyPhone)} onChange={(v) => setNotifyPhone(stripPhone(v))} type="tel" placeholder="(123) 456-7890" width="14ch" /></div>
+
+          <div className="py-2"><BracketCheckbox label="Login/Error Notification" checked={noticesLogin} onChange={setNoticesLogin} /></div>
+          <div className="py-2 inline-flex items-center gap-0 pr-5">
+            <span className="text-[#9A968B]">{"type: "}</span>
+            <span className="text-[#f4f3ee]">{"["}</span>
+            <Dropdown value={loginNoticesType} onChange={(v) => setLoginNoticesType(v)} placeholder="----" options={NOTICES_OPTIONS} />
+            <span className="text-[#f4f3ee]">{"]"}</span>
           </div>
+          <div className="py-2"><BracketInput label="email" value={loginNotifyEmail} onChange={setLoginNotifyEmail} type="email" width="20ch" /></div>
+          <div className="py-2"><BracketInput label="phone" value={formatPhone(loginNotifyPhone)} onChange={(v) => setLoginNotifyPhone(stripPhone(v))} type="tel" width="14ch" /></div>
         </div>
       </div>
 
