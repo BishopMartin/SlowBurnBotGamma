@@ -143,7 +143,7 @@ export default function ConfigPage() {
 
         <div className="divide-y divide-[#3d3d3a]">
           <div className="px-4 py-2 flex items-center gap-x-5 gap-y-2 flex-wrap">
-            <BracketCheckbox label="Session Notifications" checked={noticesSession} onChange={setNoticesSession} />
+            <span className="inline-flex min-w-[29ch]"><BracketCheckbox label="Session Notifications" checked={noticesSession} onChange={setNoticesSession} /></span>
             <span className="inline-flex items-center gap-0 pr-5">
               <span className="text-[#9A968B]">{"type: "}</span>
               <span className="text-[#f4f3ee]">{"["}</span>
@@ -154,7 +154,7 @@ export default function ConfigPage() {
             <BracketInput label="phone" value={formatPhone(notifyPhone)} onChange={(v) => setNotifyPhone(stripPhone(v))} type="tel" placeholder="(123) 456-7890" width="16ch" />
           </div>
           <div className="px-4 py-2 flex items-center gap-x-5 gap-y-2 flex-wrap">
-            <BracketCheckbox label="Login Issue Notifications" checked={noticesLogin} onChange={setNoticesLogin} />
+            <span className="inline-flex min-w-[29ch]"><BracketCheckbox label="Login/Error Notifications" checked={noticesLogin} onChange={setNoticesLogin} /></span>
             <span className="inline-flex items-center gap-0 pr-5">
               <span className="text-[#9A968B]">{"type: "}</span>
               <span className="text-[#f4f3ee]">{"["}</span>
