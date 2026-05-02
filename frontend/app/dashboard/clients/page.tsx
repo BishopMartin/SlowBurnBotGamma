@@ -434,7 +434,7 @@ export default function ClientPage() {
                               </Bracket>
                             </button>
                             <button onClick={() => toggleExpand(build.id)} className="group cursor-pointer transition-colors">
-                              <Bracket className={isExpanded ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>settings/rebuild</Bracket>
+                              <Bracket className={isExpanded ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>token</Bracket>
                             </button>
                           </div>
                         </td>
@@ -472,7 +472,7 @@ export default function ClientPage() {
                         <td className="px-3 py-3 text-[#3d3d3a]">—</td>
                         <td className="px-3 py-3 text-right">
                           <button onClick={() => toggleExpand(slotKey)} className="group cursor-pointer transition-colors">
-                            <Bracket className={isExpanded ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>settings/build</Bracket>
+                            <Bracket className={isExpanded ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>token</Bracket>
                           </button>
                         </td>
                       </tr>
@@ -512,13 +512,13 @@ export default function ClientPage() {
         <div className="px-4 py-4 space-y-4 text-[#9A968B]">
           <div className="space-y-1">
             <p className="text-[#f4f3ee]">windows</p>
-            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">settings/build</span> on an empty slot and configure your Chrome path. Copy the activation token shown after saving.</p>
+            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">token</span> on an empty slot and configure your Chrome path. Copy the activation token shown after saving.</p>
             <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">download</span> on your slot to get <code className="text-[#E5C07B]">SlowBurnBot.exe</code>. Put it in a folder on your machine.</p>
             <p><span className="text-[#f4f3ee]">3.</span> Run the EXE. On first launch it will prompt for your User ID, Client ID, and Activation Token. Paste them in — the config is written locally and you won't be asked again.</p>
           </div>
           <div className="space-y-1">
             <p className="text-[#f4f3ee]">linux / docker</p>
-            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">settings/build</span> on an empty slot and select <span className="text-[#f4f3ee]">linux / docker</span>. Copy the activation token.</p>
+            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">token</span> on an empty slot and select <span className="text-[#f4f3ee]">linux / docker</span>. Copy the activation token.</p>
             <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">get commands</span> to see the <code className="text-[#E5C07B]">docker pull</code> and <code className="text-[#E5C07B]">docker run</code> commands. Paste your activation token into the run command.</p>
             <p><span className="text-[#f4f3ee]">3.</span> Run the container. On first launch it writes a local config file and activates. Subsequent runs use the saved config.</p>
           </div>
