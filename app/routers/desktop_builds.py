@@ -210,23 +210,17 @@ async def get_download_url(
     return {"url": signed_url, "filename": f"SlowBurnBot-client{build.client_id}.exe"}
 
 
-@router.post("/{build_id}/revoke", response_model=DesktopBuildRead)
+@router.delete("/{build_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def revoke_desktop_build(
     build_id: uuid.UUID,
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
     _: Subscription = Depends(require_active_subscription),
 ):
-    """User-initiated revoke — marks build as revoked, invalidates token."""
+    """User-initiated revoke — hard-deletes the build row, freeing the slot."""
     build = await _get_owned_build(build_id, user, session)
-    if build.status == "revoked":
-        return DesktopBuildRead.model_validate(build)
-    build.status = "revoked"
-    build.activation_token_hash = None
-    build.activation_token_expires_at = None
+    await session.delete(build)
     await session.commit()
-    await session.refresh(build)
-    return DesktopBuildRead.model_validate(build)
 
 
 @router.post("/{build_id}/rebuild", response_model=DesktopBuildWithToken, status_code=status.HTTP_201_CREATED)

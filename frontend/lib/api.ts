@@ -526,8 +526,8 @@ export async function getDownloadInfo(id: string): Promise<DownloadInfo> {
   return request<DownloadInfo>(`/desktop-builds/${id}/download-url`);
 }
 
-export async function revokeDesktopBuild(id: string): Promise<DesktopBuild> {
-  return request<DesktopBuild>(`/desktop-builds/${id}/revoke`, { method: "POST" });
+export async function revokeDesktopBuild(id: string): Promise<void> {
+  return request<void>(`/desktop-builds/${id}`, { method: "DELETE" });
 }
 
 export async function rebuildDesktopBuild(id: string): Promise<DesktopBuildWithToken> {

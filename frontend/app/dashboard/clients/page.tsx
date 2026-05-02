@@ -462,9 +462,9 @@ export default function ClientPage() {
         <div className="px-4 py-4 space-y-4 text-[#9A968B]">
           <div className="space-y-1">
             <p className="text-[#f4f3ee]">windows</p>
-            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">token</span> on an empty slot and configure your Chrome path. Copy the activation token shown after saving.</p>
+            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">token</span> on an empty slot, enter a name, and copy the activation token shown after saving.</p>
             <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">download</span> on your slot to get <code className="text-[#E5C07B]">SlowBurnBot.exe</code>. Put it in a folder on your machine.</p>
-            <p><span className="text-[#f4f3ee]">3.</span> Run the EXE. On first launch it will prompt for your User ID, Client ID, and Activation Token. Paste them in — the config is written locally and you won't be asked again.</p>
+            <p><span className="text-[#f4f3ee]">3.</span> Run the EXE. On first launch it will prompt for your Activation Token. Paste it in — the config is written locally and you won't be asked again.</p>
           </div>
           <div className="space-y-1">
             <p className="text-[#f4f3ee]">linux / docker</p>

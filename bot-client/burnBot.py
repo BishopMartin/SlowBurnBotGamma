@@ -222,7 +222,7 @@ def _try_api_relogin_from_config(client):
 
 
 # Load bot_idle_delay for main loop check interval (in minutes, convert to seconds)
-bot_idle_delay_minutes = CONFIG.getint('bot_settings', 'bot_idle_delay', fallback=1)
+bot_idle_delay_minutes = CONFIG.getint('browser', 'bot_idle_delay', fallback=1)
 bot_idle_delay = bot_idle_delay_minutes * 60  # Convert to seconds
 
 # Helper function for interruptible sleep
@@ -374,9 +374,9 @@ try:
         # Fetch user config and emit startup log
         # ------------------------------------------------------------------
         _plan = entitlement.get("plan_tier", "free")
-        _ua  = CONFIG.get('bot_settings', 'system_user_agent', fallback='').strip()
-        _cs  = CONFIG.get('bot_settings', 'close_browser_session', fallback='FALSE').strip().upper()
-        _ce  = CONFIG.get('bot_settings', 'close_browser_exit',    fallback='FALSE').strip().upper()
+        _ua  = CONFIG.get('browser', 'system_user_agent', fallback='').strip()
+        _cs  = CONFIG.get('browser', 'close_browser_session', fallback='FALSE').strip().upper()
+        _ce  = CONFIG.get('browser', 'close_browser_exit',    fallback='FALSE').strip().upper()
         _dbg = CONFIG.get('bot_settings', 'bot_debug',             fallback='FALSE').strip().upper()
         _idl = str(bot_idle_delay_minutes).zfill(2)
         _st  = CONFIG.get('bot_settings', 'system_type',           fallback='').strip()
@@ -762,7 +762,7 @@ except KeyboardInterrupt:
         print()
         print("Force exit requested - threads may not have completed cleanup")
 
-    close_browser_exit = CONFIG.getboolean('bot_settings', 'close_browser_exit', fallback=True)
+    close_browser_exit = CONFIG.getboolean('browser', 'close_browser_exit', fallback=False)
 
     print("=" * 60)
     print("[bot]: All threads finished.")

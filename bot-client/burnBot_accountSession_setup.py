@@ -35,24 +35,6 @@ except ImportError:
     psutil = None
 
 
-def get_driver_config_name():
-    """
-    Get the driver config name based on system_type.
-    
-    Returns:
-        str: Driver config name (e.g., 'uchrome.windows' or 'uchrome.chromebook')
-    """
-    # Get system_type from [setup] section (required)
-    if CONFIG.has_section('bot_settings'):
-        system_type = CONFIG.get('bot_settings', 'system_type', fallback='').strip().lower()
-        if system_type:
-            # Use 'uchrome' as the base driver type
-            return f"uchrome.{system_type}"
-    
-    # Fallback if system_type not set (should not happen)
-    raise ValueError("system_type must be set in [setup] section of config file")
-
-
 def build_user_data_dir(account):
     """
     Build the user data directory path for an account.
