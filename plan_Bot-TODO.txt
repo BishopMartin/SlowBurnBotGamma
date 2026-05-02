@@ -1,7 +1,13 @@
 
+
+Local settings/config vs website settings/config
+
 Client Tweaks
+- Faster broser heart berat checks?
+- more space in status column
 - need to add code to handle isntagram 'turn on notifications' pop-up window..  esc does not make it go away..  only clicking "not now"
-- dual client issue
+- dual client issue?  now prevented by token creation?  if new token created in slow #1 does it de-active any old token/browser in slot 1?
+
 
 Client Projects
 - executable selection - portable chrome or system chrome...
@@ -11,18 +17,18 @@ Client Projects
 - log output format update.
 
 - need new code for when instgram SMS code verification is enoucteed during login.
-- client build settings become the default..  can still be adjusted in the client itself with /settings
-- possible to have dynamic column width?  -if not possible to lock window width?
 - load-up output - shows notification info for only regular notices, not login issue notices..
 
-client page 
+Client page 
+-
 
 Overview page
-- update Clients table with new column for "State" (inserted after status) that shows "active", "paused", etc. based on the client state
 - update clients table with new last column named "Last Session" showing the last account name that ran
-
+- make above left aligned..
+- show client version on Clients table?
 
 Accounts page
+- 
 
 Site wide
 - text size review
