@@ -19,24 +19,26 @@ class Settings(BaseSettings):
     # CORS (set once Next.js is deployed)
     cors_origins: list[str] = []
 
-    # Public-facing API base URL (used as fallback when a desktop build config
-    # omits api_url — baked into the EXE so it knows where to call home)
+    # Public-facing API base URL (returned to client on activation so bot knows where to call home)
     public_api_url: str = ""
 
-    # GitHub Actions — desktop build dispatch
+    # GitHub — read bot version from main branch (used on startup and by admin)
     github_token: str = ""
-    github_repo: str = ""            # "owner/repo"
-    github_workflow_file: str = "build-desktop.yml"
-    github_workflow_file_linux: str = "build-linux.yml"
-    github_webhook_secret: str = ""  # optional; used by webhook receiver
+    github_repo: str = ""  # "owner/repo"
 
     # GHCR — Linux Docker image delivery
     ghcr_namespace: str = ""  # e.g. "ghcr.io/bishopmartin/slowburnbotgamma"
 
+    # Railway S3-compatible object storage — generic release artifact hosting
+    bucket_endpoint_url: str = ""   # e.g. "https://<id>.us-east-1.s3.amazonaws.com"
+    bucket_name: str = ""
+    bucket_access_key_id: str = ""
+    bucket_secret_access_key: str = ""
+    bucket_region: str = "us-east-1"
+
     # Desktop build policy
-    desktop_activation_token_ttl_hours: int = 168  # 7 days
-    desktop_download_expires_hours: int = 72
-    desktop_max_downloads: int = 10
+    desktop_activation_token_ttl_hours: int = 24
+    desktop_signed_url_expires_seconds: int = 300
 
     @field_validator("database_url", mode="before")
     @classmethod

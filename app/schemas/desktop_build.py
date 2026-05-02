@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class DesktopBuildConfig(BaseModel):
-    """Customer-configurable settings baked into the EXE or Docker image — no secrets."""
+    """Customer-configurable settings seeded into the client INI on first run — no secrets."""
 
     client_name: str = Field(default="", max_length=15)
     system_type: Literal["windows", "linux"] = "windows"
@@ -54,19 +54,16 @@ class DesktopBuildRead(BaseModel):
     client_id: int
     status: str
     build_options: dict
-    github_run_id: str | None
-    failure_reason: str | None
+    failure_reason: str | None = None
     bot_version: str | None = None
-    activated_at: datetime | None
-    download_expires_at: datetime
-    download_count: int
-    max_downloads: int
+    activated_at: datetime | None = None
+    consumed_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
 
 class DesktopBuildWithToken(DesktopBuildRead):
-    """Returned only on initial POST — includes the one-time activation token."""
+    """Returned only on initial create/rebuild — includes the one-time activation token."""
 
     activation_token: str
 

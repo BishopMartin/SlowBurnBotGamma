@@ -1,0 +1,131 @@
+# Release workflow — triggered by pushing a tag matching bot-client-v*.
+# Builds a generic Windows EXE (PyInstaller) and Linux Docker image (Nuitka),
+# uploads the EXE to Railway object storage, and pushes the Docker image to GHCR.
+#
+# No customer-specific data is baked in. Activation happens at runtime via
+# the /bot/desktop/activate endpoint.
+#
+# Required repository secrets:
+#   BUCKET_ENDPOINT_URL        — Railway S3-compatible bucket endpoint URL
+#   BUCKET_NAME                — bucket name
+#   BUCKET_ACCESS_KEY_ID       — bucket access key
+#   BUCKET_SECRET_ACCESS_KEY   — bucket secret key
+#   BUCKET_REGION              — bucket region (default: us-east-1)
+#
+# GITHUB_TOKEN is used automatically for GHCR push (read/write packages permission required).
+
+name: release-bot-client
+
+on:
+  push:
+    tags:
+      - "bot-client-v*"
+
+permissions:
+  contents: read
+  packages: write  # push to GHCR
+
+jobs:
+  # ──────────────────────────────────────────────────────────────
+  # Windows EXE build
+  # ──────────────────────────────────────────────────────────────
+  windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read BOT_VERSION
+        id: ver
+        shell: python
+        run: |
+          import re, os
+          text = open("bot-client/burnBot_version.py").read()
+          m = re.search(r'BOT_VERSION\s*=\s*["\']([^"\']+)["\']', text)
+          version = m.group(1) if m else "unknown"
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"bot_version={version}\n")
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r bot-client/requirements.txt pyinstaller
+
+      - name: Build EXE
+        working-directory: bot-client
+        run: pyinstaller SlowBurnBot.spec --distpath ../dist --workpath ../build
+
+      - name: Upload EXE to object storage
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BUCKET_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BUCKET_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.BUCKET_REGION || 'us-east-1' }}
+          ENDPOINT_URL: ${{ secrets.BUCKET_ENDPOINT_URL }}
+          BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+          BOT_VERSION: ${{ steps.ver.outputs.bot_version }}
+        run: |
+          pip install awscli
+          aws s3 cp dist/SlowBurnBot.exe "s3://${BUCKET_NAME}/releases/windows/SlowBurnBot-${BOT_VERSION}.exe" --endpoint-url "${ENDPOINT_URL}"
+          echo "Uploaded SlowBurnBot-${BOT_VERSION}.exe"
+
+  # ──────────────────────────────────────────────────────────────
+  # Linux Docker image build
+  # ──────────────────────────────────────────────────────────────
+  linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read BOT_VERSION
+        id: ver
+        run: |
+          BOT_VERSION=$(python3 -c "import re; m=re.search(r'BOT_VERSION\s*=\s*[\"\']([\d.]+)[\"\']', open('bot-client/burnBot_version.py').read()); print(m.group(1) if m else 'unknown')")
+          echo "bot_version=${BOT_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies + Nuitka
+        run: |
+          pip install -r bot-client/requirements.txt
+          pip install nuitka ordered-set zstandard
+
+      - name: Compile with Nuitka
+        working-directory: bot-client
+        run: |
+          python -m nuitka \
+            --onefile \
+            --output-filename=slowburnbot \
+            --nofollow-import-to=pyautogui,pygetwindow \
+            burnBot.py
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        env:
+          BOT_VERSION: ${{ steps.ver.outputs.bot_version }}
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_VERSION="ghcr.io/${REPO_LOWER}/slowburnbot-client:${BOT_VERSION}"
+          IMAGE_LATEST="ghcr.io/${REPO_LOWER}/slowburnbot-client:latest"
+          cp bot-client/slowburnbot .
+          docker build -f bot-client/Dockerfile.linux \
+            -t "${IMAGE_VERSION}" \
+            -t "${IMAGE_LATEST}" \
+            .
+          docker push "${IMAGE_VERSION}"
+          docker push "${IMAGE_LATEST}"
+          echo "Pushed ${IMAGE_VERSION} and ${IMAGE_LATEST}"

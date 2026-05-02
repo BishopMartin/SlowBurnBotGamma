@@ -492,8 +492,12 @@ class ApiClient:
 
 
     def activate_desktop_build(self, user_id: str, client_id: int,
-                               activation_token: str, bot_version: str) -> bool:
-        """One-time activation handshake called on first frozen-EXE launch."""
+                               activation_token: str, bot_version: str) -> dict:
+        """
+        Single-use activation handshake for first launch of the generic binary.
+        Returns the server response dict containing 'build_options' and 'api_url'
+        so the caller can write burnBot_config.ini.
+        """
         try:
             resp = self.client.post(
                 "/bot/desktop/activate",
@@ -509,10 +513,10 @@ class ApiClient:
             raise AuthenticationError(f"Activation request failed: {e}")
 
         if resp.status_code == 200:
-            return True
-        if resp.status_code in (401, 410):
+            return resp.json()
+        if resp.status_code in (401, 403, 404, 410):
             detail = resp.json().get("detail", resp.status_code)
-            raise AuthenticationError(f"Activation rejected by server: {detail}")
+            raise AuthenticationError(f"Activation rejected: {detail}")
         resp.raise_for_status()
 
 

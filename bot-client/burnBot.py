@@ -1,7 +1,7 @@
 # burnBot.py
 
 from burnBot_imports import *
-from burnBot_config import load_config, CONFIG, resolve_path, clear_api_credentials_in_ini, is_frozen
+from burnBot_config import load_config, CONFIG, resolve_path, clear_api_credentials_in_ini
 from burnBot_utils import close_windows, has_internet_connection, process_exception, delay, check_schedule, consume_connectivity_recovery_notice
 from burnBot_accountSession import accountSession
 from burnBot_accountSession_setup import is_bot_debug_enabled
@@ -38,8 +38,98 @@ def _beep(kind):
     except Exception:
         pass
 
-# Load config
-config_file = load_config("burnBot_config.ini")
+def _default_config_path():
+    """Return the default INI path: next to the executable (frozen) or CWD (dev)."""
+    exe_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+    return os.path.join(exe_dir, "burnBot_config.ini")
+
+
+def _write_ini_from_activation(response: dict, config_path: str) -> None:
+    """Write a burnBot_config.ini from the /bot/desktop/activate response."""
+    import configparser
+    opts = response.get("build_options", {})
+    system_type = opts.get("system_type", "windows")
+    driver_section = f"driver.uchrome.{system_type}"
+    add_args = opts.get("add_arguments", [])
+    chrome_path = opts.get("chrome_path") or (
+        "/usr/bin/google-chrome" if system_type == "linux" else ""
+    )
+
+    cp = configparser.ConfigParser()
+    cp["api"] = {"api_url": response.get("api_url", "")}
+    cp["api_credentials"] = {"email": "", "password": ""}
+    cp["bot_settings"] = {
+        "client_id": str(response.get("client_id", 1)),
+        "client_name": opts.get("client_name", ""),
+        "system_type": system_type,
+        "bot_debug": str(opts.get("bot_debug", False)),
+        "system_user_agent": opts.get("system_user_agent", ""),
+        "close_browser_session": str(opts.get("close_browser_session", False)),
+        "close_browser_exit": str(opts.get("close_browser_exit", False)),
+        "bot_idle_delay": str(opts.get("bot_idle_delay", 5)),
+    }
+    cp[driver_section] = {
+        "chrome_path": chrome_path,
+        "chrome_version": opts.get("chrome_version", ""),
+        "driverType": "webdriver.Chrome",
+        "headless": str(opts.get("headless", False)),
+        "detach": str(opts.get("detach", False)),
+        "chrome_user_data_dir_base": opts.get("chrome_user_data_dir_base", "PortableChrome"),
+        "add_argument": "\n".join(add_args) if add_args else "",
+    }
+    with open(config_path, "w") as fh:
+        cp.write(fh)
+
+
+def _run_activation_prompt(api_url_default: str) -> dict:
+    """
+    Show a simple console prompt for activation on first run.
+    Returns the parsed activation response from the server.
+    """
+    print("=" * 60)
+    print("  SlowBurnBot — First Run Setup")
+    print("  Enter the details from your dashboard → Clients page.")
+    print("=" * 60)
+    api_url_input = input(f"API URL [{api_url_default or 'https://'}]: ").strip()
+    if not api_url_input:
+        api_url_input = api_url_default
+    user_id = input("User ID (UUID from dashboard): ").strip()
+    client_id_str = input("Client ID (number from dashboard): ").strip()
+    token = input("Activation Token (paste from dashboard): ").strip()
+    try:
+        client_id_int = int(client_id_str)
+    except ValueError:
+        print("ERROR: Client ID must be a number.")
+        sys.exit(1)
+
+    tmp_client = ApiClient(api_url_input)
+    result = tmp_client.activate_desktop_build(
+        user_id=user_id,
+        client_id=client_id_int,
+        activation_token=token,
+        bot_version=BOT_VERSION,
+    )
+    return result
+
+
+# Load config — None means INI is missing (first run)
+config_path = _default_config_path()
+config_file = load_config(config_path)
+
+if config_file is None:
+    # First run: prompt for activation, write INI, then reload
+    print(f"No config file found at {config_path}. Starting activation…")
+    try:
+        _activation_result = _run_activation_prompt(api_url_default="")
+    except Exception as _act_err:
+        print(f"[ERROR] Activation failed: {_act_err}")
+        sys.exit(1)
+    _write_ini_from_activation(_activation_result, config_path)
+    print(f"Configuration saved to {config_path}")
+    config_file = load_config(config_path)
+    if config_file is None:
+        print("[ERROR] Failed to load config after activation.")
+        sys.exit(1)
 
 # Load API connection
 api_url = CONFIG.get('api', 'api_url', fallback='')
@@ -48,22 +138,6 @@ if not api_url:
     sys.exit(1)
 
 apiClient = ApiClient(api_url)
-
-# Frozen EXE: perform one-time activation handshake before normal login
-if is_frozen():
-    try:
-        import _desktop_build_config as _baked  # noqa: PLC0415
-        status_store.add_log(client_log_line(None, "api", "Activating desktop build…"))
-        apiClient.activate_desktop_build(
-            user_id=_baked.USER_ID,
-            client_id=_baked.CLIENT_ID,
-            activation_token=_baked.ACTIVATION_TOKEN,
-            bot_version=BOT_VERSION,
-        )
-        status_store.add_log(client_log_line(None, "api", "Build activated."))
-    except Exception as _act_err:
-        print(f"[ERROR] Desktop activation failed: {_act_err}")
-        sys.exit(1)
 
 
 def _api_credentials_from_ini():
@@ -301,8 +375,7 @@ try:
             f"SlowBurnBot v{BOT_VERSION} · started {_started_at} · plan={_plan} · client {_sg} · {_client_label} · {_st or 'unknown'}",
         ))
         _log(client_log_line(None, "cfg", f"api_url  {api_url}"))
-        if not is_frozen():
-            _log(client_log_line(None, "cfg", f"config_file  {config_file}"))
+        _log(client_log_line(None, "cfg", f"config_file  {config_file}"))
         _log(client_log_line(
             None, "cfg",
             f"bot  debug={_dbg_on}  idle_delay={_idl}m  close_session={_cs_on}  close_exit={_ce_on}",

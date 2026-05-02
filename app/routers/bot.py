@@ -1,5 +1,6 @@
 """Exe-facing endpoints — called by the compiled SlowBurnBot client."""
 import hashlib
+import hmac
 import uuid
 from datetime import date, datetime, timedelta, timezone
 
@@ -42,6 +43,7 @@ from app.schemas.bot import (
 )
 from app.schemas.desktop_build import DesktopActivateRequest
 from app.services.notifications import NotificationError, send_email, send_sms
+from app.settings import settings
 
 router = APIRouter(prefix="/bot", tags=["bot"])
 
@@ -305,30 +307,49 @@ async def activate_desktop_build(
     session: AsyncSession = Depends(get_async_session),
 ):
     """
-    One-time activation handshake called by the EXE on first launch.
-    No JWT required — validated by the baked activation token instead.
+    Single-use activation handshake called by the generic binary on first launch.
+    No JWT required — validated by the activation token instead.
+    Returns build_options so the client can write its local burnBot_config.ini.
     """
+    now = datetime.now(timezone.utc)
+
     build = await session.scalar(
         select(DesktopBuild).where(
             DesktopBuild.user_id == body.user_id,
             DesktopBuild.client_id == body.client_id,
-            DesktopBuild.status == "ready",
+            DesktopBuild.status == "pending_activation",
         )
     )
     if build is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Build not found.")
 
-    token_hash = hashlib.sha256(body.activation_token.encode()).hexdigest()
-    if build.activation_token_hash != token_hash:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid activation token.")
+    # Single-use enforcement: reject if already consumed
+    if build.consumed_at is not None:
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail="Activation token already used.")
 
-    if build.activation_token_expires_at < datetime.now(timezone.utc):
+    if build.activation_token_expires_at is None or build.activation_token_expires_at < now:
         raise HTTPException(status_code=status.HTTP_410_GONE, detail="Activation token expired.")
 
-    if build.activated_at is None:
-        build.activated_at = datetime.now(timezone.utc)
+    if build.activation_token_hash is None:
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail="Activation token revoked.")
+
+    token_hash = hashlib.sha256(body.activation_token.encode()).hexdigest()
+    if not hmac.compare_digest(build.activation_token_hash, token_hash):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid activation token.")
+
+    # Consume the token — null out hash so it can never match again
+    build.activated_at = now
+    build.consumed_at = now
+    build.activation_token_hash = None
+    build.activation_token_expires_at = None
+    build.status = "activated"
     if body.bot_version:
         build.bot_version = body.bot_version
     await session.commit()
 
-    return {"activated": True, "client_id": build.client_id}
+    return {
+        "activated": True,
+        "client_id": build.client_id,
+        "api_url": settings.public_api_url,
+        "build_options": build.build_options,
+    }

@@ -491,21 +491,28 @@ export interface DesktopBuildConfig {
 export interface DesktopBuild {
   id: string;
   client_id: number;
-  status: "queued" | "running" | "ready" | "failed" | "revoked";
+  status: "pending_activation" | "activated" | "revoked";
   build_options: DesktopBuildConfig;
-  github_run_id: string | null;
   failure_reason: string | null;
   bot_version: string | null;
   activated_at: string | null;
-  download_expires_at: string;
-  download_count: number;
-  max_downloads: number;
+  consumed_at: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface DesktopBuildWithToken extends DesktopBuild {
   activation_token: string;
+}
+
+export interface DownloadInfo {
+  // Windows
+  url?: string;
+  filename?: string;
+  // Linux
+  image_ref?: string;
+  pull_cmd?: string;
+  run_cmd?: string;
 }
 
 export async function createDesktopBuild(config: DesktopBuildConfig, slotNumber?: number): Promise<DesktopBuildWithToken> {
@@ -527,13 +534,8 @@ export async function getDesktopBuild(id: string): Promise<DesktopBuild> {
   return request<DesktopBuild>(`/desktop-builds/${id}`);
 }
 
-export function getDesktopBuildDownloadUrl(id: string): string {
-  return `${API_URL}/desktop-builds/${id}/download`;
-}
-
-export async function getDesktopBuildDownloadToken(id: string): Promise<string> {
-  const res = await request<{ token: string }>(`/desktop-builds/${id}/download-token`, { method: "POST" });
-  return res.token;
+export async function getDownloadInfo(id: string): Promise<DownloadInfo> {
+  return request<DownloadInfo>(`/desktop-builds/${id}/download-url`);
 }
 
 export async function revokeDesktopBuild(id: string): Promise<DesktopBuild> {
@@ -542,14 +544,4 @@ export async function revokeDesktopBuild(id: string): Promise<DesktopBuild> {
 
 export async function rebuildDesktopBuild(id: string): Promise<DesktopBuildWithToken> {
   return request<DesktopBuildWithToken>(`/desktop-builds/${id}/rebuild`, { method: "POST" });
-}
-
-export interface LinuxBuildInstructions {
-  image_ref: string;
-  pull_cmd: string;
-  run_cmd: string;
-}
-
-export async function getLinuxBuildInstructions(id: string): Promise<LinuxBuildInstructions> {
-  return request<LinuxBuildInstructions>(`/desktop-builds/${id}/download`);
 }

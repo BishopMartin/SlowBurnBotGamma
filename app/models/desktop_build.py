@@ -2,7 +2,6 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
-    BigInteger,
     DateTime,
     ForeignKey,
     Integer,
@@ -18,7 +17,7 @@ from app.database import Base
 
 
 class DesktopBuild(Base):
-    """Per-customer Windows EXE build request with baked configuration."""
+    """Per-slot activation record — config seeded at activation, then owned by client INI."""
 
     __tablename__ = "desktop_builds"
     __table_args__ = (
@@ -36,29 +35,22 @@ class DesktopBuild(Base):
     build_options: Mapped[dict] = mapped_column(JSONB, nullable=False)
 
     status: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="queued"
-    )  # queued|running|ready|failed|revoked
+        String(20), nullable=False, default="pending_activation"
+    )  # pending_activation | activated | revoked
 
-    github_run_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    artifact_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
-    artifact_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    file_size_bytes: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     failure_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     bot_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
-    activation_token_hash: Mapped[str] = mapped_column(String(64), nullable=False)
-    activation_token_expires_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
+    activation_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    activation_token_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
     activated_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-
-    download_expires_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
+    consumed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
-    download_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    max_downloads: Mapped[int] = mapped_column(Integer, nullable=False, default=10)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()

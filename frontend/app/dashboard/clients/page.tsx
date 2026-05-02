@@ -1,20 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   createDesktopBuild,
   revokeDesktopBuild,
   listDesktopBuilds,
-  getDesktopBuild,
-  getDesktopBuildDownloadUrl,
-  getDesktopBuildDownloadToken,
+  getDownloadInfo,
   getDesktopBuildsMeta,
-  getLinuxBuildInstructions,
   getSubscriptionInfo,
   DesktopBuild,
   DesktopBuildConfig,
   DesktopBuildWithToken,
-  LinuxBuildInstructions,
   SubscriptionInfo,
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
@@ -43,10 +39,10 @@ const DEFAULT_CONFIG: DesktopBuildConfig = {
 const DEFAULT_LINUX_CONFIG: DesktopBuildConfig = {
   client_name: "",
   system_type: "linux",
-  chrome_path: "",         // Chrome is installed in the Docker image
+  chrome_path: "",
   chrome_version: "",
   chrome_user_data_dir_base: "",
-  headless: true,          // forced by backend; no visible Chrome window in container
+  headless: true,
   detach: false,
   close_browser_session: false,
   close_browser_exit: false,
@@ -60,13 +56,10 @@ const DEFAULT_LINUX_CONFIG: DesktopBuildConfig = {
 const sectionCls = "border border-[#3d3d3a]";
 
 function statusColor(status: string): string {
-  if (status === "ready") return "text-status-ok";
-  if (status === "failed" || status === "revoked") return "text-status-bad";
+  if (status === "activated") return "text-status-ok";
+  if (status === "revoked") return "text-status-bad";
   return "text-[#E5C07B]";
 }
-
-function isActive(b: DesktopBuild) { return b.status === "queued" || b.status === "running"; }
-function isExpired(b: DesktopBuild) { return new Date(b.download_expires_at) < new Date(); }
 
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
@@ -78,7 +71,7 @@ function BuildForm({
   onCancel,
   submitting,
   error,
-  submitLabel = "request build",
+  submitLabel = "configure slot",
 }: {
   initial: DesktopBuildConfig;
   onSubmit: (cfg: DesktopBuildConfig) => void;
@@ -105,7 +98,6 @@ function BuildForm({
 
   return (
     <div className="px-4 py-3 space-y-2 bg-[#1a1918] border-t border-[#3d3d3a]">
-      {/* Platform selector */}
       <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
         <button
           onClick={() => switchPlatform("windows")}
@@ -154,7 +146,7 @@ function BuildForm({
           disabled={!canSubmit}
           className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{submitting ? "requesting…" : submitLabel}</Bracket>
+          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{submitting ? "saving…" : submitLabel}</Bracket>
         </button>
         <button onClick={onCancel} className="group cursor-pointer transition-colors">
           <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">cancel</Bracket>
@@ -189,14 +181,12 @@ export default function ClientPage() {
   const [revoking, setRevoking] = useState<string | null>(null);
 
   const [justCreated, setJustCreated] = useState<DesktopBuildWithToken | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copiedToken, setCopiedToken] = useState(false);
 
-  const [linuxInstructions, setLinuxInstructions] = useState<(LinuxBuildInstructions & { buildId: string }) | null>(null);
+  const [linuxCmds, setLinuxCmds] = useState<{ buildId: string; pull_cmd: string; run_cmd: string } | null>(null);
   const [copiedCmd, setCopiedCmd] = useState<string | null>(null);
 
   const [pageError, setPageError] = useState<string | null>(null);
-
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   async function load() {
     try {
@@ -223,17 +213,6 @@ export default function ClientPage() {
     await load();
     getSubscriptionInfo().then(setSubInfo).catch(() => {});
   }
-
-  useEffect(() => {
-    const active = builds.filter(isActive);
-    if (active.length === 0) { if (pollRef.current) clearInterval(pollRef.current); return; }
-    if (pollRef.current) clearInterval(pollRef.current);
-    pollRef.current = setInterval(async () => {
-      const updated = await Promise.all(active.map((b) => getDesktopBuild(b.id).catch(() => b)));
-      setBuilds((prev) => prev.map((b) => updated.find((u) => u.id === b.id) ?? b));
-    }, 10_000);
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, [builds]);
 
   const activeBuilds = builds
     .filter((b) => b.status !== "revoked")
@@ -272,7 +251,7 @@ export default function ClientPage() {
       setExpandedKey(null);
       await refreshAll();
     } catch (e: unknown) {
-      setFormError(e instanceof Error ? e.message : "Rebuild failed.");
+      setFormError(e instanceof Error ? e.message : "Reconfigure failed.");
     } finally {
       setFormSubmitting(false);
     }
@@ -280,24 +259,14 @@ export default function ClientPage() {
 
   async function handleDownload(build: DesktopBuild) {
     const isLinux = (build.build_options as DesktopBuildConfig).system_type === "linux";
-    if (isLinux) {
-      setDownloading(build.id);
-      try {
-        const instructions = await getLinuxBuildInstructions(build.id);
-        setLinuxInstructions({ ...instructions, buildId: build.id });
-      } catch (e: unknown) {
-        setPageError(e instanceof Error ? e.message : "Failed to fetch build instructions.");
-      } finally {
-        setDownloading(null);
-      }
-      return;
-    }
     setDownloading(build.id);
     try {
-      const dt = await getDesktopBuildDownloadToken(build.id);
-      const url = getDesktopBuildDownloadUrl(build.id) + `?dt=${encodeURIComponent(dt)}`;
-      window.location.href = url;
-      await load();
+      const info = await getDownloadInfo(build.id);
+      if (isLinux) {
+        setLinuxCmds({ buildId: build.id, pull_cmd: info.pull_cmd ?? "", run_cmd: info.run_cmd ?? "" });
+      } else if (info.url) {
+        window.location.href = info.url;
+      }
     } catch (e: unknown) {
       setPageError(e instanceof Error ? e.message : "Download failed.");
     } finally {
@@ -329,8 +298,8 @@ export default function ClientPage() {
 
   function copyToken(token: string) {
     navigator.clipboard.writeText(token).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopiedToken(true);
+      setTimeout(() => setCopiedToken(false), 2000);
     });
   }
 
@@ -362,50 +331,52 @@ export default function ClientPage() {
       )}
 
       {justCreated && (
-        <div className="border border-[#d97757] px-4 py-3 flex items-center gap-3 flex-wrap">
-          <span className="text-[#f4f3ee]">client {justCreated.client_id}</span>
-          {justCreated.status === "failed"
-            ? <span className="text-status-bad ml-1">build failed — check token permissions.</span>
-            : <span className="text-[#f4f3ee]"> queued.</span>}
-          <span className="text-[#9A968B]">activation token:</span>
-          <code className="text-[#E5C07B]">{justCreated.activation_token}</code>
-          <button onClick={() => copyToken(justCreated.activation_token)} className="group cursor-pointer transition-colors">
-            <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copied ? "copied!" : "copy"}</Bracket>
-          </button>
-          <button onClick={() => setJustCreated(null)} className="group cursor-pointer transition-colors ml-auto">
-            <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
-          </button>
+        <div className="border border-[#d97757] px-4 py-3 space-y-2">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-[#f4f3ee]">client {justCreated.client_id} configured.</span>
+            <span className="text-[#9A968B]">download the generic binary and paste this token on first run:</span>
+            <button onClick={() => setJustCreated(null)} className="group cursor-pointer transition-colors ml-auto">
+              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
+            </button>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <code className="text-[#E5C07B] break-all">{justCreated.activation_token}</code>
+            <button onClick={() => copyToken(justCreated.activation_token)} className="group cursor-pointer transition-colors">
+              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedToken ? "copied!" : "copy"}</Bracket>
+            </button>
+          </div>
+          <p className="text-[#9A968B] text-sm">This token is shown once. Copy it now — it expires in 24 hours and can only be used once.</p>
         </div>
       )}
 
-      {linuxInstructions && (
+      {linuxCmds && (
         <div className="border border-[#3d3d3a] px-4 py-3 space-y-2 bg-[#1a1918]">
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-[#f4f3ee]">docker commands — client {builds.find(b => b.id === linuxInstructions.buildId)?.client_id ?? ""}</span>
-            <button onClick={() => setLinuxInstructions(null)} className="group cursor-pointer transition-colors ml-auto">
+            <span className="text-[#f4f3ee]">docker commands — client {builds.find(b => b.id === linuxCmds.buildId)?.client_id ?? ""}</span>
+            <button onClick={() => setLinuxCmds(null)} className="group cursor-pointer transition-colors ml-auto">
               <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
             </button>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-[#9A968B]">pull:</span>
-            <code className="text-[#E5C07B] break-all">{linuxInstructions.pull_cmd}</code>
-            <button onClick={() => copyCmd(linuxInstructions.pull_cmd, "pull")} className="group cursor-pointer transition-colors">
+            <code className="text-[#E5C07B] break-all">{linuxCmds.pull_cmd}</code>
+            <button onClick={() => copyCmd(linuxCmds.pull_cmd, "pull")} className="group cursor-pointer transition-colors">
               <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === "pull" ? "copied!" : "copy"}</Bracket>
             </button>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-[#9A968B]">run:</span>
-            <code className="text-[#E5C07B] break-all">{linuxInstructions.run_cmd}</code>
-            <button onClick={() => copyCmd(linuxInstructions.run_cmd, "run")} className="group cursor-pointer transition-colors">
+            <code className="text-[#E5C07B] break-all">{linuxCmds.run_cmd}</code>
+            <button onClick={() => copyCmd(linuxCmds.run_cmd, "run")} className="group cursor-pointer transition-colors">
               <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === "run" ? "copied!" : "copy"}</Bracket>
             </button>
           </div>
+          <p className="text-[#9A968B] text-sm">Replace <code className="text-[#E5C07B]">&lt;paste-token-here&gt;</code> with your activation token from when you configured the slot.</p>
         </div>
       )}
 
       {pageError && <div className="text-status-bad">{pageError}</div>}
 
-      {/* Builds / slots table */}
       <div className={sectionCls}>
         {loading && <div className="px-4 py-4 text-[#9A968B]">loading...</div>}
 
@@ -417,18 +388,16 @@ export default function ClientPage() {
                   <th className="px-3 py-2 font-normal whitespace-nowrap">client</th>
                   <th className="px-3 py-2 font-normal whitespace-nowrap">name</th>
                   <th className="px-3 py-2 font-normal whitespace-nowrap">platform</th>
-                  <th className="px-3 py-2 font-normal whitespace-nowrap">build date</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">configured</th>
                   <th className="px-3 py-2 font-normal whitespace-nowrap">status</th>
                   <th className="px-3 py-2 font-normal whitespace-nowrap">client ver</th>
                   <th className="px-3 py-2 font-normal w-full"></th>
                 </tr>
               </thead>
               <tbody>
-                {/* Filled slots */}
                 {activeBuilds.map((build) => {
                   const cfg = build.build_options as DesktopBuildConfig;
                   const buildIsOutdated = !!(currentBotVersion && build.bot_version && versionGt(currentBotVersion, build.bot_version));
-                  const canDownload = build.status === "ready" && !isExpired(build) && !buildIsOutdated;
                   const isExpanded = expandedKey === build.id;
                   return (
                     <>
@@ -440,7 +409,7 @@ export default function ClientPage() {
                         <td className="px-3 py-3 whitespace-nowrap">
                           {buildIsOutdated
                             ? <span className="text-status-bad">out-dated</span>
-                            : <span className={statusColor(build.status)}>{build.status}</span>}
+                            : <span className={statusColor(build.status)}>{build.status.replace("_", " ")}</span>}
                         </td>
                         <td className="px-3 py-3 whitespace-nowrap">
                           <span className="text-[#9A968B]">
@@ -449,13 +418,11 @@ export default function ClientPage() {
                         </td>
                         <td className="px-3 py-3 text-right">
                           <div className="flex gap-2 justify-end items-center">
-                            {canDownload && (
-                              <button onClick={() => handleDownload(build)} disabled={downloading === build.id} className="group cursor-pointer transition-colors disabled:opacity-40">
-                                <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">
-                                  {downloading === build.id ? "…" : cfg.system_type === "linux" ? "get commands" : "download"}
-                                </Bracket>
-                              </button>
-                            )}
+                            <button onClick={() => handleDownload(build)} disabled={downloading === build.id} className="group cursor-pointer transition-colors disabled:opacity-40">
+                              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">
+                                {downloading === build.id ? "…" : cfg.system_type === "linux" ? "get commands" : "download"}
+                              </Bracket>
+                            </button>
                             <button
                               onClick={() => handleRevoke(build.id)}
                               disabled={revoking === build.id}
@@ -467,7 +434,7 @@ export default function ClientPage() {
                               </Bracket>
                             </button>
                             <button onClick={() => toggleExpand(build.id)} className="group cursor-pointer transition-colors">
-                              <Bracket className={isExpanded ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>settings/build</Bracket>
+                              <Bracket className={isExpanded ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>settings/rebuild</Bracket>
                             </button>
                           </div>
                         </td>
@@ -477,7 +444,7 @@ export default function ClientPage() {
                           <td colSpan={7} className="p-0">
                             <BuildForm
                               initial={cfg}
-                              submitLabel="request re-build"
+                              submitLabel="reconfigure + new token"
                               onSubmit={(newCfg) => handleRebuildWithConfig(build.id, build.client_id, newCfg)}
                               onCancel={() => { setExpandedKey(null); setFormError(null); }}
                               submitting={formSubmitting}
@@ -490,7 +457,6 @@ export default function ClientPage() {
                   );
                 })}
 
-                {/* Empty slots */}
                 {Array.from({ length: emptySlotCount }).map((_, i) => {
                   const slotKey = `slot-${i}`;
                   const slotNum = activeBuilds.length + i + 1;
@@ -515,7 +481,7 @@ export default function ClientPage() {
                           <td colSpan={7} className="p-0">
                             <BuildForm
                               initial={DEFAULT_CONFIG}
-                              submitLabel="request build"
+                              submitLabel="configure slot"
                               onSubmit={handleNewBuild}
                               onCancel={() => { setExpandedKey(null); setFormError(null); }}
                               submitting={formSubmitting}
@@ -539,7 +505,6 @@ export default function ClientPage() {
         )}
       </div>
 
-      {/* Getting started */}
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918]">
           <span className="text-[#f4f3ee]">getting started</span>
@@ -547,15 +512,15 @@ export default function ClientPage() {
         <div className="px-4 py-4 space-y-4 text-[#9A968B]">
           <div className="space-y-1">
             <p className="text-[#f4f3ee]">windows</p>
-            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">settings/build</span> on an empty slot, select <span className="text-[#f4f3ee]">windows</span>, and configure your Chrome path.</p>
-            <p><span className="text-[#f4f3ee]">2.</span> Download <code className="text-[#E5C07B]">SlowBurnBot.exe</code> when status shows <span className="text-status-ok">ready</span>.</p>
-            <p><span className="text-[#f4f3ee]">3.</span> Run the EXE on Windows and log in with your dashboard credentials. Activates on first launch.</p>
+            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">settings/build</span> on an empty slot and configure your Chrome path. Copy the activation token shown after saving.</p>
+            <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">download</span> on your slot to get <code className="text-[#E5C07B]">SlowBurnBot.exe</code>. Put it in a folder on your machine.</p>
+            <p><span className="text-[#f4f3ee]">3.</span> Run the EXE. On first launch it will prompt for your User ID, Client ID, and Activation Token. Paste them in — the config is written locally and you won't be asked again.</p>
           </div>
           <div className="space-y-1">
             <p className="text-[#f4f3ee]">linux / docker</p>
-            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">settings/build</span> on an empty slot, select <span className="text-[#f4f3ee]">linux / docker</span>.</p>
-            <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">get commands</span> when status shows <span className="text-status-ok">ready</span> to see your <code className="text-[#E5C07B]">docker pull</code> and <code className="text-[#E5C07B]">docker run</code> commands.</p>
-            <p><span className="text-[#f4f3ee]">3.</span> Run <code className="text-[#E5C07B]">docker run -it</code> on your Linux machine. Log in with your dashboard credentials. The TUI runs in your terminal.</p>
+            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">settings/build</span> on an empty slot and select <span className="text-[#f4f3ee]">linux / docker</span>. Copy the activation token.</p>
+            <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">get commands</span> to see the <code className="text-[#E5C07B]">docker pull</code> and <code className="text-[#E5C07B]">docker run</code> commands. Paste your activation token into the run command.</p>
+            <p><span className="text-[#f4f3ee]">3.</span> Run the container. On first launch it writes a local config file and activates. Subsequent runs use the saved config.</p>
           </div>
         </div>
       </div>
