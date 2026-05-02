@@ -53,7 +53,7 @@ _DEFAULT_USER_AGENT = (
 def _write_ini_from_activation(response: dict, config_path: str) -> None:
     """Write a burnBot_config.ini from the /bot/desktop/activate response.
 
-    Browser/driver settings are written to [browser] using hardcoded defaults.
+    Browser/driver settings are written to [browser-config] and [browser-session] using hardcoded defaults.
     Only client_name and system_type come from the server (build_options).
     """
     import configparser
@@ -71,30 +71,34 @@ def _write_ini_from_activation(response: dict, config_path: str) -> None:
     }
 
     if system_type == "linux":
-        cp["browser"] = {
-            "chrome_path": "/usr/bin/google-chrome",
+        cp["browser-config"] = {
             "chrome_version": "",
+            "chrome_path": "/usr/bin/google-chrome",
             "chrome_user_data_dir_base": "",
-            "headless": "True",
-            "detach": "False",
-            "close_browser_session": "False",
-            "close_browser_exit": "False",
-            "bot_idle_delay": "5",
             "system_user_agent": _DEFAULT_USER_AGENT,
             "add_argument": "",
         }
-    else:
-        cp["browser"] = {
-            "chrome_path": "PortableChrome\\chrome.exe",
-            "chrome_version": "143",
-            "chrome_user_data_dir_base": "PortableChrome",
-            "headless": "False",
+        cp["browser-session"] = {
+            "headless": "True",
             "detach": "False",
-            "close_browser_session": "False",
-            "close_browser_exit": "False",
+            "close_browser_after_session": "False",
+            "close_browser_after_exit": "False",
             "bot_idle_delay": "5",
+        }
+    else:
+        cp["browser-config"] = {
+            "chrome_version": "143",
+            "chrome_path": "PortableChrome\\chrome.exe",
+            "chrome_user_data_dir_base": "PortableChrome",
             "system_user_agent": _DEFAULT_USER_AGENT,
             "add_argument": "",
+        }
+        cp["browser-session"] = {
+            "headless": "False",
+            "detach": "False",
+            "close_browser_after_session": "False",
+            "close_browser_after_exit": "False",
+            "bot_idle_delay": "5",
         }
 
     with open(config_path, "w") as fh:
@@ -222,7 +226,7 @@ def _try_api_relogin_from_config(client):
 
 
 # Load bot_idle_delay for main loop check interval (in minutes, convert to seconds)
-bot_idle_delay_minutes = CONFIG.getint('browser', 'bot_idle_delay', fallback=1)
+bot_idle_delay_minutes = CONFIG.getint('browser-session', 'bot_idle_delay', fallback=1)
 bot_idle_delay = bot_idle_delay_minutes * 60  # Convert to seconds
 
 # Helper function for interruptible sleep
@@ -374,9 +378,9 @@ try:
         # Fetch user config and emit startup log
         # ------------------------------------------------------------------
         _plan = entitlement.get("plan_tier", "free")
-        _ua  = CONFIG.get('browser', 'system_user_agent', fallback='').strip()
-        _cs  = CONFIG.get('browser', 'close_browser_session', fallback='FALSE').strip().upper()
-        _ce  = CONFIG.get('browser', 'close_browser_exit',    fallback='FALSE').strip().upper()
+        _ua  = CONFIG.get('browser-config',  'system_user_agent',         fallback='').strip()
+        _cs  = CONFIG.get('browser-session', 'close_browser_after_session', fallback='FALSE').strip().upper()
+        _ce  = CONFIG.get('browser-session', 'close_browser_after_exit',    fallback='FALSE').strip().upper()
         _dbg = CONFIG.get('bot_settings', 'bot_debug',             fallback='FALSE').strip().upper()
         _idl = str(bot_idle_delay_minutes).zfill(2)
         _st  = CONFIG.get('bot_settings', 'system_type',           fallback='').strip()
@@ -762,7 +766,7 @@ except KeyboardInterrupt:
         print()
         print("Force exit requested - threads may not have completed cleanup")
 
-    close_browser_exit = CONFIG.getboolean('browser', 'close_browser_exit', fallback=False)
+    close_browser_exit = CONFIG.getboolean('browser-session', 'close_browser_after_exit', fallback=False)
 
     print("=" * 60)
     print("[bot]: All threads finished.")

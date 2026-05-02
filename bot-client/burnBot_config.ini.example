@@ -17,27 +17,31 @@ api_url = https://slowburnbotgamma-production.up.railway.app
 email =
 password =
 
-[browser]
+[browser-config]
 # Windows defaults (written automatically on activation for windows builds)
-chrome_path = PortableChrome\chrome.exe
 chrome_version = 143
+chrome_path = PortableChrome\chrome.exe
 chrome_user_data_dir_base = PortableChrome
-headless = False
-detach = False
-close_browser_session = False
-close_browser_exit = False
-bot_idle_delay = 5
 system_user_agent = Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
 add_argument =
 
 # Linux / Docker defaults (written automatically on activation for linux builds)
-# chrome_path = /usr/bin/google-chrome
 # chrome_version =
+# chrome_path = /usr/bin/google-chrome
 # chrome_user_data_dir_base =
-# headless = True
-# detach = False
-# close_browser_session = False
-# close_browser_exit = False
-# bot_idle_delay = 5
 # system_user_agent = Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
 # add_argument =
+
+[browser-session]
+headless = False
+detach = False
+close_browser_after_session = False
+close_browser_after_exit = False
+bot_idle_delay = 5
+
+# Linux / Docker defaults
+# headless = True
+# detach = False
+# close_browser_after_session = False
+# close_browser_after_exit = False
+# bot_idle_delay = 5

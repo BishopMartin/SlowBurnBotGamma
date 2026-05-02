@@ -79,7 +79,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
     _print(client_log_line(account, "init", "thread start"))
 
     # User agent from local config
-    accountAgent = CONFIG.get('browser', 'system_user_agent', fallback='').strip()
+    accountAgent = CONFIG.get('browser-config', 'system_user_agent', fallback='').strip()
     if len(accountAgent) >= 2 and ((accountAgent[0] == accountAgent[-1]) and accountAgent[0] in ("'", '"')):
         accountAgent = accountAgent[1:-1].strip()
 
@@ -427,8 +427,8 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     status_store.update(account, status="idle", last_action="session complete")
 
                 # Close or keep browser based on config
-                close_browser_session = CONFIG.getboolean('browser', 'close_browser_session', fallback=True)
-                if close_browser_session:
+                close_browser_after_session = CONFIG.getboolean('browser-session', 'close_browser_after_session', fallback=True)
+                if close_browser_after_session:
                     if driver is not None:
                         try:
                             driver.quit()
@@ -454,8 +454,8 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
     _print(client_log_line(account, "init", "shutting down…"))
 
     close_browser_exit = True
-    if CONFIG.has_section('browser'):
-        close_browser_exit = CONFIG.getboolean('browser', 'close_browser_exit', fallback=True)
+    if CONFIG.has_section('browser-session'):
+        close_browser_exit = CONFIG.getboolean('browser-session', 'close_browser_after_exit', fallback=True)
 
     if driver is not None:
         try:

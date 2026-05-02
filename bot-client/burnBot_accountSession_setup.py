@@ -46,8 +46,8 @@ def build_user_data_dir(account):
         str: Path to the user data directory
     """
     # Get base directory from config
-    chrome_user_data_dir_base = CONFIG['browser'].get(
-        'chrome_user_data_dir_base', 
+    chrome_user_data_dir_base = CONFIG['browser-config'].get(
+        'chrome_user_data_dir_base',
         'ChromeUserData'
     )
     # Resolve path relative to project directory
@@ -696,7 +696,7 @@ def kill_chrome_processes_for_profile(chrome_user_data_dir, account, portable_ch
     # Get Portable Chrome path from config if not provided
     if portable_chrome_path is None:
         try:
-            portable_chrome_path = CONFIG['browser'].get('chrome_path', '').strip()
+            portable_chrome_path = CONFIG['browser-config'].get('chrome_path', '').strip()
             if portable_chrome_path:
                 # Resolve path relative to project directory if specified
                 portable_chrome_path = resolve_path(portable_chrome_path)
@@ -942,14 +942,14 @@ def update_profile_preferences(account, chrome_user_data_dir):
 
 def load_base_arguments():
     """
-    Load base Chrome arguments from the [browser] section of the config file.
+    Load base Chrome arguments from the [browser-config] section of the config file.
 
     Returns:
         list: List of base argument strings
     """
     base_arguments = []
-    if 'add_argument' in CONFIG['browser']:
-        add_arg_str = CONFIG['browser']['add_argument']
+    if 'add_argument' in CONFIG['browser-config']:
+        add_arg_str = CONFIG['browser-config']['add_argument']
         # Parse multi-line arguments (split by newline, strip whitespace, filter empty/commented lines)
         for line in add_arg_str.split('\n'):
             line = line.strip()
@@ -1006,7 +1006,7 @@ def build_chrome_arguments(account, accountAgent, chrome_user_data_dir, base_arg
     # User agent (prefer explicit value, otherwise setup.system_user_agent, otherwise any --user-agent= in base args)
     ua = normalize_user_agent(accountAgent)
     if not ua:
-        ua = normalize_user_agent(CONFIG.get('browser', 'system_user_agent', fallback=''))
+        ua = normalize_user_agent(CONFIG.get('browser-config', 'system_user_agent', fallback=''))
     if ua:
         arguments.append(f'--user-agent={ua}')
     else:
@@ -1123,15 +1123,15 @@ def create_driver(account, accountAgent, account_idx=0):
     if is_bot_debug_enabled():
         print(f"- [{account}]: using remote debugging port: {debugging_port}")
     
-    # Load configuration from [browser] section
+    # Load configuration from [browser-config] and [browser-session] sections
     # If chrome_path is empty, Selenium will use system Chrome
-    chrome_path = CONFIG['browser'].get('chrome_path', '').strip()
+    chrome_path = CONFIG['browser-config'].get('chrome_path', '').strip()
     if chrome_path:
         chrome_path = resolve_path(chrome_path)
     else:
         chrome_path = None
-    chrome_version = int(CONFIG['browser'].get('chrome_version', '143') or '143')
-    HEADLESS = CONFIG.getboolean('browser', 'headless', fallback=False)
+    chrome_version = int(CONFIG['browser-config'].get('chrome_version', '143') or '143')
+    HEADLESS = CONFIG.getboolean('browser-session', 'headless', fallback=False)
     
     # Detect if running via SSH or remote session (Windows)
     is_remote_session = False
