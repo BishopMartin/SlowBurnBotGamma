@@ -284,7 +284,11 @@ export default function ClientPage() {
         <div className="border border-[#d97757] px-4 py-3 space-y-2">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-[#f4f3ee]">client {justCreated.client_id} configured.</span>
-            <span className="text-[#9A968B]">download the generic binary and paste this token on first run:</span>
+            <span className="text-[#9A968B]">
+              {(justCreated.build_options as DesktopBuildConfig).system_type === "linux"
+                ? "copy this token, then click get commands on your slot to get the docker commands:"
+                : "download the generic binary and paste this token on first run:"}
+            </span>
             <button onClick={() => setJustCreated(null)} className="group cursor-pointer transition-colors ml-auto">
               <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
             </button>
@@ -321,7 +325,7 @@ export default function ClientPage() {
               <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === "run" ? "copied!" : "copy"}</Bracket>
             </button>
           </div>
-          <p className="text-[#9A968B] text-sm">Replace <code className="text-[#E5C07B]">&lt;paste-token-here&gt;</code> with your activation token from when you configured the slot.</p>
+          <p className="text-[#9A968B] text-sm">On first run the container will prompt for your activation token.</p>
         </div>
       )}
 
