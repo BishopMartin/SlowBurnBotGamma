@@ -182,8 +182,7 @@ async def get_download_url(
     build = await _get_owned_build(build_id, user, session)
 
     if _system_type(build) == "linux":
-        bot_version = build.bot_version or "latest"
-        image_ref = f"{settings.ghcr_namespace}/slowburnbot-client:{bot_version}"
+        image_ref = f"{settings.ghcr_namespace}/slowburnbot-client:latest"
         # Activation token not returned here — it's shown on the build row at creation time
         return {
             "image_ref": image_ref,
