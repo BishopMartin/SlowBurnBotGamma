@@ -71,6 +71,7 @@ function BuildForm({
   return (
     <div className="px-4 py-3 space-y-2 bg-[#1a1918] border-t border-[#3d3d3a]">
       <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
+        <BracketInput label="client name" value={cfg.client_name} onChange={(v) => set("client_name", v.slice(0, 15))} width="15ch" placeholder="my laptop" />
         <button
           onClick={() => switchPlatform("windows")}
           className={`group cursor-pointer transition-colors ${cfg.system_type === "windows" ? "" : "opacity-50"}`}
@@ -83,9 +84,6 @@ function BuildForm({
         >
           <Bracket className={cfg.system_type === "linux" ? "text-[#f4f3ee]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>linux / docker</Bracket>
         </button>
-      </div>
-      <div className="flex items-center gap-x-0 gap-y-2 flex-wrap">
-        <BracketInput label="client name" value={cfg.client_name} onChange={(v) => set("client_name", v.slice(0, 15))} width="15ch" placeholder="my laptop" />
       </div>
       {cfg.system_type === "linux" && (
         <p className="text-[#9A968B] text-sm">Chrome is included in the Docker image. Run with <code className="text-[#E5C07B]">docker run -it</code> for the TUI.</p>
