@@ -468,9 +468,9 @@ export default function ClientPage() {
           </div>
           <div className="space-y-1">
             <p className="text-[#f4f3ee]">linux / docker</p>
-            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">token</span> on an empty slot and select <span className="text-[#f4f3ee]">linux / docker</span>. Copy the activation token.</p>
-            <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">get commands</span> to see the <code className="text-[#E5C07B]">docker pull</code> and <code className="text-[#E5C07B]">docker run</code> commands. Paste your activation token into the run command.</p>
-            <p><span className="text-[#f4f3ee]">3.</span> Run the container. On first launch it writes a local config file and activates. Subsequent runs use the saved config.</p>
+            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">token</span> on an empty slot, select <span className="text-[#f4f3ee]">linux / docker</span>, enter a name, and copy the activation token shown after saving.</p>
+            <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">get commands</span> to see the <code className="text-[#E5C07B]">docker pull</code> and <code className="text-[#E5C07B]">docker run</code> commands.</p>
+            <p><span className="text-[#f4f3ee]">3.</span> Run the container. On first launch it will prompt for your Activation Token. Paste it in — the config is written locally and you won&apos;t be asked again.</p>
           </div>
         </div>
       </div>

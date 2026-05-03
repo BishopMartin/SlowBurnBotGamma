@@ -190,9 +190,6 @@ async def get_download_url(
             "pull_cmd": f"docker pull {image_ref}",
             "run_cmd": (
                 f"docker run -it --rm "
-                f"-e USER_ID={user.id} "
-                f"-e CLIENT_ID={build.client_id} "
-                f"-e ACTIVATION_TOKEN=<paste-token-here> "
                 f"-v ./slowburn-config:/app/config "
                 f"{image_ref}"
             ),
