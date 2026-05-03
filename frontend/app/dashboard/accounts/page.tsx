@@ -403,7 +403,7 @@ export default function AccountsPage() {
         <BracketInput label="user name" value={newName} onChange={setNewName} width="16ch" autoComplete="off" />
         <BracketInput label="password" value={newPassword} onChange={setNewPassword} width="24ch" type="password" autoComplete="new-password" />
         {error && <span className="text-status-bad">{error}</span>}
-        <button type="submit" disabled={adding} className="group cursor-pointer disabled:opacity-40 transition-colors ml-auto">
+        <button type="submit" disabled={adding} className="group cursor-pointer disabled:opacity-40 transition-colors ml-auto bg-[#2e2c2a] border border-[#555] px-2 py-0.5">
           <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{adding ? "adding…" : "add"}</Bracket>
         </button>
       </form>

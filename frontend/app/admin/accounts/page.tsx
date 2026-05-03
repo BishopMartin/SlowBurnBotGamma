@@ -91,7 +91,7 @@ export default function AdminAccountsPage() {
                     <button
                       onClick={() => handleDelete(a)}
                       disabled={busy === a.id}
-                      className="group disabled:opacity-50 transition-colors"
+                      className="group disabled:opacity-50 transition-colors bg-[#2e2c2a] border border-[#555] px-2 py-0.5"
                     >
                       <Bracket className="text-status-bad group-hover:text-[#f4f3ee]">
                         {busy === a.id ? "..." : "delete"}

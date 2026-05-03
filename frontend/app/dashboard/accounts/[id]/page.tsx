@@ -461,7 +461,7 @@ export default function AccountDetailPage() {
           <button
             type="submit"
             disabled={saving || !settingsLoaded}
-            className="group disabled:opacity-50 transition-colors"
+            className="group disabled:opacity-50 transition-colors bg-[#2e2c2a] border border-[#555] px-2 py-0.5"
           >
             <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
               {saving ? "saving…" : "save settings"}
@@ -469,7 +469,7 @@ export default function AccountDetailPage() {
           </button>
           {loadError && <span className="text-status-bad">{loadError}</span>}
           {msg && <span className="text-status-ok">{msg}</span>}
-          <button type="button" onClick={handleDelete} className="group transition-colors ml-auto">
+          <button type="button" onClick={handleDelete} className="group transition-colors ml-auto bg-[#2e2c2a] border border-[#555] px-2 py-0.5">
             <Bracket className="text-[#9A968B] group-hover:text-status-bad">delete account</Bracket>
           </button>
         </div>
