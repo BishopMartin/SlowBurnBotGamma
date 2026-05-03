@@ -313,14 +313,14 @@ export default function ClientPage() {
           </div>
           <div>
             <span className="text-[#9A968B]">pull: </span>
-            <code className="text-[#E5C07B]">{linuxCmds.pull_cmd}</code>
+            <code className="text-[#E5C07B] break-all">{linuxCmds.pull_cmd}</code>
             <button onClick={() => copyCmd(linuxCmds.pull_cmd, "pull")} className="inline group cursor-pointer transition-colors ml-2">
               <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === "pull" ? "copied!" : "copy"}</Bracket>
             </button>
           </div>
           <div>
             <span className="text-[#9A968B]">run: </span>
-            <code className="text-[#E5C07B]">{linuxCmds.run_cmd}</code>
+            <code className="text-[#E5C07B] break-all">{linuxCmds.run_cmd}</code>
             <button onClick={() => copyCmd(linuxCmds.run_cmd, "run")} className="inline group cursor-pointer transition-colors ml-2">
               <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === "run" ? "copied!" : "copy"}</Bracket>
             </button>
