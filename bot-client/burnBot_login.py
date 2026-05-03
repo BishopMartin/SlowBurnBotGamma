@@ -3,6 +3,7 @@
 from burnBot_imports import *
 from burnBot_utils import close_windows, has_internet_connection, process_exception, delay
 from burnBot_client_log import client_log_line
+import burnBot_status as status_store
 
 
 def is_bot_debug_enabled():
@@ -198,6 +199,151 @@ def dismiss_browser_dialogs(driver, max_attempts=3, wait_between=0.3):
         print(client_log_line(None, "login", f"Dismissed {dialogs_dismissed} browser dialog(s)"))
     
     return dialogs_dismissed
+
+
+def dismiss_notifications_prompt(driver, context_label="login"):
+    """
+    Dismiss Instagram's 'Turn on Notifications' popup by clicking 'Not Now'.
+    ESC does not close this dialog — only the button works.
+    Safe no-op if the prompt is not present.
+    Returns True if dismissed.
+    """
+    try:
+        page_source = driver.page_source.lower()
+        if "turn on notifications" not in page_source and "enable notifications" not in page_source:
+            return False
+    except Exception:
+        return False
+
+    if is_bot_debug_enabled():
+        print(client_log_line(None, context_label, "notifications prompt detected — looking for 'Not Now'"))
+
+    selectors = [
+        # Exact text matches on button
+        (By.XPATH, "//button[normalize-space(.)='Not Now']"),
+        (By.XPATH, "//button[normalize-space(.)='Not now']"),
+        # Partial text on button (handles nested spans)
+        (By.XPATH, "//button[contains(normalize-space(string(.)), 'Not Now')]"),
+        (By.XPATH, "//button[contains(normalize-space(string(.)), 'Not now')]"),
+        # div role=button
+        (By.XPATH, "//div[@role='button'][contains(normalize-space(string(.)), 'Not Now')]"),
+        (By.XPATH, "//div[@role='button'][contains(normalize-space(string(.)), 'Not now')]"),
+        # aria-label
+        (By.XPATH, "//*[@aria-label='Not Now' or @aria-label='Not now']"),
+        # Span inside any clickable ancestor
+        (By.XPATH, "//span[normalize-space(.)='Not Now']/ancestor::*[@role='button' or self::button][1]"),
+        (By.XPATH, "//span[normalize-space(.)='Not now']/ancestor::*[@role='button' or self::button][1]"),
+    ]
+
+    for sel_type, sel_value in selectors:
+        try:
+            btn = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((sel_type, sel_value)))
+            if not btn.is_displayed():
+                continue
+            driver.execute_script("arguments[0].scrollIntoView({block:'center'});", btn)
+            time.sleep(0.3)
+            try:
+                btn.click()
+            except Exception:
+                driver.execute_script("arguments[0].click();", btn)
+            if is_bot_debug_enabled():
+                print(client_log_line(None, context_label, "notifications prompt dismissed"))
+            time.sleep(1.5)
+            return True
+        except Exception:
+            continue
+
+    if is_bot_debug_enabled():
+        print(client_log_line(None, context_label, "notifications prompt found but 'Not Now' not clickable"))
+    return False
+
+
+def enter_sms_code_in_browser(driver, code):
+    """
+    Enter a verification/SMS code into the Instagram challenge form already visible in the browser.
+    Returns (is_logged_in: bool, username: str | None, errors: str).
+    """
+    moduleErrorsLog = ""
+    try:
+        # Locate the code input field
+        code_input = None
+        code_input_selectors = [
+            (By.CSS_SELECTOR, "input[autocomplete='one-time-code']"),
+            (By.CSS_SELECTOR, "input[name='verificationCode']"),
+            (By.CSS_SELECTOR, "input[name='security_code']"),
+            (By.CSS_SELECTOR, "input[type='text'][name*='code']"),
+            (By.CSS_SELECTOR, "input[type='text'][name*='Code']"),
+            (By.CSS_SELECTOR, "input[type='text'][aria-label*='ode']"),
+            (By.CSS_SELECTOR, "input[placeholder*='ode']"),
+            (By.XPATH, "//input[@type='text']"),
+        ]
+        for sel_type, sel_value in code_input_selectors:
+            try:
+                elements = driver.find_elements(sel_type, sel_value)
+                for el in elements:
+                    if el.is_displayed():
+                        code_input = el
+                        break
+                if code_input:
+                    break
+            except Exception:
+                continue
+
+        if not code_input:
+            return False, None, "Could not find SMS code input field on page"
+
+        code_input.click()
+        time.sleep(0.4)
+        code_input.clear()
+        time.sleep(0.3)
+        code_input.send_keys(code)
+        time.sleep(0.5)
+
+        # Submit — prefer a visible submit button, fall back to Enter key
+        submitted = False
+        try:
+            buttons = driver.find_elements(By.CSS_SELECTOR, "button[type='submit']")
+            for btn in buttons:
+                if btn.is_displayed() and btn.is_enabled():
+                    driver.execute_script("arguments[0].click();", btn)
+                    submitted = True
+                    break
+        except Exception:
+            pass
+        if not submitted:
+            code_input.send_keys(Keys.RETURN)
+
+        # Wait for page to process
+        try:
+            WebDriverWait(driver, 25).until(
+                lambda d: d.execute_script("return document.readyState") == "complete"
+            )
+        except Exception:
+            pass
+        time.sleep(5)
+
+        # Check if now logged in
+        page_source = driver.page_source
+        if '"xdt_viewer":{"user":{"username":"' in page_source:
+            start = page_source.find('"xdt_viewer":{"user":{"username":"') + len(
+                '"xdt_viewer":{"user":{"username":"'
+            )
+            end = page_source.find('"', start)
+            username = page_source[start:end]
+            if username:
+                return True, username, moduleErrorsLog
+
+        if '"username":"' in page_source:
+            matches = re.findall(r'"username":"([^"]+)"', page_source)
+            for match in matches:
+                if len(match) > 3 and match.lower() not in ["sign up", "log in", "instagram"]:
+                    return True, match, moduleErrorsLog
+
+        moduleErrorsLog += "Code submitted but login not confirmed"
+        return False, None, moduleErrorsLog
+
+    except Exception as e:
+        return False, None, f"enter_sms_code_in_browser error: {e}"
 
 
 INSTAGRAM_ACCOUNTS_LOGIN = "https://www.instagram.com/accounts/login/"
@@ -859,32 +1005,7 @@ def do_login(driver, username, password):
                 pass  # Continue even if we can't dismiss this prompt
             
             # Handle notifications prompt if it appears
-            try:
-                page_source = driver.page_source.lower()
-                if "turn on notifications" in page_source or "enable notifications" in page_source:
-                    if is_bot_debug_enabled():
-                        print(f"-- DEBUG: Notifications prompt detected, looking for 'Not now' button...")
-                    not_now_selectors = [
-                        (By.XPATH, "//button[contains(text(), 'Not Now') or contains(text(), 'Not now')]"),
-                        (By.XPATH, "//div[contains(text(), 'Not Now') or contains(text(), 'Not now')]//ancestor::button")
-                    ]
-                    
-                    for selector_type, selector_value in not_now_selectors:
-                        try:
-                            not_now_button = WebDriverWait(driver, 6).until(
-                                EC.element_to_be_clickable((selector_type, selector_value))
-                            )
-                            not_now_button.click()
-                            if is_bot_debug_enabled():
-                                print(f"-- DEBUG: Clicked 'Not now' on notifications prompt")
-                            time.sleep(2.5)
-                            break
-                        except Exception:
-                            continue
-            except Exception as e:
-                if is_bot_debug_enabled():
-                    print(f"-- DEBUG: Error handling notifications prompt: {str(e)}")
-                pass  # Continue even if we can't dismiss this prompt
+            dismiss_notifications_prompt(driver, context_label="do_login")
             
             # Check again for verification (in case it appeared after page load)
             is_verification_required, verification_reason = check_phone_verification(driver)
@@ -1008,6 +1129,7 @@ def switch_login(driver, targetAccount):
         #### check results of switch attempt
         WebDriverWait(driver, 20).until(lambda d: d.execute_script("return document.readyState") == "complete")
         time.sleep(4.5)
+        dismiss_notifications_prompt(driver, context_label="switch_login")
         
         # Extract username from page source JSON data
         try:
@@ -1081,34 +1203,56 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
             if is_logged_in == "VERIFICATION_REQUIRED":
                 print(client_log_line(
                     account, "login",
-                    f"verification challenge try={attempt}/{login_tries} (SMS or security code)",
+                    f"verification challenge try={attempt}/{login_tries} — waiting for SMS code",
                 ))
-                loginFailureExit = True
-                verification_requested = True
-                break
-            
+                sms_code = status_store.request_operator_input(f"SMS code for @{account}:")
+                if sms_code.strip():
+                    print(client_log_line(account, "login", "SMS code received — submitting to Instagram"))
+                    is_logged_in, current_user, loginErrors = enter_sms_code_in_browser(driver, sms_code.strip())
+                    if not is_logged_in:
+                        print(client_log_line(account, "login", f"SMS code entry failed: {loginErrors}"))
+                        loginFailureExit = True
+                        verification_requested = True
+                        break
+                else:
+                    print(client_log_line(account, "login", "SMS code entry cancelled"))
+                    loginFailureExit = True
+                    verification_requested = True
+                    break
+
             # Log errors if any (to console only, session log will capture final result)
             if loginErrors and is_bot_debug_enabled():
                 print(client_log_line(account, "login", f"debug check_login errors: {loginErrors}"))
-            
+
             print(client_log_line(
                 account, "login",
                 f"check try={attempt}/{login_tries} → ok={is_logged_in} user={current_user}",
             ))
-            
+
             # Attempt login if needed
             if not is_logged_in:
                 print(client_log_line(account, "login", f"login try={attempt}/{login_tries} → attempting"))
                 is_logged_in, current_user, loginErrors = do_login(driver, account, accountPass)
-                
+
                 if is_logged_in == "VERIFICATION_REQUIRED":
                     print(client_log_line(
                         account, "login",
-                        f"verification challenge try={attempt}/{login_tries} (SMS or security code)",
+                        f"verification challenge try={attempt}/{login_tries} — waiting for SMS code",
                     ))
-                    loginFailureExit = True
-                    verification_requested = True
-                    break
+                    sms_code = status_store.request_operator_input(f"SMS code for @{account}:")
+                    if sms_code.strip():
+                        print(client_log_line(account, "login", "SMS code received — submitting to Instagram"))
+                        is_logged_in, current_user, loginErrors = enter_sms_code_in_browser(driver, sms_code.strip())
+                        if not is_logged_in:
+                            print(client_log_line(account, "login", f"SMS code entry failed: {loginErrors}"))
+                            loginFailureExit = True
+                            verification_requested = True
+                            break
+                    else:
+                        print(client_log_line(account, "login", "SMS code entry cancelled"))
+                        loginFailureExit = True
+                        verification_requested = True
+                        break
                 
                 # Log errors if any (to console only, session log will capture final result)
                 if loginErrors and is_bot_debug_enabled():

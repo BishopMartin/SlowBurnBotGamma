@@ -83,7 +83,7 @@ def _write_ini_from_activation(response: dict, config_path: str) -> None:
             "detach": "False",
             "close_browser_after_session": "False",
             "close_browser_after_exit": "False",
-            "bot_idle_delay": "5",
+            "bot_idle_delay": "0.25",
         }
     else:
         cp["browser-config"] = {
@@ -98,7 +98,7 @@ def _write_ini_from_activation(response: dict, config_path: str) -> None:
             "detach": "False",
             "close_browser_after_session": "False",
             "close_browser_after_exit": "False",
-            "bot_idle_delay": "5",
+            "bot_idle_delay": "0.25",
         }
 
     with open(config_path, "w") as fh:
@@ -226,7 +226,7 @@ def _try_api_relogin_from_config(client):
 
 
 # Load bot_idle_delay for main loop check interval (in minutes, convert to seconds)
-bot_idle_delay_minutes = CONFIG.getint('browser-session', 'bot_idle_delay', fallback=1)
+bot_idle_delay_minutes = CONFIG.getfloat('browser-session', 'bot_idle_delay', fallback=0.25)
 bot_idle_delay = bot_idle_delay_minutes * 60  # Convert to seconds
 
 # Helper function for interruptible sleep

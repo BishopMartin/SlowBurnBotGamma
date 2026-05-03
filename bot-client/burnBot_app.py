@@ -10,9 +10,37 @@ from textual.binding import Binding
 from textual.widgets import DataTable, Input, RichLog, Static
 from textual.containers import Horizontal, Vertical
 from textual import on
+from textual.events import Click
 from rich.text import Text
 
 import burnBot_status as status_store
+
+
+class CmdHint(Static):
+    """A clickable command hint label in the input bar."""
+
+    DEFAULT_CSS = """
+    CmdHint {
+        width: auto;
+        background: #1a1a1a;
+        color: #9A968B;
+        content-align: right middle;
+        padding: 0 1;
+    }
+    CmdHint:hover {
+        color: #adcc00;
+    }
+    """
+
+    def __init__(self, cmd: str, **kwargs):
+        super().__init__(cmd, **kwargs)
+        self._cmd = cmd
+
+    def on_click(self, event: Click) -> None:
+        event.stop()
+        app = self.app
+        if hasattr(app, "_run_cmd"):
+            app._run_cmd(self._cmd)
 
 
 class BurnBotApp(App):
@@ -102,6 +130,10 @@ class BurnBotApp(App):
     DataTable > .datatable--cursor {
         background: #2a2a2a;
     }
+    #settings-table > .datatable--cursor {
+        background: #2a2a2a;
+        color: #adcc00;
+    }
 
     #input-row {
         height: 3;
@@ -142,8 +174,13 @@ class BurnBotApp(App):
     }
     #input-hints {
         width: auto;
-        color: #9A968B;
         background: #1a1a1a;
+        align: right middle;
+    }
+    #hint-exit {
+        width: auto;
+        background: #1a1a1a;
+        color: #9A968B;
         content-align: right middle;
         padding: 0 1;
     }
@@ -176,6 +213,8 @@ class BurnBotApp(App):
         self._log_lines: list[str] = []
         self._completions: list[str] = []
         self._completion_idx: int = 0
+        self._exact_match: str | None = None
+        self._prompt_mode: bool = False
 
     # ------------------------------------------------------------------
     # Layout
@@ -201,7 +240,11 @@ class BurnBotApp(App):
             with Horizontal(id="cmd-inner"):
                 yield Input(placeholder="", id="cmd-input")
                 yield Static("", id="cmd-ghost")
-            yield Static("", id="input-hints")
+            with Horizontal(id="input-hints"):
+                yield CmdHint("/stop", id="hint-toggle")
+                yield Static("/exit", id="hint-exit")
+                yield CmdHint("/settings", id="hint-settings")
+                yield CmdHint("/help", id="hint-help")
 
     def on_mount(self) -> None:
         accounts = self.query_one("#accounts", DataTable)
@@ -210,6 +253,11 @@ class BurnBotApp(App):
         accounts.add_column("Sessions Today", key="sessions_today")
         accounts.add_column("Next Run",       key="next_run")
         accounts.add_column("Last Action",    key="last_action", width=40)
+        accounts.add_row(
+            Text("no connected accounts", style=status_store.DIM),
+            Text(""), Text(""), Text(""), Text(""),
+            key="_no_accounts",
+        )
 
         settings = self.query_one("#settings-table", DataTable)
         settings.add_columns("Setting", "Value")
@@ -227,6 +275,29 @@ class BurnBotApp(App):
     def _deselect_input(self) -> None:
         inp = self.query_one("#cmd-input", Input)
         inp.cursor_position = len(inp.value)
+
+    def _enter_input_prompt_mode(self, prompt: str) -> None:
+        """Switch the input bar to collect a free-text response (e.g., SMS code)."""
+        self._prompt_mode = True
+        inp = self.query_one("#cmd-input", Input)
+        inp.placeholder = prompt
+        inp.value = ""
+        inp.focus()
+        ghost = self.query_one("#cmd-ghost", Static)
+        from rich.text import Text as RichText
+        ghost.update(RichText("↵ submit  Esc cancel", style="#adcc00"))
+
+    def _exit_input_prompt_mode(self) -> None:
+        """Restore the input bar to normal command mode."""
+        self._prompt_mode = False
+        inp = self.query_one("#cmd-input", Input)
+        inp.placeholder = ""
+        inp.value = "/"
+        inp.cursor_position = 1
+        self._completions = []
+        self._exact_match = None
+        self._update_ghost()
+        inp.focus()
 
     # ------------------------------------------------------------------
     # Header
@@ -248,7 +319,7 @@ class BurnBotApp(App):
         header.append("  |  Current State: ", style=status_store.DIM)
         if paused:
             header.append("[", style=status_store.DIM)
-            header.append("STOPPED", style="bold #E5C07B")
+            header.append("STOPPED", style="bold #cf3b0a")
             header.append("]", style=status_store.DIM)
         else:
             header.append("[", style=status_store.DIM)
@@ -258,10 +329,10 @@ class BurnBotApp(App):
         self.query_one("#header-bar", Static).update(header)
 
         try:
+            hint = self.query_one("#hint-toggle", CmdHint)
             hint_cmd = "/start" if paused else "/stop"
-            self.query_one("#input-hints", Static).update(
-                f"{hint_cmd}  /exit  /settings  /help"
-            )
+            hint._cmd = hint_cmd
+            hint.update(hint_cmd)
         except Exception:
             pass
 
@@ -297,6 +368,7 @@ class BurnBotApp(App):
     ]
 
     def _refresh_settings_rows(self) -> None:
+        _actionable = {"toggle", "cycle"}
         table = self.query_one("#settings-table", DataTable)
         saved_row = table.cursor_row
         table.clear()
@@ -314,8 +386,14 @@ class BurnBotApp(App):
                 colors = {"none": "#9A968B", "email": "#adcc00", "sms": "#adcc00", "both": "#adcc00"}
                 val_text = Text(val, style=colors.get(val, "#f4f3ee"))
                 table.add_row(Text(f"  {label}"), val_text)
-        if saved_row < len(self._SETTINGS_ROWS):
-            table.move_cursor(row=saved_row)
+        # Land on an actionable row; if saved_row is non-actionable, find next one
+        target = saved_row
+        if target >= len(self._SETTINGS_ROWS) or self._SETTINGS_ROWS[target][0] not in _actionable:
+            target = next(
+                (i for i, (t, _, _k) in enumerate(self._SETTINGS_ROWS) if t in _actionable),
+                saved_row,
+            )
+        table.move_cursor(row=target)
 
     def _activate_settings_row(self, row_idx: int) -> None:
         if row_idx < 0 or row_idx >= len(self._SETTINGS_ROWS):
@@ -366,6 +444,10 @@ class BurnBotApp(App):
 
     def _update_account_row(self, account_name: str, kwargs: dict) -> None:
         table  = self.query_one("#accounts", DataTable)
+        try:
+            table.remove_row("_no_accounts")
+        except Exception:
+            pass
         status = kwargs.get("status", "—")
         color  = status_store.COLOR.get(status, status_store.DIM)
 
@@ -393,6 +475,8 @@ class BurnBotApp(App):
     # ------------------------------------------------------------------
 
     def _update_ghost(self) -> None:
+        if self._prompt_mode:
+            return
         ghost = self.query_one("#cmd-ghost", Static)
         if self._completions:
             current = self._completions[self._completion_idx]
@@ -404,6 +488,8 @@ class BurnBotApp(App):
             else:
                 t.append(" - tab to select", style="#4a4a45")
             ghost.update(t)
+        elif self._exact_match:
+            ghost.update(Text(self._exact_match, style="#adcc00"))
         else:
             try:
                 inp = self.query_one("#cmd-input", Input)
@@ -416,9 +502,12 @@ class BurnBotApp(App):
 
     @on(Input.Changed, "#cmd-input")
     def on_input_changed(self, event: Input.Changed) -> None:
+        if self._prompt_mode:
+            return
         typed = event.value
         if not typed:
             self._completions = []
+            self._exact_match = None
             self._update_ghost()
             inp = self.query_one("#cmd-input", Input)
             inp.value = "/"
@@ -426,23 +515,38 @@ class BurnBotApp(App):
             return
         if typed.startswith("/") and len(typed) > 1:
             self._completions = [c for c in self._COMMANDS if c.startswith(typed) and c != typed]
+            self._exact_match = typed if typed in self._COMMANDS else None
         else:
             self._completions = []
+            self._exact_match = None
         self._completion_idx = 0
         self._update_ghost()
 
     def on_key(self, event) -> None:
-        # Tab toggle in settings table
-        if event.key == "tab":
-            try:
-                table = self.query_one("#settings-table", DataTable)
-                if table.has_focus and self.query_one("#settings-overlay").display:
+        # Settings table navigation — skip non-actionable rows
+        try:
+            table = self.query_one("#settings-table", DataTable)
+            if table.has_focus and self.query_one("#settings-overlay").display:
+                _actionable = {"toggle", "cycle"}
+                if event.key == "tab":
                     self._activate_settings_row(table.cursor_row)
                     event.prevent_default()
                     event.stop()
                     return
-            except Exception:
-                pass
+                if event.key in ("up", "down"):
+                    step = -1 if event.key == "up" else 1
+                    row = table.cursor_row
+                    n = len(self._SETTINGS_ROWS)
+                    for _ in range(n):
+                        row = (row + step) % n
+                        if self._SETTINGS_ROWS[row][0] in _actionable:
+                            break
+                    table.move_cursor(row=row)
+                    event.prevent_default()
+                    event.stop()
+                    return
+        except Exception:
+            pass
 
         # Autocomplete in command input
         inp = self.query_one("#cmd-input", Input)
@@ -451,6 +555,7 @@ class BurnBotApp(App):
         if event.key == "tab":
             inp.value = self._completions[self._completion_idx]
             inp.cursor_position = len(inp.value)
+            self._exact_match = inp.value
             self._completions = []
             self._update_ghost()
             event.prevent_default()
@@ -470,13 +575,11 @@ class BurnBotApp(App):
     # Command input
     # ------------------------------------------------------------------
 
-    @on(Input.Submitted)
-    def handle_command(self, event: Input.Submitted) -> None:
-        cmd = event.value.strip().lower()
-        event.input.value = "/"
-        event.input.cursor_position = 1
-        self._completions = []
-        self._update_ghost()
+    def _run_cmd(self, cmd: str) -> None:
+        """Execute a command string directly (used by clickable hints)."""
+        self._dispatch_cmd(cmd.strip().lower())
+
+    def _dispatch_cmd(self, cmd: str) -> None:
         if not cmd or cmd == "/":
             return
         if cmd == "/exit":
@@ -507,12 +610,32 @@ class BurnBotApp(App):
         else:
             self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Unknown command '{cmd}' — type /help for list")
 
+    @on(Input.Submitted)
+    def handle_command(self, event: Input.Submitted) -> None:
+        if self._prompt_mode:
+            value = event.value.strip()
+            self._exit_input_prompt_mode()
+            status_store.deliver_operator_input(value)
+            return
+        cmd = event.value.strip().lower()
+        event.input.value = "/"
+        event.input.cursor_position = 1
+        self._completions = []
+        self._exact_match = None
+        self._update_ghost()
+        self._dispatch_cmd(cmd)
+
     def action_clear_input(self) -> None:
+        if self._prompt_mode:
+            self._exit_input_prompt_mode()
+            status_store.deliver_operator_input("")
+            return
         inp = self.query_one("#cmd-input", Input)
         if inp.value and inp.value != "/":
             inp.value = "/"
             inp.cursor_position = 1
             self._completions = []
+            self._exact_match = None
             self._update_ghost()
         elif self.query_one("#help-overlay").display:
             self._close_help()

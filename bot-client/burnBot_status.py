@@ -12,6 +12,11 @@ _stop_requested: bool = False
 _pending_command = None     # str | None
 _log_buffer: deque = deque(maxlen=300)
 
+# Pending operator input (e.g., SMS verification code)
+_pending_input_event: threading.Event = threading.Event()
+_pending_input_prompt: str | None = None
+_pending_input_value: str | None = None
+
 # Kept for toggle_setting() / _get_setting_value()
 _SETTINGS = [
     ("Pause sessions",    "_bot_paused"),
@@ -95,6 +100,38 @@ def get_pending_command():
     with _lock:
         cmd, _pending_command = _pending_command, None
         return cmd
+
+
+def request_operator_input(prompt: str) -> str:
+    """
+    Block the calling (bot) thread until the operator submits input via the TUI.
+    Returns the submitted string, or "" if cancelled or no TUI is available.
+    """
+    global _pending_input_prompt, _pending_input_value
+    if _app is None:
+        return ""
+    with _lock:
+        _pending_input_prompt = prompt
+        _pending_input_value = None
+        _pending_input_event.clear()
+    _app.call_from_thread(_app._enter_input_prompt_mode, prompt)
+    _pending_input_event.wait()
+    with _lock:
+        return _pending_input_value or ""
+
+
+def deliver_operator_input(value: str) -> None:
+    """Called from the UI thread to deliver the operator's submitted value to the waiting bot thread."""
+    global _pending_input_value, _pending_input_prompt
+    with _lock:
+        _pending_input_value = value
+        _pending_input_prompt = None
+    _pending_input_event.set()
+
+
+def get_pending_input_prompt() -> str | None:
+    with _lock:
+        return _pending_input_prompt
 
 
 def is_notify_enabled() -> bool:
