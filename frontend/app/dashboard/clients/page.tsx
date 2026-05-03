@@ -311,19 +311,21 @@ export default function ClientPage() {
               <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
             </button>
           </div>
-          <div>
-            <span className="text-[#9A968B]">pull: </span>
-            <code className="text-[#E5C07B] break-all">{linuxCmds.pull_cmd}</code>
-            <button onClick={() => copyCmd(linuxCmds.pull_cmd, "pull")} className="inline group cursor-pointer transition-colors ml-2">
-              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === "pull" ? "copied!" : "copy"}</Bracket>
-            </button>
-          </div>
-          <div>
-            <span className="text-[#9A968B]">run: </span>
-            <code className="text-[#E5C07B] break-all">{linuxCmds.run_cmd}</code>
-            <button onClick={() => copyCmd(linuxCmds.run_cmd, "run")} className="inline group cursor-pointer transition-colors ml-2">
-              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === "run" ? "copied!" : "copy"}</Bracket>
-            </button>
+          <div className="grid gap-x-4 gap-y-1" style={{ gridTemplateColumns: "max-content 1fr" }}>
+            <span className="text-[#9A968B]">pull:</span>
+            <div>
+              <code className="text-[#E5C07B] break-all">{linuxCmds.pull_cmd}</code>
+              <button onClick={() => copyCmd(linuxCmds.pull_cmd, "pull")} className="inline group cursor-pointer transition-colors ml-2">
+                <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === "pull" ? "copied!" : "copy"}</Bracket>
+              </button>
+            </div>
+            <span className="text-[#9A968B]">run:</span>
+            <div>
+              <code className="text-[#E5C07B] break-all">{linuxCmds.run_cmd}</code>
+              <button onClick={() => copyCmd(linuxCmds.run_cmd, "run")} className="inline group cursor-pointer transition-colors ml-2">
+                <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === "run" ? "copied!" : "copy"}</Bracket>
+              </button>
+            </div>
           </div>
           <p className="text-[#9A968B] text-sm">On first run the container will prompt for your activation token.</p>
         </div>
