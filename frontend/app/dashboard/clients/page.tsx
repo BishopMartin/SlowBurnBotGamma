@@ -82,18 +82,18 @@ function BuildForm({
           onClick={() => switchPlatform("linux")}
           className={`cursor-pointer transition-colors ${cfg.system_type === "linux" ? "text-[#d97757]" : "text-[#9A968B] hover:text-white"}`}
         >
-          <span className="text-[#f4f3ee]">[</span>linux / docker<span className="text-[#f4f3ee]">]</span>
+          <span className="text-[#f4f3ee]">[</span>linux/docker<span className="text-[#f4f3ee]">]</span>
         </button>
       </div>
       <div className="flex items-center gap-3 pt-1">
         <button
           onClick={() => onSubmit(cfg)}
           disabled={!canSubmit}
-          className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-[#2e2c2a] border border-black px-2 py-0.5"
+          className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-[#2e2c2a] border border-[#555] px-2 py-0.5"
         >
           <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{submitting ? "saving…" : submitLabel}</Bracket>
         </button>
-        <button onClick={onCancel} className="group cursor-pointer transition-colors bg-[#2e2c2a] border border-black px-2 py-0.5">
+        <button onClick={onCancel} className="group cursor-pointer transition-colors bg-[#2e2c2a] border border-[#555] px-2 py-0.5">
           <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">cancel</Bracket>
         </button>
         {error && <span className="text-status-bad">{error}</span>}
@@ -263,7 +263,7 @@ export default function ClientPage() {
       </div>
 
       {!bannerDismissed && currentBotVersion && (
-        <div className="border border-black px-4 py-3 flex items-center gap-3 flex-wrap">
+        <div className="border border-[#555] px-4 py-3 flex items-center gap-3 flex-wrap">
           <span className="text-[#f4f3ee]">
             BurnBotClient <span className="text-[#E5C07B]">v{currentBotVersion}</span>
             {botReleaseDate && <span className="text-[#9A968B]"> released {botReleaseDate}</span>}
@@ -276,7 +276,7 @@ export default function ClientPage() {
       )}
 
       {justCreated && (
-        <div className="border border-black px-4 py-3 space-y-2">
+        <div className="border border-[#555] px-4 py-3 space-y-2">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-[#f4f3ee]">client {justCreated.client_id} configured.</span>
             <span className="text-[#9A968B]">
@@ -395,7 +395,7 @@ export default function ClientPage() {
                           <td colSpan={7} className="p-0">
                             <BuildForm
                               initial={cfg}
-                              submitLabel="reconfigure + new token"
+                              submitLabel="replace token"
                               onSubmit={(newCfg) => handleRebuildWithConfig(build.id, build.client_id, newCfg)}
                               onCancel={() => { setExpandedKey(null); setFormError(null); }}
                               submitting={formSubmitting}
@@ -432,7 +432,7 @@ export default function ClientPage() {
                           <td colSpan={7} className="p-0">
                             <BuildForm
                               initial={DEFAULT_CONFIG}
-                              submitLabel="configure slot"
+                              submitLabel="generate token"
                               onSubmit={handleNewBuild}
                               onCancel={() => { setExpandedKey(null); setFormError(null); }}
                               submitting={formSubmitting}
@@ -468,8 +468,8 @@ export default function ClientPage() {
             <p><span className="text-[#f4f3ee]">3.</span> Run the EXE. On first launch it will prompt for your Activation Token. Paste it in — the config is written locally and you won't be asked again.</p>
           </div>
           <div className="space-y-1">
-            <p className="text-[#f4f3ee]">linux / docker</p>
-            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">token</span> on an empty slot, select <span className="text-[#f4f3ee]">linux / docker</span>, enter a name, and copy the activation token shown after saving.</p>
+            <p className="text-[#f4f3ee]">linux/docker</p>
+            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">token</span> on an empty slot, select <span className="text-[#f4f3ee]">linux/docker</span>, enter a name, and copy the activation token shown after saving.</p>
             <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">get commands</span> to see the <code className="text-[#E5C07B]">docker pull</code> and <code className="text-[#E5C07B]">docker run</code> commands.</p>
             <p><span className="text-[#f4f3ee]">3.</span> Run the container. On first launch it will prompt for your Activation Token. Paste it in — the config is written locally and you won&apos;t be asked again.</p>
           </div>
