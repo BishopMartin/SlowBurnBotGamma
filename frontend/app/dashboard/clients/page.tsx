@@ -89,11 +89,11 @@ function BuildForm({
         <button
           onClick={() => onSubmit(cfg)}
           disabled={!canSubmit}
-          className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-[#2e2c2a] border border-[#d97757] px-2 py-0.5"
+          className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-[#2e2c2a] border border-black px-2 py-0.5"
         >
           <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{submitting ? "saving…" : submitLabel}</Bracket>
         </button>
-        <button onClick={onCancel} className="group cursor-pointer transition-colors bg-[#2e2c2a] border border-[#d97757] px-2 py-0.5">
+        <button onClick={onCancel} className="group cursor-pointer transition-colors bg-[#2e2c2a] border border-black px-2 py-0.5">
           <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">cancel</Bracket>
         </button>
         {error && <span className="text-status-bad">{error}</span>}
@@ -263,7 +263,7 @@ export default function ClientPage() {
       </div>
 
       {!bannerDismissed && currentBotVersion && (
-        <div className="border border-[#d97757] px-4 py-3 flex items-center gap-3 flex-wrap">
+        <div className="border border-black px-4 py-3 flex items-center gap-3 flex-wrap">
           <span className="text-[#f4f3ee]">
             BurnBotClient <span className="text-[#E5C07B]">v{currentBotVersion}</span>
             {botReleaseDate && <span className="text-[#9A968B]"> released {botReleaseDate}</span>}
@@ -276,7 +276,7 @@ export default function ClientPage() {
       )}
 
       {justCreated && (
-        <div className="border border-[#d97757] px-4 py-3 space-y-2">
+        <div className="border border-black px-4 py-3 space-y-2">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-[#f4f3ee]">client {justCreated.client_id} configured.</span>
             <span className="text-[#9A968B]">
