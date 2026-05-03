@@ -104,7 +104,8 @@ jobs:
             --output-filename=slowburnbot \
             --nofollow-import-to=pyautogui,pygetwindow \
             --include-package=keyrings.alt \
-            --include-package=rich._unicode_data \
+            --include-package=rich \
+            --include-package=textual \
             burnBot.py
 
       - name: Log in to GHCR
