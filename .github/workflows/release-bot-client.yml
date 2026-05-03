@@ -91,22 +91,16 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install dependencies + Nuitka
+      - name: Install dependencies + PyInstaller
         run: |
           pip install -r bot-client/requirements.txt
-          pip install nuitka ordered-set zstandard
+          pip install pyinstaller
 
-      - name: Compile with Nuitka
+      - name: Build with PyInstaller
         working-directory: bot-client
         run: |
-          python -m nuitka \
-            --onefile \
-            --output-filename=slowburnbot \
-            --nofollow-import-to=pyautogui,pygetwindow \
-            --include-package=keyrings.alt \
-            --include-package=rich \
-            --include-package=textual \
-            burnBot.py
+          pyinstaller SlowBurnBot.linux.spec --distpath ../dist --workpath ../build
+          cp ../dist/slowburnbot .
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
