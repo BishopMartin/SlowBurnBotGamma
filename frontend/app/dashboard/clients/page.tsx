@@ -74,15 +74,15 @@ function BuildForm({
         <BracketInput label="client name" value={cfg.client_name} onChange={(v) => set("client_name", v.slice(0, 15))} width="15ch" placeholder="my laptop" />
         <button
           onClick={() => switchPlatform("windows")}
-          className={`group cursor-pointer transition-colors ${cfg.system_type === "windows" ? "" : "opacity-50"}`}
+          className={`cursor-pointer transition-colors ${cfg.system_type === "windows" ? "text-[#d97757]" : "text-[#9A968B] hover:text-white"}`}
         >
-          <Bracket className={cfg.system_type === "windows" ? "text-[#f4f3ee]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>windows</Bracket>
+          <span className="text-[#f4f3ee]">[</span>windows<span className="text-[#f4f3ee]">]</span>
         </button>
         <button
           onClick={() => switchPlatform("linux")}
-          className={`group cursor-pointer transition-colors ${cfg.system_type === "linux" ? "" : "opacity-50"}`}
+          className={`cursor-pointer transition-colors ${cfg.system_type === "linux" ? "text-[#d97757]" : "text-[#9A968B] hover:text-white"}`}
         >
-          <Bracket className={cfg.system_type === "linux" ? "text-[#f4f3ee]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>linux / docker</Bracket>
+          <span className="text-[#f4f3ee]">[</span>linux / docker<span className="text-[#f4f3ee]">]</span>
         </button>
       </div>
       <div className="flex items-center gap-3 pt-1">
