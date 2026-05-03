@@ -1054,15 +1054,22 @@ def setup_chrome_options(account, accountAgent, chrome_user_data_dir, debugging_
     for arg in arguments:
         options.add_argument(arg)
     
+    # Headless + Linux/Docker flags
+    headless = CONFIG.getboolean('browser-session', 'headless', fallback=False)
+    system_type = CONFIG.get('bot_settings', 'system_type', fallback='windows')
+    if headless:
+        options.add_argument('--headless=new')
+    if system_type == 'linux':
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+
     # Add minimal stealth arguments - only the most critical ones
-    # Too many arguments can actually make detection easier
     stealth_args = [
-        '--disable-blink-features=AutomationControlled',  # Critical: disables automation flag
-        '--disable-infobars',  # Hide "Chrome is being controlled" message
+        '--disable-blink-features=AutomationControlled',
+        '--disable-infobars',
     ]
-    
     for arg in stealth_args:
-        if arg not in arguments:  # Don't add duplicates
+        if arg not in arguments:
             options.add_argument(arg)
     
     # Add experimental options for stealth
