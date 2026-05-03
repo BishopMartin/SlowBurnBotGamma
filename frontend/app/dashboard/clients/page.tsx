@@ -311,17 +311,17 @@ export default function ClientPage() {
               <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
             </button>
           </div>
-          <div className="overflow-x-auto">
+          <div>
             <span className="text-[#9A968B]">pull: </span>
-            <code className="text-[#E5C07B] whitespace-nowrap">{linuxCmds.pull_cmd}</code>
-            <button onClick={() => copyCmd(linuxCmds.pull_cmd, "pull")} className="group cursor-pointer transition-colors ml-3">
+            <code className="text-[#E5C07B]">{linuxCmds.pull_cmd}</code>
+            <button onClick={() => copyCmd(linuxCmds.pull_cmd, "pull")} className="inline group cursor-pointer transition-colors ml-2">
               <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === "pull" ? "copied!" : "copy"}</Bracket>
             </button>
           </div>
-          <div className="overflow-x-auto">
+          <div>
             <span className="text-[#9A968B]">run: </span>
-            <code className="text-[#E5C07B] whitespace-nowrap">{linuxCmds.run_cmd}</code>
-            <button onClick={() => copyCmd(linuxCmds.run_cmd, "run")} className="group cursor-pointer transition-colors ml-3">
+            <code className="text-[#E5C07B]">{linuxCmds.run_cmd}</code>
+            <button onClick={() => copyCmd(linuxCmds.run_cmd, "run")} className="inline group cursor-pointer transition-colors ml-2">
               <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === "run" ? "copied!" : "copy"}</Bracket>
             </button>
           </div>
