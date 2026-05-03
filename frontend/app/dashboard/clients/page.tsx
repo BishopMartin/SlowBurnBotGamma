@@ -92,11 +92,11 @@ function BuildForm({
         <button
           onClick={() => onSubmit(cfg)}
           disabled={!canSubmit}
-          className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-[#252422] px-2 py-0.5"
         >
           <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{submitting ? "saving…" : submitLabel}</Bracket>
         </button>
-        <button onClick={onCancel} className="group cursor-pointer transition-colors">
+        <button onClick={onCancel} className="group cursor-pointer transition-colors bg-[#252422] px-2 py-0.5">
           <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">cancel</Bracket>
         </button>
         {error && <span className="text-status-bad">{error}</span>}
