@@ -85,9 +85,6 @@ function BuildForm({
           <Bracket className={cfg.system_type === "linux" ? "text-[#f4f3ee]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>linux / docker</Bracket>
         </button>
       </div>
-      {cfg.system_type === "linux" && (
-        <p className="text-[#9A968B] text-sm">Chrome is included in the Docker image. Run with <code className="text-[#E5C07B]">docker run -it</code> for the TUI.</p>
-      )}
       <div className="flex items-center gap-3 pt-1">
         <button
           onClick={() => onSubmit(cfg)}
