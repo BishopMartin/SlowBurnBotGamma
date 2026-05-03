@@ -281,7 +281,7 @@ export default function ClientPage() {
             <span className="text-[#f4f3ee]">client {justCreated.client_id} configured.</span>
             <span className="text-[#9A968B]">
               {(justCreated.build_options as DesktopBuildConfig).system_type === "linux"
-                ? "copy this token, then click get commands on your slot to get the docker commands:"
+                ? "copy this token, then click commands on your slot to get the docker commands:"
                 : "download the generic binary and paste this token on first run:"}
             </span>
             <button onClick={() => setJustCreated(null)} className="group cursor-pointer transition-colors ml-auto">
@@ -371,7 +371,7 @@ export default function ClientPage() {
                           <div className="flex gap-2 justify-end items-center">
                             <button onClick={() => handleDownload(build)} disabled={downloading === build.id} className="group cursor-pointer transition-colors disabled:opacity-40">
                               <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">
-                                {downloading === build.id ? "…" : cfg.system_type === "linux" ? "get commands" : "download"}
+                                {downloading === build.id ? "…" : cfg.system_type === "linux" ? "commands" : "download"}
                               </Bracket>
                             </button>
                             <button
@@ -470,7 +470,7 @@ export default function ClientPage() {
           <div className="space-y-1">
             <p className="text-[#f4f3ee]">linux/docker</p>
             <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">token</span> on an empty slot, select <span className="text-[#f4f3ee]">linux/docker</span>, enter a name, and copy the activation token shown after saving.</p>
-            <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">get commands</span> to see the <code className="text-[#E5C07B]">docker pull</code> and <code className="text-[#E5C07B]">docker run</code> commands.</p>
+            <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">commands</span> to see the <code className="text-[#E5C07B]">docker pull</code> and <code className="text-[#E5C07B]">docker run</code> commands.</p>
             <p><span className="text-[#f4f3ee]">3.</span> Run the container. On first launch it will prompt for your Activation Token. Paste it in — the config is written locally and you won&apos;t be asked again.</p>
           </div>
         </div>
