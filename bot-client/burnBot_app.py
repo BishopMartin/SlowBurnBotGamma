@@ -319,7 +319,7 @@ class BurnBotApp(App):
         header.append("  |  Current State: ", style=status_store.DIM)
         if paused:
             header.append("[", style=status_store.DIM)
-            header.append("STOPPED", style="bold #cf3b0a")
+            header.append("STOPPED", style="bold #E5C07B")
             header.append("]", style=status_store.DIM)
         else:
             header.append("[", style=status_store.DIM)

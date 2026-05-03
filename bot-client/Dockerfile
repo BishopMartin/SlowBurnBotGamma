@@ -11,6 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Force keyrings.alt plaintext backend — no desktop keyring daemon in container
 ENV PYTHON_KEYRING_BACKEND=keyrings.alt.file.PlaintextKeyring
+ENV COLORTERM=truecolor
 
 COPY *.py ./
 COPY burnBot_config.ini ./
