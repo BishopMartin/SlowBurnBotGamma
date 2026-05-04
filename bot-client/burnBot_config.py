@@ -8,6 +8,42 @@ CONFIG = configparser.ConfigParser()
 CONFIG_FILE_PATH = None
 
 
+_DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+)
+
+
+def _inject_missing_sections() -> None:
+    """Ensure [browser-config] and [browser-session] exist.
+
+    Old config files pre-date these sections. Rather than crashing with a
+    KeyError, inject sensible defaults so the bot can still start.
+    The defaults match what _write_ini_from_activation() writes for windows
+    (the only platform that ever runs pre-existing user configs).
+    """
+    system_type = CONFIG.get("bot_settings", "system_type", fallback="windows")
+    if not CONFIG.has_section("browser-config"):
+        CONFIG.add_section("browser-config")
+        if system_type == "linux":
+            CONFIG.set("browser-config", "chrome_version", "")
+            CONFIG.set("browser-config", "chrome_path", "/usr/bin/google-chrome")
+            CONFIG.set("browser-config", "chrome_user_data_dir_base", "")
+        else:
+            CONFIG.set("browser-config", "chrome_version", "143")
+            CONFIG.set("browser-config", "chrome_path", "PortableChrome\\chrome.exe")
+            CONFIG.set("browser-config", "chrome_user_data_dir_base", "PortableChrome")
+        CONFIG.set("browser-config", "system_user_agent", _DEFAULT_USER_AGENT)
+        CONFIG.set("browser-config", "add_argument", "")
+    if not CONFIG.has_section("browser-session"):
+        CONFIG.add_section("browser-session")
+        CONFIG.set("browser-session", "headless", "True" if system_type == "linux" else "False")
+        CONFIG.set("browser-session", "detach", "False")
+        CONFIG.set("browser-session", "close_browser_after_session", "False")
+        CONFIG.set("browser-session", "close_browser_after_exit", "False")
+        CONFIG.set("browser-session", "bot_idle_delay", "0.25")
+
+
 def load_config(default_config_file):
     global CONFIG, CONFIG_FILE_PATH
 
@@ -18,6 +54,7 @@ def load_config(default_config_file):
 
     CONFIG.read(config_file)
     CONFIG_FILE_PATH = os.path.abspath(config_file)
+    _inject_missing_sections()
     return config_file
 
 
