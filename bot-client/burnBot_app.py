@@ -307,7 +307,7 @@ class BurnBotApp(App):
         client_id_str = str(self._client_id).zfill(2)
 
         header = Text(no_wrap=True)
-        header.append(f"SlowBurnBot Client v{self._version}", style=f"bold {status_store.FG}")
+        header.append(f"SlowBurnBot Client v{self._version}", style="bold #d97757")
         header.append("  |  ", style=status_store.DIM)
         header.append(f"Client ID: {client_id_str}", style=status_store.DIM)
         if self._client_name:
@@ -323,6 +323,15 @@ class BurnBotApp(App):
             header.append("[", style=status_store.DIM)
             header.append("RUNNING", style="bold #adcc00")
             header.append("]", style=status_store.DIM)
+
+        pos = status_store.seconds_since_heartbeat() % 15
+        header.append("  [", style=status_store.DIM)
+        for i in range(15):
+            if i == pos:
+                header.append("█", style=status_store.FG)
+            else:
+                header.append("░", style=status_store.DIM)
+        header.append("]", style=status_store.DIM)
 
         self.query_one("#header-bar", Static).update(header)
 

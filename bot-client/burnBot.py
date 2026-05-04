@@ -454,15 +454,17 @@ try:
                 _hb_state["status"] = status
                 _hb_state["account"] = account
             apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, status, account)
+            status_store.mark_heartbeat()
 
         def _heartbeat_loop():
             while not stop_flag.is_set():
-                if stop_flag.wait(60):
+                if stop_flag.wait(15):
                     return
                 with _hb_lock:
                     status = _hb_state["status"]
                     account = _hb_state["account"]
                 apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, status, account)
+                status_store.mark_heartbeat()
 
         threading.Thread(target=_heartbeat_loop, daemon=True).start()
 

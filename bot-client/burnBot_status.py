@@ -1,4 +1,5 @@
 import threading
+import time
 from collections import deque
 from burnBot_config import CONFIG
 
@@ -26,6 +27,8 @@ _SETTINGS = [
 ]
 
 _browser_only: bool = False
+
+_last_heartbeat_at: float = 0.0  # monotonic timestamp of last heartbeat send
 
 _NOTIFY_OPTIONS = ["none", "email", "sms", "both"]
 _session_notify: str = "none"
@@ -206,6 +209,19 @@ def _toggle_setting_locked(idx: int) -> None:
         CONFIG.set('bot_settings', 'bot_debug', str(not cur))
     elif key == "_browser_only":
         _browser_only = not _browser_only
+
+
+def mark_heartbeat() -> None:
+    global _last_heartbeat_at
+    with _lock:
+        _last_heartbeat_at = time.monotonic()
+
+
+def seconds_since_heartbeat() -> int:
+    with _lock:
+        if _last_heartbeat_at == 0.0:
+            return 0
+        return int(time.monotonic() - _last_heartbeat_at)
 
 
 def get_setting_value(key: str) -> bool:
