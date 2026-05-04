@@ -324,14 +324,11 @@ class BurnBotApp(App):
             header.append("RUNNING", style="bold #adcc00")
             header.append("]", style=status_store.DIM)
 
-        pos = status_store.seconds_since_heartbeat() % 15
-        header.append("  [", style=status_store.DIM)
-        for i in range(15):
-            if i == pos:
-                header.append("█", style=status_store.FG)
-            else:
-                header.append("░", style=status_store.DIM)
-        header.append("]", style=status_store.DIM)
+        filled = status_store.seconds_since_heartbeat() % 15
+        header.append("  |", style=status_store.DIM)
+        header.append("█" * filled, style=status_store.FG)
+        header.append("░" * (15 - filled), style=status_store.DIM)
+        header.append("|", style=status_store.DIM)
 
         self.query_one("#header-bar", Static).update(header)
 
@@ -493,6 +490,10 @@ class BurnBotApp(App):
             ghost.update(Text(self._exact_match, style="#adcc00"))
         else:
             ghost.update("")
+
+    @on(Click, "#input-row")
+    def on_input_row_click(self, event: Click) -> None:
+        self.query_one("#cmd-input", Input).focus()
 
     @on(Input.Changed, "#cmd-input")
     def on_input_changed(self, event: Input.Changed) -> None:
