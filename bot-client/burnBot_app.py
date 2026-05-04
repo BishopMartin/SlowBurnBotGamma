@@ -41,6 +41,10 @@ class CmdHint(Static):
         app = self.app
         if hasattr(app, "_run_cmd"):
             app._run_cmd(self._cmd)
+        try:
+            app.query_one("#cmd-input", Input).focus()
+        except Exception:
+            pass
 
 
 class BurnBotApp(App):
@@ -222,7 +226,7 @@ class BurnBotApp(App):
 
     def compose(self) -> ComposeResult:
         yield Static("", id="header-bar")
-        yield RichLog(highlight=False, markup=True, wrap=False, id="log")
+        yield RichLog(highlight=False, markup=True, wrap=True, id="log")
         with Vertical(id="settings-overlay"):
             yield Static("Client Settings", id="settings-section-header")
             yield DataTable(id="settings-table", show_header=False, cursor_type="row")
@@ -308,13 +312,13 @@ class BurnBotApp(App):
 
         header = Text(no_wrap=True)
         header.append(f"SlowBurnBot Client v{self._version}", style="bold #d97757")
-        header.append("  |  ", style=status_store.DIM)
+        header.append(" | ", style=status_store.DIM)
         header.append(f"Client ID: {client_id_str}", style=status_store.DIM)
         if self._client_name:
             header.append(f" ({self._client_name})", style=status_store.DIM)
-        header.append("  |  ", style=status_store.DIM)
+        header.append(" | ", style=status_store.DIM)
         header.append(now, style=status_store.DIM)
-        header.append("  |  Current State: ", style=status_store.DIM)
+        header.append(" | Current State: ", style=status_store.DIM)
         if paused:
             header.append("[", style=status_store.DIM)
             header.append("STOPPED", style="bold #E5C07B")
@@ -325,7 +329,7 @@ class BurnBotApp(App):
             header.append("]", style=status_store.DIM)
 
         filled = status_store.seconds_since_heartbeat() % 15
-        header.append("  |", style=status_store.DIM)
+        header.append(" |", style=status_store.DIM)
         header.append("█" * filled, style=status_store.TEXT)
         header.append("░" * (15 - filled), style=status_store.DIM)
         header.append("|", style=status_store.DIM)
@@ -491,9 +495,13 @@ class BurnBotApp(App):
         else:
             ghost.update("")
 
-    @on(Click, "#input-row")
-    def on_input_row_click(self, event: Click) -> None:
-        self.query_one("#cmd-input", Input).focus()
+    def on_click(self, event: Click) -> None:
+        try:
+            input_row = self.query_one("#input-row")
+            if input_row.region.contains_point((event.screen_x, event.screen_y)):
+                self.query_one("#cmd-input", Input).focus()
+        except Exception:
+            pass
 
     @on(Input.Changed, "#cmd-input")
     def on_input_changed(self, event: Input.Changed) -> None:

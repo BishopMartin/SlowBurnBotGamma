@@ -184,13 +184,14 @@ async def get_download_url(
     if _system_type(build) == "linux":
         image_ref = f"{settings.ghcr_namespace}/slowburnbot-client:latest"
         # Activation token not returned here — it's shown on the build row at creation time
+        cid = str(build.client_id).zfill(2)
         return {
             "image_ref": image_ref,
             "pull_cmd": f"docker pull {image_ref}",
             "run_cmd": (
                 f"docker run -it --rm "
-                f"--name slowburn-client{build.client_id} "
-                f"-v slowburn-client{build.client_id}-data:/data "
+                f"--name slowburn-client{cid} "
+                f"-v slowburn-client{cid}-data:/data "
                 f"-v /etc/localtime:/etc/localtime:ro "
                 f"{image_ref}"
             ),
