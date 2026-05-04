@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getAccounts, getAccountSourceStats, Account, SourceStat } from "@/lib/api";
 import { Dropdown } from "@/lib/dropdown";
 
-type SortKey = "source" | "total" | "complete" | "followed_back" | "rate" | "fb_daily";
+type SortKey = "source" | "total" | "complete" | "followed_back" | "rate" | "daily";
 type SortDir = "asc" | "desc";
 type Period = "day" | "week" | "month" | "all";
 
@@ -55,7 +55,7 @@ export default function AccountStatsPage() {
     );
   }
 
-  const fbDaily = (s: SourceStat) => s.followed_back / days;
+  const daily = (s: SourceStat) => s.total / days;
 
   const sorted = useMemo(() => {
     const list = [...items];
@@ -63,7 +63,7 @@ export default function AccountStatsPage() {
     list.sort((a, b) => {
       const val = (s: SourceStat) =>
         sortKey === "source" ? (s.source ?? "").toLowerCase()
-        : sortKey === "fb_daily" ? fbDaily(s)
+        : sortKey === "daily" ? daily(s)
         : (s[sortKey] ?? -1);
       const av = val(a);
       const bv = val(b);
@@ -81,7 +81,7 @@ export default function AccountStatsPage() {
       t.complete += s.complete;
       t.followed_back += s.followed_back;
     }
-    return { ...t, rate: t.complete ? t.followed_back / t.complete : null, fb_daily: t.followed_back / days };
+    return { ...t, rate: t.complete ? t.followed_back / t.complete : null, daily: t.total / days };
   }, [items, days]);
 
   useEffect(() => {
@@ -121,10 +121,10 @@ export default function AccountStatsPage() {
             <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
               <SortTh label="source" field="source" />
               <SortTh label="total" field="total" />
-              <SortTh label="complete" field="complete" />
-              <SortTh label="fb yes" field="followed_back" />
-              <SortTh label="fb rate" field="rate" />
-              <SortTh label="fb daily" field="fb_daily" />
+              <SortTh label="Complete" field="complete" />
+              <SortTh label="Followed Back" field="followed_back" />
+              <SortTh label="Success Rate" field="rate" />
+              <SortTh label="Daily" field="daily" />
               <th className="px-2 py-2 font-normal w-full text-right whitespace-nowrap">
                 <span className="inline-flex items-center gap-0">
                   <span className="text-[#9A968B]">{"results:\u00a0 "}</span>
@@ -152,7 +152,7 @@ export default function AccountStatsPage() {
                   <td className="px-4 py-1.5 text-[#9A968B]">{s.complete.toLocaleString()}</td>
                   <td className="px-4 py-1.5 text-[#9A968B]">{s.followed_back.toLocaleString()}</td>
                   <td className="px-4 py-1.5 text-[#9A968B]">{fmtPct(s.rate)}</td>
-                  <td className="px-4 py-1.5 text-[#9A968B]">{fbDaily(s).toFixed(1)}</td>
+                  <td className="px-4 py-1.5 text-[#9A968B]">{daily(s).toFixed(1)}</td>
                   <td></td>
                 </tr>
               ))
@@ -166,7 +166,7 @@ export default function AccountStatsPage() {
                 <td className="px-4 py-2">{totals.complete.toLocaleString()}</td>
                 <td className="px-4 py-2">{totals.followed_back.toLocaleString()}</td>
                 <td className="px-4 py-2">{fmtPct(totals.rate)}</td>
-                <td className="px-4 py-2">{totals.fb_daily.toFixed(1)}</td>
+                <td className="px-4 py-2">{totals.daily.toFixed(1)}</td>
                 <td></td>
               </tr>
             </tfoot>

@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response
-from sqlalchemy import case, func, select
+from sqlalchemy import and_, case, func, select, true
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import current_active_user
@@ -219,19 +219,24 @@ async def followback_summary(
     period: str = Query("day"),
 ):
     """Per-account follow-back rates for targets followed within a time period."""
-    since = _period_start(period)
     FT = FollowTarget
 
-    where_clauses = [FT.user_id == user.id]
     if period != "all":
-        where_clauses.append(FT.follow_date >= _period_start(period))
+        period_start = _period_start(period)
+        follow_date_cond = FT.follow_date >= period_start
+        unfollow_date_cond = FT.unfollow_date >= period_start
+    else:
+        follow_date_cond = true()
+        unfollow_date_cond = true()
+
     result = await session.execute(
         select(
             FT.account_id,
-            func.count().label("followed"),
-            func.sum(case((FT.follow_back == True, 1), else_=0)).label("followed_back"),
+            func.count().filter(follow_date_cond).label("followed"),
+            func.count().filter(and_(unfollow_date_cond, FT.follow_back.isnot(None))).label("complete"),
+            func.count().filter(and_(unfollow_date_cond, FT.follow_back == True)).label("followed_back"),
         )
-        .where(*where_clauses)
+        .where(FT.user_id == user.id)
         .group_by(FT.account_id)
     )
     rows = result.all()
@@ -239,7 +244,7 @@ async def followback_summary(
         str(row.account_id): {
             "followed": row.followed,
             "followed_back": row.followed_back,
-            "rate": round(row.followed_back / row.followed, 2) if row.followed else None,
+            "rate": round(row.followed_back / row.complete, 2) if row.complete else None,
         }
         for row in rows
     }
@@ -558,21 +563,25 @@ async def get_account_source_stats(
 ):
     await _get_owned_account(account_id, user, session)
 
-    filters = [FollowTarget.account_id == account_id]
     if period != "all":
-        filters.append(FollowTarget.follow_date >= _period_start(period))
+        period_start = _period_start(period)
+        follow_date_cond = FollowTarget.follow_date >= period_start
+        unfollow_date_cond = FollowTarget.unfollow_date >= period_start
+    else:
+        follow_date_cond = true()
+        unfollow_date_cond = true()
 
     result = await session.execute(
         select(
             FollowTarget.source,
-            func.count().label("total"),
-            func.count().filter(FollowTarget.follow_back.isnot(None)).label("complete"),
-            func.count().filter(FollowTarget.follow_back == True).label("followed_back"),
-            func.count().filter(FollowTarget.follow_back == False).label("not_followed_back"),
+            func.count().filter(follow_date_cond).label("total"),
+            func.count().filter(and_(unfollow_date_cond, FollowTarget.follow_back.isnot(None))).label("complete"),
+            func.count().filter(and_(unfollow_date_cond, FollowTarget.follow_back == True)).label("followed_back"),
+            func.count().filter(and_(unfollow_date_cond, FollowTarget.follow_back == False)).label("not_followed_back"),
         )
-        .where(*filters)
+        .where(FollowTarget.account_id == account_id)
         .group_by(FollowTarget.source)
-        .order_by(func.count().desc())
+        .order_by(func.count().filter(follow_date_cond).desc())
     )
     rows = result.all()
 

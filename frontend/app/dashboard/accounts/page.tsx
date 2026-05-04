@@ -261,7 +261,7 @@ export default function AccountsPage() {
                     <SortTh label="Likes" field="likes" className="whitespace-nowrap" />
                     <SortTh label="Followed" field="followed" className="whitespace-nowrap" />
                     <SortTh label="Followed Back" field="followed_back" className="whitespace-nowrap" />
-                    <SortTh label="FB Rate" field="fb_rate" className="whitespace-nowrap" />
+                    <SortTh label="Success Rate" field="fb_rate" className="whitespace-nowrap" />
                   </>
                 )}
                 {tab === "database" && (
