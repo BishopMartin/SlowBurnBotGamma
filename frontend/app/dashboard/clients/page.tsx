@@ -69,7 +69,7 @@ function BuildForm({
   const canSubmit = !submitting;
 
   return (
-    <div className="px-4 py-3 space-y-2 bg-[#1a1918] border-t border-[#3d3d3a]">
+    <div className="px-4 py-3 bg-[#1a1918] border-t border-[#3d3d3a]">
       <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
         <BracketInput label="client name" value={cfg.client_name} onChange={(v) => set("client_name", v.slice(0, 15))} width="15ch" placeholder="my laptop" />
         <button
@@ -84,19 +84,19 @@ function BuildForm({
         >
           <span className="text-[#f4f3ee]">[</span>linux/docker<span className="text-[#f4f3ee]">]</span>
         </button>
-      </div>
-      <div className="flex items-center gap-3 pt-1">
-        <button
-          onClick={() => onSubmit(cfg)}
-          disabled={!canSubmit}
-          className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-[#2e2c2a] border border-[#555] px-2 py-0.5"
-        >
-          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{submitting ? "saving…" : submitLabel}</Bracket>
-        </button>
-        <button onClick={onCancel} className="group cursor-pointer transition-colors bg-[#2e2c2a] border border-[#555] px-2 py-0.5">
-          <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">cancel</Bracket>
-        </button>
-        {error && <span className="text-status-bad">{error}</span>}
+        <div className="flex items-center gap-3 ml-auto">
+          {error && <span className="text-status-bad">{error}</span>}
+          <button
+            onClick={() => onSubmit(cfg)}
+            disabled={!canSubmit}
+            className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-[#2e2c2a] border border-[#555] px-2 py-0.5"
+          >
+            <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{submitting ? "saving…" : submitLabel}</Bracket>
+          </button>
+          <button onClick={onCancel} className="group cursor-pointer transition-colors bg-[#2e2c2a] border border-[#555] px-2 py-0.5">
+            <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">cancel</Bracket>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -411,6 +411,7 @@ export default function ClientPage() {
                                     <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === `pull-${build.id}` ? "copied!" : "copy"}</Bracket>
                                   </button>
                                 </div>
+                                <span></span><span></span>
                                 <span className="text-[#9A968B]">run:</span>
                                 <div>
                                   <code className="text-[#E5C07B] break-all">{cmdsByBuildId[build.id].run_cmd}</code>
@@ -419,7 +420,6 @@ export default function ClientPage() {
                                   </button>
                                 </div>
                               </div>
-                              <p className="text-[#9A968B]">On first run the container will prompt for your activation token.</p>
                             </div>
                           </td>
                         </tr>
