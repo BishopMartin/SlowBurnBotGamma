@@ -207,6 +207,7 @@ export interface FollowbackSummaryEntry {
   complete: number;
   followed_back: number;
   rate: number | null;
+  days: number;
 }
 
 export async function getFollowbackSummary(period: string = "day") {

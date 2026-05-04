@@ -102,7 +102,7 @@ export default function AccountsPage() {
       case "followed": return fbMap[account.id]?.followed ?? -1;
       case "followed_back": return fbMap[account.id]?.followed_back ?? -1;
       case "fb_complete": return fbMap[account.id]?.complete ?? -1;
-      case "fb_daily": { const d = { day: 1, week: 7, month: 30 }[statsPeriod]; return d ? (fbMap[account.id]?.followed ?? 0) / d : -1; }
+      case "fb_daily": { const d = fbMap[account.id]?.days; return d ? (fbMap[account.id]?.followed ?? 0) / d : -1; }
     }
   }
 
@@ -349,8 +349,7 @@ export default function AccountsPage() {
                       </>
                     )}
                     {tab === "stats" && (() => {
-                      const d = { day: 1, week: 7, month: 30 }[statsPeriod] ?? null;
-                      const daily = d != null && fb?.followed != null ? (fb.followed / d).toFixed(1) : "----";
+                      const daily = fb?.days && fb?.followed != null ? (fb.followed / fb.days).toFixed(1) : "----";
                       return (
                         <>
                           <td className="px-2 py-2 whitespace-nowrap">{fmtNum(fb?.complete)}</td>
@@ -360,7 +359,6 @@ export default function AccountsPage() {
                         </>
                       );
                     })()}
-                    )}
                     {tab === "database" && (
                       <>
                         <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.following)}</td>

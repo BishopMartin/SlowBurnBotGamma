@@ -235,16 +235,24 @@ async def followback_summary(
             func.count().filter(follow_date_cond).label("followed"),
             func.count().filter(and_(unfollow_date_cond, FT.follow_back.isnot(None))).label("complete"),
             func.count().filter(and_(unfollow_date_cond, FT.follow_back == True)).label("followed_back"),
+            func.min(FT.unfollow_date).filter(unfollow_date_cond).label("first_unfollow"),
+            func.max(FT.unfollow_date).filter(unfollow_date_cond).label("last_unfollow"),
         )
         .where(FT.user_id == user.id)
         .group_by(FT.account_id)
     )
     rows = result.all()
+    fixed_days = {"day": 1, "week": 7, "month": 30}.get(period)
     return {
         str(row.account_id): {
             "followed": row.followed,
+            "complete": row.complete,
             "followed_back": row.followed_back,
             "rate": round(row.followed_back / row.complete, 2) if row.complete else None,
+            "days": fixed_days if fixed_days else (
+                max((row.last_unfollow - row.first_unfollow).days + 1, 1)
+                if row.first_unfollow and row.last_unfollow else 1
+            ),
         }
         for row in rows
     }
