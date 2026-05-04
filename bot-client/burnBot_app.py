@@ -238,7 +238,7 @@ class BurnBotApp(App):
         yield DataTable(id="accounts", show_cursor=False)
         with Horizontal(id="input-row"):
             with Horizontal(id="cmd-inner"):
-                yield Input(placeholder="", id="cmd-input")
+                yield Input(placeholder="enter a command", id="cmd-input")
                 yield Static("", id="cmd-ghost")
             with Horizontal(id="input-hints"):
                 yield CmdHint("/stop", id="hint-toggle")
@@ -265,7 +265,6 @@ class BurnBotApp(App):
         self._refresh_header()
         self.set_interval(1.0, self._refresh_header)
         inp = self.query_one("#cmd-input", Input)
-        inp.value = "/"
         inp.focus()
         self.call_after_refresh(self._deselect_input)
         self.call_after_refresh(self._update_ghost)
@@ -291,9 +290,8 @@ class BurnBotApp(App):
         """Restore the input bar to normal command mode."""
         self._prompt_mode = False
         inp = self.query_one("#cmd-input", Input)
-        inp.placeholder = ""
-        inp.value = "/"
-        inp.cursor_position = 1
+        inp.placeholder = "enter a command"
+        inp.value = ""
         self._completions = []
         self._exact_match = None
         self._update_ghost()
@@ -352,9 +350,6 @@ class BurnBotApp(App):
         self.query_one("#log").display = True
         inp = self.query_one("#cmd-input", Input)
         inp.focus()
-        if not inp.value:
-            inp.value = "/"
-            inp.cursor_position = 1
 
     # (type, label, key)  type: header | separator | toggle | cycle
     _SETTINGS_ROWS = [
@@ -426,9 +421,6 @@ class BurnBotApp(App):
         self.query_one("#log").display = True
         inp = self.query_one("#cmd-input", Input)
         inp.focus()
-        if not inp.value:
-            inp.value = "/"
-            inp.cursor_position = 1
 
     # ------------------------------------------------------------------
     # Log + accounts table (called from bot threads via call_from_thread)
@@ -491,13 +483,6 @@ class BurnBotApp(App):
         elif self._exact_match:
             ghost.update(Text(self._exact_match, style="#adcc00"))
         else:
-            try:
-                inp = self.query_one("#cmd-input", Input)
-                if inp.value == "/":
-                    ghost.update(Text("enter a command", style="#4a4a45"))
-                    return
-            except Exception:
-                pass
             ghost.update("")
 
     @on(Input.Changed, "#cmd-input")
@@ -509,11 +494,13 @@ class BurnBotApp(App):
             self._completions = []
             self._exact_match = None
             self._update_ghost()
-            inp = self.query_one("#cmd-input", Input)
-            inp.value = "/"
-            inp.cursor_position = 1
             return
-        if typed.startswith("/") and len(typed) > 1:
+        if not typed.startswith("/"):
+            inp = self.query_one("#cmd-input", Input)
+            inp.value = "/" + typed
+            inp.cursor_position = len(inp.value)
+            return
+        if len(typed) > 1:
             self._completions = [c for c in self._COMMANDS if c.startswith(typed) and c != typed]
             self._exact_match = typed if typed in self._COMMANDS else None
         else:
@@ -618,8 +605,7 @@ class BurnBotApp(App):
             status_store.deliver_operator_input(value)
             return
         cmd = event.value.strip().lower()
-        event.input.value = "/"
-        event.input.cursor_position = 1
+        event.input.value = ""
         self._completions = []
         self._exact_match = None
         self._update_ghost()
@@ -631,9 +617,8 @@ class BurnBotApp(App):
             status_store.deliver_operator_input("")
             return
         inp = self.query_one("#cmd-input", Input)
-        if inp.value and inp.value != "/":
-            inp.value = "/"
-            inp.cursor_position = 1
+        if inp.value:
+            inp.value = ""
             self._completions = []
             self._exact_match = None
             self._update_ghost()

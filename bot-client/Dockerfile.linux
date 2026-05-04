@@ -15,6 +15,7 @@ COPY slowburnbot .
 RUN chmod +x slowburnbot
 
 ENV PYTHONUNBUFFERED=1
+ENV COLORTERM=truecolor
 # Signals baked-config mode (equivalent to PyInstaller's sys.frozen) for Nuitka builds
 ENV SLOWBURN_FROZEN=1
 # Force keyrings.alt plaintext backend — no desktop keyring daemon in container
