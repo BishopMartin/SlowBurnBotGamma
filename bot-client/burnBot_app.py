@@ -326,7 +326,7 @@ class BurnBotApp(App):
 
         filled = status_store.seconds_since_heartbeat() % 15
         header.append("  |", style=status_store.DIM)
-        header.append("█" * filled, style=status_store.FG)
+        header.append("█" * filled, style=status_store.TEXT)
         header.append("░" * (15 - filled), style=status_store.DIM)
         header.append("|", style=status_store.DIM)
 
