@@ -322,7 +322,7 @@ export default function ClientPage() {
               </button>
             </div>
           </div>
-          <p className="text-[#9A968B] text-sm">The <code className="text-[#E5C07B]">-v</code> flag creates a named volume so your config and session persist across container restarts. On first run the container will prompt for your activation token.</p>
+          <p className="text-[#9A968B] text-sm">On first run the container will prompt for your activation token.</p>
         </div>
       )}
 
@@ -470,8 +470,9 @@ export default function ClientPage() {
           <div className="space-y-1">
             <p className="text-[#f4f3ee]">linux/docker</p>
             <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">token</span> on an empty slot, select <span className="text-[#f4f3ee]">linux/docker</span>, enter a name, and copy the activation token shown after saving.</p>
-            <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">commands</span> to see the <code className="text-[#E5C07B]">docker pull</code> and <code className="text-[#E5C07B]">docker run</code> commands.</p>
-            <p><span className="text-[#f4f3ee]">3.</span> Run the container using the <code className="text-[#E5C07B]">docker run</code> command shown — it includes a named volume (<code className="text-[#E5C07B]">-v</code>) that persists your config across restarts. On first launch paste your Activation Token when prompted. You won&apos;t be asked again as long as the volume exists.</p>
+            <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">commands</span> on your slot — run <code className="text-[#E5C07B]">docker pull</code> once to fetch the image, then <code className="text-[#E5C07B]">docker run</code> to start it. The pull command is the same for all slots; the run command is unique per slot.</p>
+            <p><span className="text-[#f4f3ee]">3.</span> On first launch paste your Activation Token when prompted — the config is saved to a named volume and you won&apos;t be asked again.</p>
+            <p><span className="text-[#f4f3ee]">4.</span> Use the <code className="text-[#E5C07B]">docker run</code> command to restart the client after exiting or a reboot.</p>
           </div>
         </div>
       </div>
