@@ -26,4 +26,5 @@ fi
 
 git add frontend/lib/version.ts
 VERSION=$(grep -o '"[0-9.]*"' frontend/lib/version.ts | tr -d '"')
-git commit -m "chore: bump app version to ${VERSION}" --no-verify || exit 1
+BOT_VERSION=$(grep -o '"[0-9.]*"' bot-client/burnBot_version.py | tr -d '"')
+git commit -m "chore: bump website to v${VERSION} / client v${BOT_VERSION}" --no-verify || exit 1
