@@ -128,7 +128,8 @@ export default function ClientPage() {
   const [justCreated, setJustCreated] = useState<DesktopBuildWithToken | null>(null);
   const [copiedToken, setCopiedToken] = useState(false);
 
-  const [linuxCmds, setLinuxCmds] = useState<{ buildId: string; pull_cmd: string; run_cmd: string } | null>(null);
+  const [expandedCmdsKey, setExpandedCmdsKey] = useState<string | null>(null);
+  const [cmdsByBuildId, setCmdsByBuildId] = useState<Record<string, { pull_cmd: string; run_cmd: string }>>({});
   const [copiedCmd, setCopiedCmd] = useState<string | null>(null);
 
   const [pageError, setPageError] = useState<string | null>(null);
@@ -203,17 +204,33 @@ export default function ClientPage() {
   }
 
   async function handleDownload(build: DesktopBuild) {
-    const isLinux = (build.build_options as DesktopBuildConfig).system_type === "linux";
     setDownloading(build.id);
     try {
       const info = await getDownloadInfo(build.id);
-      if (isLinux) {
-        setLinuxCmds({ buildId: build.id, pull_cmd: info.pull_cmd ?? "", run_cmd: info.run_cmd ?? "" });
-      } else if (info.url) {
-        window.location.href = info.url;
-      }
+      if (info.url) window.location.href = info.url;
     } catch (e: unknown) {
       setPageError(e instanceof Error ? e.message : "Download failed.");
+    } finally {
+      setDownloading(null);
+    }
+  }
+
+  async function handleToggleCommands(build: DesktopBuild) {
+    if (expandedCmdsKey === build.id) {
+      setExpandedCmdsKey(null);
+      return;
+    }
+    if (cmdsByBuildId[build.id]) {
+      setExpandedCmdsKey(build.id);
+      return;
+    }
+    setDownloading(build.id);
+    try {
+      const info = await getDownloadInfo(build.id);
+      setCmdsByBuildId((prev) => ({ ...prev, [build.id]: { pull_cmd: info.pull_cmd ?? "", run_cmd: info.run_cmd ?? "" } }));
+      setExpandedCmdsKey(build.id);
+    } catch (e: unknown) {
+      setPageError(e instanceof Error ? e.message : "Failed to fetch commands.");
     } finally {
       setDownloading(null);
     }
@@ -299,33 +316,6 @@ export default function ClientPage() {
         </div>
       )}
 
-      {linuxCmds && (
-        <div className="border border-[#3d3d3a] px-4 py-3 space-y-2 bg-[#1a1918]">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-[#f4f3ee]">docker commands — client {builds.find(b => b.id === linuxCmds.buildId)?.client_id ?? ""}</span>
-            <button onClick={() => setLinuxCmds(null)} className="group cursor-pointer transition-colors ml-auto">
-              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
-            </button>
-          </div>
-          <div className="grid gap-x-4 gap-y-1" style={{ gridTemplateColumns: "max-content 1fr" }}>
-            <span className="text-[#9A968B]">pull:</span>
-            <div>
-              <code className="text-[#E5C07B] break-all">{linuxCmds.pull_cmd}</code>
-              <button onClick={() => copyCmd(linuxCmds.pull_cmd, "pull")} className="inline group cursor-pointer transition-colors ml-2">
-                <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === "pull" ? "copied!" : "copy"}</Bracket>
-              </button>
-            </div>
-            <span className="text-[#9A968B]">run:</span>
-            <div>
-              <code className="text-[#E5C07B] break-all">{linuxCmds.run_cmd}</code>
-              <button onClick={() => copyCmd(linuxCmds.run_cmd, "run")} className="inline group cursor-pointer transition-colors ml-2">
-                <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === "run" ? "copied!" : "copy"}</Bracket>
-              </button>
-            </div>
-          </div>
-          <p className="text-[#9A968B]">On first run the container will prompt for your activation token.</p>
-        </div>
-      )}
 
       {pageError && <div className="text-status-bad">{pageError}</div>}
 
@@ -370,8 +360,12 @@ export default function ClientPage() {
                         </td>
                         <td className="px-3 py-3 text-right">
                           <div className="flex gap-2 justify-end items-center">
-                            <button onClick={() => handleDownload(build)} disabled={downloading === build.id} className="group cursor-pointer transition-colors disabled:opacity-40">
-                              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">
+                            <button
+                              onClick={() => cfg.system_type === "linux" ? handleToggleCommands(build) : handleDownload(build)}
+                              disabled={downloading === build.id}
+                              className="group cursor-pointer transition-colors disabled:opacity-40"
+                            >
+                              <Bracket className={cfg.system_type === "linux" && expandedCmdsKey === build.id ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>
                                 {downloading === build.id ? "…" : cfg.system_type === "linux" ? "commands" : "download"}
                               </Bracket>
                             </button>
@@ -402,6 +396,31 @@ export default function ClientPage() {
                               submitting={formSubmitting}
                               error={formError}
                             />
+                          </td>
+                        </tr>
+                      )}
+                      {cfg.system_type === "linux" && expandedCmdsKey === build.id && cmdsByBuildId[build.id] && (
+                        <tr key={`${build.id}-cmds`} className="border-t border-[#3d3d3a]">
+                          <td colSpan={7} className="p-0">
+                            <div className="px-4 py-3 space-y-2 bg-[#1a1918]">
+                              <div className="grid gap-x-4 gap-y-1" style={{ gridTemplateColumns: "max-content 1fr" }}>
+                                <span className="text-[#9A968B]">pull:</span>
+                                <div>
+                                  <code className="text-[#E5C07B] break-all">{cmdsByBuildId[build.id].pull_cmd}</code>
+                                  <button onClick={() => copyCmd(cmdsByBuildId[build.id].pull_cmd, `pull-${build.id}`)} className="inline group cursor-pointer transition-colors ml-2">
+                                    <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === `pull-${build.id}` ? "copied!" : "copy"}</Bracket>
+                                  </button>
+                                </div>
+                                <span className="text-[#9A968B]">run:</span>
+                                <div>
+                                  <code className="text-[#E5C07B] break-all">{cmdsByBuildId[build.id].run_cmd}</code>
+                                  <button onClick={() => copyCmd(cmdsByBuildId[build.id].run_cmd, `run-${build.id}`)} className="inline group cursor-pointer transition-colors ml-2">
+                                    <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === `run-${build.id}` ? "copied!" : "copy"}</Bracket>
+                                  </button>
+                                </div>
+                              </div>
+                              <p className="text-[#9A968B]">On first run the container will prompt for your activation token.</p>
+                            </div>
                           </td>
                         </tr>
                       )}
