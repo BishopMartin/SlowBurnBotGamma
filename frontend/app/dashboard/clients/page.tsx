@@ -277,24 +277,25 @@ export default function ClientPage() {
 
       {justCreated && (
         <div className="border border-[#555] px-4 py-3 space-y-2">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-[#f4f3ee]">client {justCreated.client_id} configured.</span>
-            <span className="text-[#9A968B]">
-              {(justCreated.build_options as DesktopBuildConfig).system_type === "linux"
-                ? "copy this token, then click commands on your slot to get the docker commands:"
-                : "download the generic binary and paste this token on first run:"}
-            </span>
+          <div className="flex items-center gap-3">
+            <span className="text-[#f4f3ee]">token configured — client {justCreated.client_id}</span>
             <button onClick={() => setJustCreated(null)} className="group cursor-pointer transition-colors ml-auto">
               <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
             </button>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-[#9A968B]">token:</span>
             <code className="text-[#E5C07B] break-all">{justCreated.activation_token}</code>
             <button onClick={() => copyToken(justCreated.activation_token)} className="group cursor-pointer transition-colors">
               <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedToken ? "copied!" : "copy"}</Bracket>
             </button>
           </div>
-          <p className="text-[#9A968B] text-sm">This token is shown once. Copy it now — it expires in 24 hours and can only be used once.</p>
+          <p className="text-[#9A968B]">
+            {(justCreated.build_options as DesktopBuildConfig).system_type === "linux"
+              ? "Copy this token, then click commands on your slot to get the docker commands."
+              : "Download the generic binary and paste this token on first run."}
+          </p>
+          <p className="text-[#9A968B]">This token is shown once — it expires in 24 hours and can only be used once.</p>
         </div>
       )}
 
@@ -322,7 +323,7 @@ export default function ClientPage() {
               </button>
             </div>
           </div>
-          <p className="text-[#9A968B] text-sm">On first run the container will prompt for your activation token.</p>
+          <p className="text-[#9A968B]">On first run the container will prompt for your activation token.</p>
         </div>
       )}
 
@@ -360,7 +361,7 @@ export default function ClientPage() {
                         <td className="px-3 py-3 whitespace-nowrap">
                           {buildIsOutdated
                             ? <span className="text-status-bad">out-dated</span>
-                            : <span className={statusColor(build.status)}>{build.status.replace("_", " ")}</span>}
+                            : <span className={statusColor(build.status)}>{build.status === "pending_activation" ? "pending" : build.status.replace("_", " ")}</span>}
                         </td>
                         <td className="px-3 py-3 whitespace-nowrap">
                           <span className="text-[#9A968B]">
@@ -470,7 +471,7 @@ export default function ClientPage() {
           <div className="space-y-1">
             <p className="text-[#f4f3ee]">linux/docker</p>
             <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">token</span> on an empty slot, select <span className="text-[#f4f3ee]">linux/docker</span>, enter a name, and copy the activation token shown after saving.</p>
-            <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">commands</span> on your slot — run <code className="text-[#E5C07B]">docker pull</code> once to fetch the image, then <code className="text-[#E5C07B]">docker run</code> to start it. The pull command is the same for all slots; the run command is unique per slot.</p>
+            <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">commands</span> on your slot — run <code className="text-[#E5C07B]">docker pull</code> once to fetch the image, then <code className="text-[#E5C07B]">docker run</code> to start it.</p>
             <p><span className="text-[#f4f3ee]">3.</span> On first launch paste your Activation Token when prompted — the config is saved to a named volume and you won&apos;t be asked again.</p>
             <p><span className="text-[#f4f3ee]">4.</span> Use the <code className="text-[#E5C07B]">docker run</code> command to restart the client after exiting or a reboot.</p>
           </div>
