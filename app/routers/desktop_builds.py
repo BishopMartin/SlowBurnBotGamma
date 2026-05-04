@@ -190,7 +190,7 @@ async def get_download_url(
             "run_cmd": (
                 f"docker run -it --rm "
                 f"--name slowburn-client{build.client_id} "
-                f"-v ./slowburn-config:/app/config "
+                f"-v slowburn-client{build.client_id}-data:/data "
                 f"{image_ref}"
             ),
         }

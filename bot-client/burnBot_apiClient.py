@@ -75,22 +75,57 @@ class ApiClient:
     # ------------------------------------------------------------------
 
     def _load_token(self):
-        """Load access token from Windows keyring."""
-        token = keyring.get_password(KEYRING_SERVICE, KEYRING_TOKEN_KEY)
-        if token:
-            self._access_token = token
+        """Load access token from keyring, with INI file as fallback (Linux/headless)."""
+        try:
+            token = keyring.get_password(KEYRING_SERVICE, KEYRING_TOKEN_KEY)
+            if token:
+                self._access_token = token
+                return
+        except Exception:
+            pass
+        # INI fallback — survives container restarts as long as the INI is on a volume
+        try:
+            from burnBot_config import CONFIG
+            token = CONFIG.get("api", "token", fallback="").strip()
+            if token:
+                self._access_token = token
+        except Exception:
+            pass
 
     def _save_token(self):
-        """Save access token to Windows keyring."""
-        if self._access_token:
+        """Save access token to keyring and INI file fallback."""
+        if not self._access_token:
+            return
+        try:
             keyring.set_password(KEYRING_SERVICE, KEYRING_TOKEN_KEY, self._access_token)
+        except Exception:
+            pass
+        # Always write to INI so Linux/headless installs persist across restarts
+        try:
+            from burnBot_config import CONFIG, CONFIG_FILE_PATH
+            if CONFIG_FILE_PATH:
+                if not CONFIG.has_section("api"):
+                    CONFIG.add_section("api")
+                CONFIG.set("api", "token", self._access_token)
+                with open(CONFIG_FILE_PATH, "w") as fh:
+                    CONFIG.write(fh)
+        except Exception:
+            pass
 
     def _clear_token(self):
-        """Remove stored token."""
+        """Remove stored token from keyring and INI."""
         self._access_token = None
         try:
             keyring.delete_password(KEYRING_SERVICE, KEYRING_TOKEN_KEY)
-        except keyring.errors.PasswordDeleteError:
+        except Exception:
+            pass
+        try:
+            from burnBot_config import CONFIG, CONFIG_FILE_PATH
+            if CONFIG_FILE_PATH and CONFIG.has_option("api", "token"):
+                CONFIG.set("api", "token", "")
+                with open(CONFIG_FILE_PATH, "w") as fh:
+                    CONFIG.write(fh)
+        except Exception:
             pass
 
     def _auth_headers(self):

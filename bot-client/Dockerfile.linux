@@ -20,4 +20,10 @@ ENV SLOWBURN_FROZEN=1
 # Force keyrings.alt plaintext backend — no desktop keyring daemon in container
 ENV PYTHON_KEYRING_BACKEND=keyrings.alt.file.PlaintextKeyring
 
-CMD ["./slowburnbot"]
+# /data is the persistent volume mount point.
+# Mount a named volume or bind mount here so the INI (and JWT token) survive container restarts:
+#   docker run -v slowburnbot_data:/data myimage
+VOLUME /data
+
+# Pass the INI path explicitly so burnBot.py writes/reads config from the mounted volume.
+CMD ["./slowburnbot", "/data/burnBot_config.ini"]

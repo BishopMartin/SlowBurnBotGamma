@@ -40,7 +40,8 @@ def _beep(kind):
 
 def _default_config_path():
     """Return the default INI path: next to the executable (frozen) or CWD (dev)."""
-    exe_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+    exe_path = getattr(sys, "executable", None) or sys.argv[0]
+    exe_dir = os.path.dirname(os.path.abspath(exe_path))
     return os.path.join(exe_dir, "burnBot_config.ini")
 
 
@@ -150,7 +151,8 @@ def _run_activation_prompt() -> dict:
 
 
 # Load config — None means INI is missing (first run)
-config_path = _default_config_path()
+# argv[1] overrides the default path (used by Linux/Docker to point at a mounted volume)
+config_path = sys.argv[1] if len(sys.argv) > 1 else _default_config_path()
 config_file = load_config(config_path)
 
 if config_file is None:
