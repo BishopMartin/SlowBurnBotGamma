@@ -204,6 +204,7 @@ export async function getLogSummary(period: string = "day") {
 
 export interface FollowbackSummaryEntry {
   followed: number;
+  complete: number;
   followed_back: number;
   rate: number | null;
 }

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getAccounts, getAccountSourceStats, Account, SourceStat } from "@/lib/api";
 import { Dropdown } from "@/lib/dropdown";
 
-type SortKey = "source" | "total" | "complete" | "followed_back" | "rate" | "daily";
+type SortKey = "source" | "complete" | "followed_back" | "rate" | "daily";
 type SortDir = "asc" | "desc";
 type Period = "day" | "week" | "month" | "all";
 
@@ -30,7 +30,7 @@ export default function AccountStatsPage() {
   const [days, setDays] = useState(1);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<Period>("week");
-  const [sortKey, setSortKey] = useState<SortKey>("total");
+  const [sortKey, setSortKey] = useState<SortKey>("complete");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   function toggleSort(key: SortKey) {
@@ -64,7 +64,7 @@ export default function AccountStatsPage() {
       const val = (s: SourceStat) =>
         sortKey === "source" ? (s.source ?? "").toLowerCase()
         : sortKey === "daily" ? daily(s)
-        : (s[sortKey] ?? -1);
+        : (s[sortKey as keyof SourceStat] ?? -1);
       const av = val(a);
       const bv = val(b);
       if (av < bv) return -1 * dir;
@@ -120,7 +120,6 @@ export default function AccountStatsPage() {
           <thead>
             <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
               <SortTh label="source" field="source" />
-              <SortTh label="total" field="total" />
               <SortTh label="Complete" field="complete" />
               <SortTh label="Followed Back" field="followed_back" />
               <SortTh label="Success Rate" field="rate" />
@@ -141,14 +140,13 @@ export default function AccountStatsPage() {
           </thead>
           <tbody className="divide-y divide-[#3d3d3a]">
             {loading ? (
-              <tr><td colSpan={7} className="px-4 py-6 text-[#9A968B]">loading&hellip;</td></tr>
+              <tr><td colSpan={6} className="px-4 py-6 text-[#9A968B]">loading&hellip;</td></tr>
             ) : items.length === 0 ? (
-              <tr><td colSpan={7} className="px-4 py-6 text-[#9A968B]">no follow data yet.</td></tr>
+              <tr><td colSpan={6} className="px-4 py-6 text-[#9A968B]">no follow data yet.</td></tr>
             ) : (
               sorted.map((s, i) => (
                 <tr key={i} className="hover:bg-[#1f1e1d] transition-colors">
                   <td className="px-4 py-1.5 text-[#f4f3ee]">{s.source ?? "—"}</td>
-                  <td className="px-4 py-1.5 text-[#9A968B]">{s.total.toLocaleString()}</td>
                   <td className="px-4 py-1.5 text-[#9A968B]">{s.complete.toLocaleString()}</td>
                   <td className="px-4 py-1.5 text-[#9A968B]">{s.followed_back.toLocaleString()}</td>
                   <td className="px-4 py-1.5 text-[#9A968B]">{fmtPct(s.rate)}</td>
@@ -162,7 +160,6 @@ export default function AccountStatsPage() {
             <tfoot>
               <tr className="text-[#9A968B] border-t border-[#3d3d3a] bg-[#1a1918]">
                 <td className="px-4 py-2 text-[#f4f3ee]">total</td>
-                <td className="px-4 py-2">{totals.total.toLocaleString()}</td>
                 <td className="px-4 py-2">{totals.complete.toLocaleString()}</td>
                 <td className="px-4 py-2">{totals.followed_back.toLocaleString()}</td>
                 <td className="px-4 py-2">{fmtPct(totals.rate)}</td>

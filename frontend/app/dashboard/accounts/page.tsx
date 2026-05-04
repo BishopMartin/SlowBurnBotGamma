@@ -40,7 +40,7 @@ function fmtPct(v: number | null): string {
 }
 
 type Tab = "settings" | "activity" | "stats" | "database";
-type SortKey = "name" | "enabled" | "group" | "following" | "unfollow_ready" | "complete" | "ignored" | "total" | "success" | "last_25" | "all_time" | "sessions" | "likes" | "follows" | "unfollows" | "fb_rate" | "followed" | "followed_back";
+type SortKey = "name" | "enabled" | "group" | "following" | "unfollow_ready" | "complete" | "ignored" | "total" | "success" | "last_25" | "all_time" | "sessions" | "likes" | "follows" | "unfollows" | "fb_rate" | "followed" | "followed_back" | "fb_complete" | "fb_daily";
 type SortDir = "asc" | "desc";
 type Period = "day" | "week" | "month" | "all";
 
@@ -101,6 +101,8 @@ export default function AccountsPage() {
       case "fb_rate": return fbMap[account.id]?.rate ?? -1;
       case "followed": return fbMap[account.id]?.followed ?? -1;
       case "followed_back": return fbMap[account.id]?.followed_back ?? -1;
+      case "fb_complete": return fbMap[account.id]?.complete ?? -1;
+      case "fb_daily": { const d = { day: 1, week: 7, month: 30 }[statsPeriod]; return d ? (fbMap[account.id]?.followed ?? 0) / d : -1; }
     }
   }
 
@@ -258,10 +260,10 @@ export default function AccountsPage() {
                 )}
                 {tab === "stats" && (
                   <>
-                    <SortTh label="Likes" field="likes" className="whitespace-nowrap" />
-                    <SortTh label="Followed" field="followed" className="whitespace-nowrap" />
+                    <SortTh label="Complete" field="fb_complete" className="whitespace-nowrap" />
                     <SortTh label="Followed Back" field="followed_back" className="whitespace-nowrap" />
                     <SortTh label="Success Rate" field="fb_rate" className="whitespace-nowrap" />
+                    <SortTh label="Daily" field="fb_daily" className="whitespace-nowrap" />
                   </>
                 )}
                 {tab === "database" && (
@@ -346,13 +348,18 @@ export default function AccountsPage() {
                         <td className="px-2 py-2 whitespace-nowrap">{fmtNum(log?.unfollows)}</td>
                       </>
                     )}
-                    {tab === "stats" && (
-                      <>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(log?.likes)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(fb?.followed)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(fb?.followed_back)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtPct(fb?.rate ?? null)}</td>
-                      </>
+                    {tab === "stats" && (() => {
+                      const d = { day: 1, week: 7, month: 30 }[statsPeriod] ?? null;
+                      const daily = d != null && fb?.followed != null ? (fb.followed / d).toFixed(1) : "----";
+                      return (
+                        <>
+                          <td className="px-2 py-2 whitespace-nowrap">{fmtNum(fb?.complete)}</td>
+                          <td className="px-2 py-2 whitespace-nowrap">{fmtNum(fb?.followed_back)}</td>
+                          <td className="px-2 py-2 whitespace-nowrap">{fmtPct(fb?.rate ?? null)}</td>
+                          <td className="px-2 py-2 whitespace-nowrap">{daily}</td>
+                        </>
+                      );
+                    })()}
                     )}
                     {tab === "database" && (
                       <>
