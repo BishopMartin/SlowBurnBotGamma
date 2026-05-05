@@ -21,7 +21,7 @@ from app.schemas.desktop_build import (
     DesktopBuildRead,
     DesktopBuildWithToken,
 )
-from app.services.object_storage import generate_signed_get_url
+from app.services.object_storage import generate_signed_get_url, object_exists
 from app.settings import settings
 
 router = APIRouter(prefix="/desktop-builds", tags=["desktop-builds"])
@@ -203,9 +203,22 @@ async def get_download_url(
             detail="Object storage not configured.",
         )
 
-    bot_version = build.bot_version or "latest"
-    key = f"releases/windows/SlowBurnBot-{bot_version}.exe"
-    signed_url = generate_signed_get_url(key, expires_seconds=settings.desktop_signed_url_expires_seconds)
+    candidate_keys: list[str] = []
+    if build.bot_version:
+        candidate_keys.append(f"releases/windows/SlowBurnBot-{build.bot_version}.exe")
+    candidate_keys.append("releases/windows/SlowBurnBot-latest.exe")
+
+    selected_key = next((key for key in candidate_keys if object_exists(key)), None)
+    if selected_key is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Windows release artifact is not available yet. Please try again in a few minutes.",
+        )
+
+    signed_url = generate_signed_get_url(
+        selected_key,
+        expires_seconds=settings.desktop_signed_url_expires_seconds,
+    )
     return {"url": signed_url, "filename": f"SlowBurnBot-client{build.client_id}.exe"}
 
 

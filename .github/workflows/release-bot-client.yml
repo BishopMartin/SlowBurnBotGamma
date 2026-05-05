@@ -68,6 +68,7 @@ jobs:
         run: |
           pip install awscli
           aws s3 cp dist/SlowBurnBot.exe "s3://${BUCKET_NAME}/releases/windows/SlowBurnBot-${BOT_VERSION}.exe" --endpoint-url "${ENDPOINT_URL}" --region "${AWS_DEFAULT_REGION}"
+          aws s3 cp dist/SlowBurnBot.exe "s3://${BUCKET_NAME}/releases/windows/SlowBurnBot-latest.exe" --endpoint-url "${ENDPOINT_URL}" --region "${AWS_DEFAULT_REGION}"
           echo "Uploaded SlowBurnBot-${BOT_VERSION}.exe"
 
   # ──────────────────────────────────────────────────────────────
