@@ -207,6 +207,9 @@ async def get_download_url(
     if build.bot_version:
         candidate_keys.append(f"releases/windows/SlowBurnBot-{build.bot_version}.exe")
     candidate_keys.append("releases/windows/SlowBurnBot-latest.exe")
+    # Backward compatibility for buckets populated before versioned/latest naming.
+    candidate_keys.append("releases/windows/SlowBurnBot.exe")
+    candidate_keys.append("SlowBurnBot.exe")
 
     selected_key = next((key for key in candidate_keys if object_exists(key)), None)
     if selected_key is None:

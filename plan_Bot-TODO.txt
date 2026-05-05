@@ -1,33 +1,31 @@
+TMUX
+- cpu: [                    ] [ 06% ]
+
+
+Actions 1-4
+[ ][ ][ ][ ]
+
 
 Local settings/config vs website settings/config
 
 Client Tweaks
-- Faster broser heart berat checks?
-- more space in status column
-- need to add code to handle isntagram 'turn on notifications' pop-up window..  esc does not make it go away..  only clicking "not now"
-- dual client issue?  now prevented by token creation?  if new token created in slow #1 does it de-active any old token/browser in slot 1?
-
+- initial launch puase - time for user to adjust settings..  1 minute..
+- docker container re-start policy..
 
 Client Projects
-- executable selection - portable chrome or system chrome...
 - debug mode examination
 - error processing
 - /setting updates (from web) /config updates (defaults vs local)
 - log output format update.
 
-- need new code for when instgram SMS code verification is enoucteed during login.
-- load-up output - shows notification info for only regular notices, not login issue notices..
-
 Client page 
--
-
+ - 
 Overview page
-- update clients table with new last column named "Last Session" showing the last account name that ran
-- make above left aligned..
-- show client version on Clients table?
+- 
 
 Accounts page
-- 
+- settings>settings - warning to show unsaved changes?
+push - accounts>settings - change delay and runs/day format to <set value>+<random value> instead of <set value>/<random value> - make the same format change to these values on the overview>accounts table..
 
 Site wide
 - text size review
@@ -35,6 +33,9 @@ Site wide
 
 need more clients? upgrade your plan!
 need more accounts? upgrade your plan!
+
+Features
+- warnings / suggestions area - you are getting low on suggested follows.  Reduce or change follow settings.
 
 ----------------------------------------------------------------
 bot status/state/activity definitions
