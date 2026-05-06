@@ -13,6 +13,9 @@
 #   BUCKET_REGION              — bucket region (default: us-east-1)
 #
 # GITHUB_TOKEN is used automatically for GHCR push (read/write packages permission required).
+#
+# Artifact retention: after each build, old versioned EXEs beyond the 5 most recent
+# are deleted from S3, and old GHCR package versions beyond 5 are pruned.
 
 name: release-bot-client
 
@@ -23,7 +26,7 @@ on:
 
 permissions:
   contents: read
-  packages: write  # push to GHCR
+  packages: write  # push to GHCR and prune old versions
 
 jobs:
   # ──────────────────────────────────────────────────────────────
@@ -70,6 +73,34 @@ jobs:
           aws s3 cp dist/SlowBurnBot.exe "s3://${BUCKET_NAME}/releases/windows/SlowBurnBot-${BOT_VERSION}.exe" --endpoint-url "${ENDPOINT_URL}" --region "${AWS_DEFAULT_REGION}"
           aws s3 cp dist/SlowBurnBot.exe "s3://${BUCKET_NAME}/releases/windows/SlowBurnBot-latest.exe" --endpoint-url "${ENDPOINT_URL}" --region "${AWS_DEFAULT_REGION}"
           echo "Uploaded SlowBurnBot-${BOT_VERSION}.exe"
+
+      - name: Prune old EXEs from object storage (keep 5)
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BUCKET_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BUCKET_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.BUCKET_REGION }}
+          ENDPOINT_URL: ${{ secrets.BUCKET_ENDPOINT_URL }}
+          BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+        run: |
+          KEEP=5
+          # List all versioned EXEs sorted oldest-first, skip the two fixed keys (latest / legacy)
+          ALL=$(aws s3 ls "s3://${BUCKET_NAME}/releases/windows/" \
+            --endpoint-url "${ENDPOINT_URL}" --region "${AWS_DEFAULT_REGION}" \
+            | awk '{print $4}' \
+            | grep -E '^SlowBurnBot-[0-9]+\.[0-9]+\.exe$' \
+            | sort)
+          TOTAL=$(echo "$ALL" | grep -c .)
+          DELETE_COUNT=$(( TOTAL - KEEP ))
+          if [ "$DELETE_COUNT" -le 0 ]; then
+            echo "Only ${TOTAL} versioned EXE(s) present — nothing to prune."
+            exit 0
+          fi
+          echo "$ALL" | head -n "$DELETE_COUNT" | while read -r KEY; do
+            echo "Deleting s3://${BUCKET_NAME}/releases/windows/${KEY}"
+            aws s3 rm "s3://${BUCKET_NAME}/releases/windows/${KEY}" \
+              --endpoint-url "${ENDPOINT_URL}" --region "${AWS_DEFAULT_REGION}"
+          done
 
   # ──────────────────────────────────────────────────────────────
   # Linux Docker image build
@@ -125,3 +156,11 @@ jobs:
           docker push "${IMAGE_VERSION}"
           docker push "${IMAGE_LATEST}"
           echo "Pushed ${IMAGE_VERSION} and ${IMAGE_LATEST}"
+
+      - name: Prune old GHCR versions (keep 5)
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: slowburnbot-client
+          package-type: container
+          min-versions-to-keep: 5
+          ignore-versions: "^latest$"
