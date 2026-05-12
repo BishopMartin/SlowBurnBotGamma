@@ -159,7 +159,7 @@ export default function DashboardPage() {
     const arrow = active ? (sortDir === "asc" ? "↑" : "↓") : "\u00a0";
     return (
       <th
-        className={`px-2 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f4f3ee] ${active ? "text-[#d97757]" : ""} ${className}`}
+        className={`px-3 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f4f3ee] ${active ? "text-[#d97757]" : ""} ${className}`}
         onClick={() => toggleSort(field)}
       >
         <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>
@@ -259,23 +259,23 @@ export default function DashboardPage() {
           <table className="w-full">
             <thead>
               <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
-                <th className="px-2 py-2 font-normal">Client</th>
-                <th className="px-2 py-2 font-normal">Name</th>
-                <th className="px-2 py-2 font-normal">OS</th>
-                <th className="px-2 py-2 font-normal">Status</th>
-                <th className="px-2 py-2 font-normal">State</th>
-                <th className="px-2 py-2 font-normal whitespace-nowrap">Current Action</th>
-                <th className="px-2 py-2 font-normal whitespace-nowrap">Last Session</th>
+                <th className="px-3 py-2 font-normal">Client</th>
+                <th className="px-3 py-2 font-normal">Name</th>
+                <th className="px-3 py-2 font-normal">OS</th>
+                <th className="px-3 py-2 font-normal">Status</th>
+                <th className="px-3 py-2 font-normal">State</th>
+                <th className="px-3 py-2 font-normal whitespace-nowrap">Current Action</th>
+                <th className="px-3 py-2 font-normal whitespace-nowrap">Last Session</th>
                 <th className="w-full"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#3d3d3a]">
               {clientStatus.map((cs) => (
                 <tr key={cs.client_id} className="hover:bg-[#1f1e1d] transition-colors">
-                  <td className="px-2 py-2 text-[#f4f3ee] whitespace-nowrap">{String(cs.client_id).padStart(2, "0")}</td>
-                  <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{cs.client_name || "----"}</td>
-                  <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">{cs.system_type || "----"}</td>
-                  <td className="px-2 py-2 whitespace-nowrap">
+                  <td className="px-3 py-2 text-[#f4f3ee] whitespace-nowrap">{String(cs.client_id).padStart(2, "0")}</td>
+                  <td className="px-3 py-2 text-[#9A968B] whitespace-nowrap">{cs.client_name || "----"}</td>
+                  <td className="px-3 py-2 text-[#9A968B] whitespace-nowrap">{cs.system_type || "----"}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">
                     {cs.connected ? (
                       <span className="text-status-ok">connected</span>
                     ) : (
@@ -284,7 +284,7 @@ export default function DashboardPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-2 py-2 whitespace-nowrap">
+                  <td className="px-3 py-2 whitespace-nowrap">
                     {!cs.connected
                       ? <span className="text-[#9A968B]">------</span>
                       : cs.status === "running"
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                       : <span className="text-[#9A968B]">{cs.status || "----"}</span>
                     }
                   </td>
-                  <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
+                  <td className="px-3 py-2 text-[#9A968B] whitespace-nowrap">
                     {!cs.connected
                       ? "------"
                       : cs.status === "running" && cs.current_account
@@ -305,7 +305,7 @@ export default function DashboardPage() {
                       ? "session delay"
                       : "------"}
                   </td>
-                  <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
+                  <td className="px-3 py-2 text-[#9A968B] whitespace-nowrap">
                     {cs.last_session_account || "------"}
                   </td>
                   <td></td>
@@ -350,10 +350,10 @@ export default function DashboardPage() {
                 {tab === "settings" && (
                   <>
                     <SortTh label="Client" field="group" />
-                    <th className="px-2 py-2 font-normal">Schedule</th>
-                    <th className="px-2 py-2 font-normal whitespace-nowrap">Actions</th>
-                    <th className="px-2 py-2 font-normal">Delay</th>
-                    <th className="px-2 py-2 font-normal">Runs/Day</th>
+                    <th className="px-3 py-2 font-normal">Schedule</th>
+                    <th className="px-3 py-2 font-normal whitespace-nowrap">Actions</th>
+                    <th className="px-3 py-2 font-normal">Delay</th>
+                    <th className="px-3 py-2 font-normal">Runs/Day</th>
                   </>
                 )}
                 {tab === "activity" && (
@@ -382,7 +382,7 @@ export default function DashboardPage() {
                     <SortTh label="Success" field="success" className="whitespace-nowrap" />
                   </>
                 )}
-                <th className="px-2 py-2 font-normal w-full text-right whitespace-nowrap">
+                <th className="px-3 py-2 font-normal w-full text-right whitespace-nowrap">
                   {tab === "activity" && (
                     <span className="inline-flex items-center gap-0">
                       <span className="text-[#9A968B]">{"activity:\u00a0 "}</span>
@@ -417,7 +417,7 @@ export default function DashboardPage() {
                 const fb = fbMap[account.id];
                 return (
                   <tr key={account.id} className={`hover:bg-[#1f1e1d] transition-colors ${account.system_disabled ? "text-[#5a5850]" : account.enabled ? "text-[#f4f3ee]" : "text-[#9A968B]"}`}>
-                    <td className="px-2 py-2 whitespace-nowrap">
+                    <td className="px-3 py-2 whitespace-nowrap">
                       {account.system_disabled ? (
                         <Bracket className="text-[#5a5850]">-</Bracket>
                       ) : (
@@ -434,48 +434,48 @@ export default function DashboardPage() {
                     <td className="px-2 pr-6 py-2 whitespace-nowrap overflow-hidden text-ellipsis" style={{ maxWidth: "20ch" }}>{account.name}</td>
                     {tab === "settings" && (
                       <>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtGroup(account.group_number)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">
+                        <td className="px-3 py-2 whitespace-nowrap">{fmtGroup(account.group_number)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">
                           {scheduleLabel(settingsMap[account.id])}
                         </td>
-                        <td className="px-2 py-2 whitespace-nowrap">
+                        <td className="px-3 py-2 whitespace-nowrap">
                           {actionSlots(settingsMap[account.id], account)}
                         </td>
-                        <td className="px-2 py-2 whitespace-nowrap">
+                        <td className="px-3 py-2 whitespace-nowrap">
                           {settingsMap[account.id] ? `${settingsMap[account.id].delay_base_minutes ?? 0}+${settingsMap[account.id].delay_random_minutes ?? 0}` : "—"}
                         </td>
-                        <td className="px-2 py-2 whitespace-nowrap">
+                        <td className="px-3 py-2 whitespace-nowrap">
                           {settingsMap[account.id] ? `${settingsMap[account.id].max_runs_per_day ?? 0}+${settingsMap[account.id].max_runs_random_per_day ?? 0}` : "—"}
                         </td>
                       </>
                     )}
                     {tab === "activity" && (
                       <>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(log?.sessions)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(log?.likes)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(log?.follows)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(log?.unfollows)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{fmtNum(log?.sessions)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{fmtNum(log?.likes)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{fmtNum(log?.follows)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{fmtNum(log?.unfollows)}</td>
                       </>
                     )}
                     {tab === "stats" && (
                       <>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(fb?.complete)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(fb?.followed_back)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtPct(fb?.rate ?? null)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fb ? (fb.followed / (fb.days || 1)).toFixed(1) : "----"}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{fmtNum(fb?.complete)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{fmtNum(fb?.followed_back)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{fmtPct(fb?.rate ?? null)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{fb ? (fb.followed / (fb.days || 1)).toFixed(1) : "----"}</td>
                       </>
                     )}
                     {tab === "database" && (
                       <>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.following)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.unfollow_ready)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.complete)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.ignored)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.total)}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">{fmtNum(stats?.success)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{fmtNum(stats?.following)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{fmtNum(stats?.unfollow_ready)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{fmtNum(stats?.complete)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{fmtNum(stats?.ignored)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{fmtNum(stats?.total)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{fmtNum(stats?.success)}</td>
                       </>
                     )}
-                    <td className="px-2 py-2 text-right">
+                    <td className="px-3 py-2 text-right">
                       <div className="flex items-center justify-end gap-1">
                         {tab === "settings" && (
                           <Link href={`/dashboard/accounts/${account.id}`} className="group font-mono transition-colors">
@@ -527,16 +527,16 @@ export default function DashboardPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
-                  <th className="px-2 py-2 font-normal whitespace-nowrap">account</th>
-                  <th className="px-2 py-2 font-normal whitespace-nowrap">date</th>
-                  <th className="px-2 py-2 font-normal whitespace-nowrap">run</th>
-                  <th className="px-2 py-2 font-normal whitespace-nowrap">start</th>
-                  <th className="px-2 py-2 font-normal whitespace-nowrap">end</th>
-                  <th className="px-2 py-2 font-normal whitespace-nowrap">action 1</th>
-                  <th className="px-2 py-2 font-normal whitespace-nowrap">action 2</th>
-                  <th className="px-2 py-2 font-normal whitespace-nowrap">action 3</th>
-                  <th className="px-2 py-2 font-normal whitespace-nowrap">action 4</th>
-                  <th className="px-2 py-2 font-normal whitespace-nowrap">errors</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">account</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">date</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">run</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">start</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">end</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">action 1</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">action 2</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">action 3</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">action 4</th>
+                  <th className="px-3 py-2 font-normal whitespace-nowrap">errors</th>
                 </tr>
               </thead>
               <tbody>
