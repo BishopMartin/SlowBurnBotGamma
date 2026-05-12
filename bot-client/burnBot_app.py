@@ -168,6 +168,7 @@ class BurnBotApp(App):
     }
     Input:focus {
         border: none;
+        background: #1a1a1a;
     }
     #cmd-ghost {
         width: 1fr;
