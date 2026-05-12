@@ -256,10 +256,11 @@ class BurnBotApp(App):
         accounts.add_column("Status",         key="status")
         accounts.add_column("Sessions Today", key="sessions_today")
         accounts.add_column("Next Run",       key="next_run")
+        accounts.add_column("Last Run",       key="last_run")
         accounts.add_column("Last Action",    key="last_action", width=40)
         accounts.add_row(
             Text("no connected accounts", style=status_store.DIM),
-            Text(""), Text(""), Text(""), Text(""),
+            Text(""), Text(""), Text(""), Text(""), Text(""),
             key="_no_accounts",
         )
 
@@ -456,17 +457,19 @@ class BurnBotApp(App):
         status_cell  = Text(status, style=color)
         run_info     = kwargs.get("run_info",    "—")
         next_run     = kwargs.get("next_run",    "—")
+        last_run     = kwargs.get("last_run",    "—")
         last_action  = kwargs.get("last_action", "—")
 
         try:
             table.update_cell(account_name, "status",         status_cell,  update_width=False)
             table.update_cell(account_name, "sessions_today", run_info,     update_width=False)
             table.update_cell(account_name, "next_run",       next_run,     update_width=False)
+            table.update_cell(account_name, "last_run",       last_run,     update_width=False)
             table.update_cell(account_name, "last_action",    last_action,  update_width=True)
         except Exception:
             try:
                 table.add_row(
-                    account_name, status_cell, run_info, next_run, last_action,
+                    account_name, status_cell, run_info, next_run, last_run, last_action,
                     key=account_name,
                 )
             except Exception:

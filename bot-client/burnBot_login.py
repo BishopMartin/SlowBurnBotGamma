@@ -208,9 +208,16 @@ def dismiss_notifications_prompt(driver, context_label="login"):
     Safe no-op if the prompt is not present.
     Returns True if dismissed.
     """
+    _NOTIFICATION_KEYWORDS = [
+        "turn on notifications",
+        "enable notifications",
+        "allow notifications",
+        "get notified",
+        "not now",  # the dismiss button itself signals the popup is present
+    ]
     try:
         page_source = driver.page_source.lower()
-        if "turn on notifications" not in page_source and "enable notifications" not in page_source:
+        if not any(kw in page_source for kw in _NOTIFICATION_KEYWORDS):
             return False
     except Exception:
         return False
@@ -1279,6 +1286,8 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
             
             # Break if successful (skip if verification required)
             if account == current_user and is_logged_in and is_logged_in != "VERIFICATION_REQUIRED":
+                time.sleep(2.0)
+                dismiss_notifications_prompt(driver, context_label="post_login")
                 # Note: Success will be logged by accountSession.py in log_session_run()
                 return True, current_user, False, attempts_made, False
             

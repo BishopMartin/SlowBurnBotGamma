@@ -424,7 +424,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                         account, "session",
                         f"done run {_run_label} · actions={actions_run} · ~{_dur}",
                     ))
-                    status_store.update(account, status="idle", last_action="session complete")
+                    status_store.update(account, status="idle", last_action="session complete", last_run=session_end_time.strftime("%H:%M"))
 
                 # Close or keep browser based on config
                 close_browser_after_session = CONFIG.getboolean('browser-session', 'close_browser_after_session', fallback=True)
