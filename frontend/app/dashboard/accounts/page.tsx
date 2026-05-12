@@ -34,9 +34,11 @@ function actionSlots(settings: AccountSettings | undefined, account: Account) {
   return (
     <span className={`whitespace-nowrap ${dim}`}>
       {[0, 1, 2, 3].map(i => {
-        const on = settings?.actions?.[i]?.enabled ?? false;
+        const slot = settings?.actions?.[i];
+        const on = slot?.enabled ?? false;
+        const label = on ? `${slot!.fixed_count}/${slot!.variable_count}` : " / ";
         return (
-          <span key={i}>[<span className={on ? "text-status-ok" : dim}>{on ? "x" : " "}</span>]</span>
+          <span key={i}>[<span className={on ? dim : "text-[#5a5850]"}>{label}</span>]</span>
         );
       })}
     </span>
