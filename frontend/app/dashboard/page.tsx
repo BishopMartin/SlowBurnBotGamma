@@ -44,15 +44,14 @@ function fmtGroup(n: number | null | undefined): string {
   return String(n).padStart(2, "0");
 }
 
-function actionSlots(settings: AccountSettings | undefined) {
+function actionSlots(settings: AccountSettings | undefined, account: Account) {
+  const dim = account.system_disabled ? "text-[#5a5850]" : account.enabled ? "text-[#f4f3ee]" : "text-[#9A968B]";
   return (
-    <span className="whitespace-nowrap">
+    <span className={`whitespace-nowrap ${dim}`}>
       {[0, 1, 2, 3].map(i => {
         const on = settings?.actions?.[i]?.enabled ?? false;
         return (
-          <Bracket key={i} className={on ? "text-status-ok" : "text-[#9A968B]"}>
-            {on ? "x" : " "}
-          </Bracket>
+          <span key={i}>[<span className={on ? "text-status-ok" : dim}>{on ? "x" : " "}</span>]</span>
         );
       })}
     </span>
@@ -431,7 +430,7 @@ export default function DashboardPage() {
                           {scheduleLabel(settingsMap[account.id])}
                         </td>
                         <td className="px-2 py-2 whitespace-nowrap">
-                          {actionSlots(settingsMap[account.id])}
+                          {actionSlots(settingsMap[account.id], account)}
                         </td>
                         <td className="px-2 py-2 whitespace-nowrap">
                           {settingsMap[account.id] ? `${settingsMap[account.id].delay_base_minutes ?? 0}+${settingsMap[account.id].delay_random_minutes ?? 0}` : "—"}
