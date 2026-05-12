@@ -47,13 +47,16 @@ function fmtGroup(n: number | null | undefined): string {
 function actionSlots(settings: AccountSettings | undefined, account: Account) {
   const dim = account.system_disabled ? "text-[#5a5850]" : account.enabled ? "text-[#f4f3ee]" : "text-[#9A968B]";
   return (
-    <span className={`whitespace-nowrap text-xs ${dim}`}>
+    <span className={`whitespace-nowrap ${dim}`}>
       {[0, 1, 2, 3].map(i => {
         const slot = settings?.actions?.[i];
         const on = slot?.enabled ?? false;
-        const label = on ? `${slot!.fixed_count}/${slot!.variable_count}` : "--";
+        const label = on ? `${slot!.fixed_count}+${slot!.variable_count}` : "--";
         return (
-          <span key={i}>[<span className={on ? dim : "text-[#5a5850]"}>{label}</span>]</span>
+          <span key={i}>
+            {i > 0 && <span className="text-[#5a5850]">|</span>}
+            <span className={on ? dim : "text-[#5a5850]"}>{label}</span>
+          </span>
         );
       })}
     </span>
