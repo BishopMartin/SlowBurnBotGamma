@@ -75,7 +75,7 @@ def _write_ini_from_activation(response: dict, config_path: str) -> None:
         cp["browser-config"] = {
             "chrome_version": "",
             "chrome_path": "/usr/bin/google-chrome",
-            "chrome_user_data_dir_base": "",
+            "chrome_user_data_dir_base": "ChromeUserData",
             "system_user_agent": _DEFAULT_USER_AGENT,
             "add_argument": "",
         }

@@ -44,6 +44,21 @@ function fmtGroup(n: number | null | undefined): string {
   return String(n).padStart(2, "0");
 }
 
+function actionSlots(settings: AccountSettings | undefined) {
+  return (
+    <span className="whitespace-nowrap">
+      {[0, 1, 2, 3].map(i => {
+        const on = settings?.actions?.[i]?.enabled ?? false;
+        return (
+          <Bracket key={i} className={on ? "text-status-ok" : "text-[#9A968B]"}>
+            {on ? "x" : " "}
+          </Bracket>
+        );
+      })}
+    </span>
+  );
+}
+
 function fmtNum(v: number | null | undefined): string {
   if (v == null) return "----";
   return v.toLocaleString();
@@ -328,6 +343,7 @@ export default function DashboardPage() {
                   <>
                     <SortTh label="Client" field="group" />
                     <th className="px-2 py-2 font-normal">Schedule</th>
+                    <th className="px-2 py-2 font-normal whitespace-nowrap">Actions</th>
                     <th className="px-2 py-2 font-normal">Delay</th>
                     <th className="px-2 py-2 font-normal">Runs/Day</th>
                   </>
@@ -413,6 +429,9 @@ export default function DashboardPage() {
                         <td className="px-2 py-2 whitespace-nowrap">{fmtGroup(account.group_number)}</td>
                         <td className="px-2 py-2 whitespace-nowrap">
                           {scheduleLabel(settingsMap[account.id])}
+                        </td>
+                        <td className="px-2 py-2 whitespace-nowrap">
+                          {actionSlots(settingsMap[account.id])}
                         </td>
                         <td className="px-2 py-2 whitespace-nowrap">
                           {settingsMap[account.id] ? `${settingsMap[account.id].delay_base_minutes ?? 0}+${settingsMap[account.id].delay_random_minutes ?? 0}` : "—"}

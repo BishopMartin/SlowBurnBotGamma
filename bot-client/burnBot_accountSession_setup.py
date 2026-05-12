@@ -47,9 +47,8 @@ def build_user_data_dir(account):
     """
     # Get base directory from config
     chrome_user_data_dir_base = CONFIG['browser-config'].get(
-        'chrome_user_data_dir_base',
-        'ChromeUserData'
-    )
+        'chrome_user_data_dir_base'
+    ) or 'ChromeUserData'
     # Resolve path relative to project directory
     chrome_user_data_dir_base = resolve_path(chrome_user_data_dir_base)
     

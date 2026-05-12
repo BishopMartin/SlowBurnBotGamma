@@ -28,7 +28,7 @@ def _inject_missing_sections() -> None:
         if system_type == "linux":
             CONFIG.set("browser-config", "chrome_version", "")
             CONFIG.set("browser-config", "chrome_path", "/usr/bin/google-chrome")
-            CONFIG.set("browser-config", "chrome_user_data_dir_base", "")
+            CONFIG.set("browser-config", "chrome_user_data_dir_base", "ChromeUserData")
         else:
             CONFIG.set("browser-config", "chrome_version", "143")
             CONFIG.set("browser-config", "chrome_path", "PortableChrome\\chrome.exe")
