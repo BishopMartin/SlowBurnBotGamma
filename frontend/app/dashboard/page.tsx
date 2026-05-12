@@ -280,7 +280,7 @@ export default function DashboardPage() {
                       <span className="text-status-ok">connected</span>
                     ) : (
                       <span className="text-[#9A968B]">
-                        offline{cs.last_heartbeat ? ` - ${new Date(cs.last_heartbeat).toLocaleString()}` : ""}
+                        offline{cs.last_heartbeat ? ` - ${fmtTime(cs.last_heartbeat)}` : ""}
                       </span>
                     )}
                   </td>
