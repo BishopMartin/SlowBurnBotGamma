@@ -285,7 +285,9 @@ export default function DashboardPage() {
                     )}
                   </td>
                   <td className="px-2 py-2 whitespace-nowrap">
-                    {cs.status === "running"
+                    {!cs.connected
+                      ? <span className="text-[#9A968B]">------</span>
+                      : cs.status === "running"
                       ? <span className="text-status-ok">active</span>
                       : cs.status === "paused"
                       ? <span className="text-[#E5C07B]">paused</span>
@@ -295,7 +297,9 @@ export default function DashboardPage() {
                     }
                   </td>
                   <td className="px-2 py-2 text-[#9A968B] whitespace-nowrap">
-                    {cs.status === "running" && cs.current_account
+                    {!cs.connected
+                      ? "------"
+                      : cs.status === "running" && cs.current_account
                       ? <span className="text-[#f4f3ee]">running {cs.current_account}</span>
                       : cs.status === "delay"
                       ? "session delay"
