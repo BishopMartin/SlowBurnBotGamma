@@ -169,6 +169,14 @@ class BurnBotApp(App):
     Input:focus {
         border: none;
         background: #1a1a1a;
+        background-tint: transparent 0%;
+    }
+    Input > .input--cursor {
+        background: #adcc00;
+        color: #141413;
+    }
+    Input > .input--selection {
+        background: #adcc00 30%;
     }
     #cmd-ghost {
         width: 1fr;
