@@ -159,8 +159,9 @@ jobs:
 
       - name: Prune old GHCR versions (keep 5)
         uses: actions/delete-package-versions@v5
+        continue-on-error: true
         with:
-          package-name: slowburnbot-client
+          package-name: slowburnbotgamma/slowburnbot-client
           package-type: container
           min-versions-to-keep: 5
           ignore-versions: "^latest$"
