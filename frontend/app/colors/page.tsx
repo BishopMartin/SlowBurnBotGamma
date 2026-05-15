@@ -80,10 +80,8 @@ function ph(p: Pal, slot: string): string {
 // Tighter 9-col grid: [4 left] [gap] [4 right]
 const COLS = "4.5rem 7rem 9rem 1fr 10px 4.5rem 7rem 9rem 1fr";
 
-const FS_MAIN  = "1.05rem";
-const FS_MUTED = "0.95rem";
-const FS_LABEL = "0.8rem";
-const PAD      = "10px 11px";
+const FS = "1.05rem";
+const PAD = "10px 11px";
 
 function border(p: Pal, last: boolean) {
   return last ? "none" : `1px solid ${ph(p, "base03")}`;
@@ -107,7 +105,7 @@ function Banner({ p, name, right }: { p: Pal; name: string; right?: boolean }) {
       padding: PAD,
       color: ph(p, "base09"),
       fontWeight: 600,
-      fontSize: FS_MAIN,
+      fontSize: FS,
     }}>
       {name}
     </div>
@@ -124,7 +122,7 @@ function ColLabel({ p, label, first, last4 }: { p: Pal; label: string; first?: b
       borderRight: last4 ? `1px solid ${ph(p, "base03")}` : undefined,
       padding: "5px 11px",
       color: ph(p, "base03"),
-      fontSize: FS_LABEL,
+      fontSize: FS,
     }}>
       {label}
     </div>
@@ -140,7 +138,7 @@ function SlotCell({ p, slotId, last }: { p: Pal; slotId: string; last: boolean }
       borderLeft: `1px solid ${ph(p, "base03")}`,
       padding: PAD,
       color: ph(p, "base05"),
-      fontSize: FS_MAIN,
+      fontSize: FS,
       alignSelf: "stretch",
     }}>
       {slotId}
@@ -161,15 +159,15 @@ function HexCell({ p, slotId, last }: { p: Pal; slotId: string; last: boolean })
       gap: "7px",
     }}>
       <div style={{
-        width: "18px",
-        height: "18px",
+        width: "28px",
+        height: "28px",
         backgroundColor: slotHex,
         border: `1px solid ${ph(p, "base03")}`,
         borderRadius: "2px",
         flexShrink: 0,
         marginTop: "2px",
       }} />
-      <span style={{ color: ph(p, "base04"), fontSize: FS_MUTED }}>{slotHex}</span>
+      <span style={{ color: ph(p, "base04"), fontSize: FS }}>{slotHex}</span>
     </div>
   );
 }
@@ -182,7 +180,7 @@ function NameCell({ p, value, last }: { p: Pal; value: string; last: boolean }) 
       borderBottom: border(p, last),
       padding: PAD,
       color: ph(p, "base05"),
-      fontSize: FS_MAIN,
+      fontSize: FS,
     }}>
       {value}
     </div>
@@ -198,7 +196,7 @@ function RoleCell({ p, value, last, rightBorder }: { p: Pal; value: string; last
       borderRight: rightBorder ? `1px solid ${ph(p, "base03")}` : undefined,
       padding: PAD,
       color: ph(p, "base04"),
-      fontSize: FS_MUTED,
+      fontSize: FS,
     }}>
       {value}
     </div>
