@@ -65,7 +65,7 @@ export default function AdminAccountsPage() {
                   <td className="px-4 py-2 text-base05">{a.name}</td>
                   <td className="px-4 py-2">
                     {a.system_disabled ? (
-                      <Bracket className="text-fg-disabled">-</Bracket>
+                      <Bracket className="text-base03">-</Bracket>
                     ) : (
                       <>
                         <span className="text-base04">[</span>

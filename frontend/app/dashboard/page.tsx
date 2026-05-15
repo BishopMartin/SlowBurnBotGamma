@@ -45,7 +45,7 @@ function fmtGroup(n: number | null | undefined): string {
 }
 
 function actionSlots(settings: AccountSettings | undefined, account: Account) {
-  const dim = account.system_disabled ? "text-fg-disabled" : account.enabled ? "text-base05" : "text-base04";
+  const dim = account.system_disabled ? "text-base03" : account.enabled ? "text-base05" : "text-base04";
   return (
     <span className={`whitespace-nowrap ${dim}`}>
       {[0, 1, 2, 3].map(i => {
@@ -54,8 +54,8 @@ function actionSlots(settings: AccountSettings | undefined, account: Account) {
         const label = on ? `${slot!.fixed_count}+${slot!.variable_count}` : "---";
         return (
           <span key={i}>
-            {i > 0 && <span className="text-fg-disabled">|</span>}
-            <span className={on ? dim : "text-fg-disabled"}>{label}</span>
+            {i > 0 && <span className="text-base03">|</span>}
+            <span className={on ? dim : "text-base03"}>{label}</span>
           </span>
         );
       })}
@@ -416,10 +416,10 @@ export default function DashboardPage() {
                 const log = logMap[account.id];
                 const fb = fbMap[account.id];
                 return (
-                  <tr key={account.id} className={`hover:bg-base02 transition-colors ${account.system_disabled ? "text-fg-disabled" : account.enabled ? "text-base05" : "text-base04"}`}>
+                  <tr key={account.id} className={`hover:bg-base02 transition-colors ${account.system_disabled ? "text-base03" : account.enabled ? "text-base05" : "text-base04"}`}>
                     <td className="px-[10px] py-2 whitespace-nowrap">
                       {account.system_disabled ? (
-                        <Bracket className="text-fg-disabled">-</Bracket>
+                        <Bracket className="text-base03">-</Bracket>
                       ) : (
                         <button
                           onClick={() => handleToggleEnabled(account)}

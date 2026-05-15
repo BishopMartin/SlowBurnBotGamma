@@ -18,7 +18,6 @@
   --status-ok:        var(--base0b);
   --status-bad:       var(--base08);
   --status-bad-hover: var(--base12);
-  --fg-disabled:      #5a5850;
 }
 
 @theme {
@@ -53,7 +52,6 @@
   /* Legacy semantic Tailwind colors preserved as aliases so existing
      text-status-ok / text-status-bad / hover:text-status-bad-hover etc.
      keep compiling unchanged until Phase 2 sweeps them. */
-  --color-fg-disabled:      var(--fg-disabled);
   --color-status-ok:        var(--status-ok);
   --color-status-bad:       var(--status-bad);
   --color-status-bad-hover: var(--status-bad-hover);
