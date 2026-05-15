@@ -77,28 +77,21 @@ function ph(p: Pal, slot: string): string {
   return `#${p[slot]?.replace(/^#/, "") ?? "000000"}`;
 }
 
-// 9-column grid: [4 left] [gap] [4 right]
-// Both sides share the same grid rows — heights always match.
-const COLS = "5.5rem 8.5rem 10rem 1fr 14px 5.5rem 8.5rem 10rem 1fr";
+// Tighter 9-col grid: [4 left] [gap] [4 right]
+const COLS = "4.5rem 7rem 9rem 1fr 10px 4.5rem 7rem 9rem 1fr";
 
-const FS_MAIN  = "0.9rem";
-const FS_MUTED = "0.82rem";
-const FS_LABEL = "0.75rem";
-const PAD      = "7px 12px";
+const FS_MAIN  = "1.05rem";
+const FS_MUTED = "0.95rem";
+const FS_LABEL = "0.8rem";
+const PAD      = "10px 11px";
 
 function border(p: Pal, last: boolean) {
   return last ? "none" : `1px solid ${ph(p, "base03")}`;
 }
 
-// Spacer column — just fills the gap between panels
-function Gap({ last, lp, rp }: { last?: boolean; lp: Pal; rp: Pal }) {
-  // Use a gradient so the gap visually separates the two backgrounds
-  return (
-    <div style={{
-      borderBottom: last ? "none" : `1px solid transparent`,
-      background: "transparent",
-    }} />
-  );
+// Pure black spacer — no theme color bleeds through the gap
+function Gap({ last }: { last?: boolean }) {
+  return <div style={{ background: "#000" }} />;
 }
 
 // Theme name banner — spans all 4 of its half's columns
@@ -108,10 +101,10 @@ function Banner({ p, name, right }: { p: Pal; name: string; right?: boolean }) {
       gridColumn: right ? "6 / 10" : "1 / 5",
       backgroundColor: ph(p, "base01"),
       borderBottom: `1px solid ${ph(p, "base03")}`,
-      borderLeft:  right ? `1px solid ${ph(p, "base03")}` : `1px solid ${ph(p, "base03")}`,
-      borderRight: `1px solid ${ph(p, "base03")}`,
-      borderTop:   `1px solid ${ph(p, "base03")}`,
-      padding: "7px 12px",
+      borderLeft:   `1px solid ${ph(p, "base03")}`,
+      borderRight:  `1px solid ${ph(p, "base03")}`,
+      borderTop:    `1px solid ${ph(p, "base03")}`,
+      padding: PAD,
       color: ph(p, "base09"),
       fontWeight: 600,
       fontSize: FS_MAIN,
@@ -122,14 +115,14 @@ function Banner({ p, name, right }: { p: Pal; name: string; right?: boolean }) {
 }
 
 // Column label cells (slot / hex / name / role)
-function ColLabel({ p, label, first, last4, right }: { p: Pal; label: string; first?: boolean; last4?: boolean; right?: boolean }) {
+function ColLabel({ p, label, first, last4 }: { p: Pal; label: string; first?: boolean; last4?: boolean }) {
   return (
     <div style={{
       backgroundColor: ph(p, "base01"),
       borderBottom: `1px solid ${ph(p, "base03")}`,
       borderLeft:  first ? `1px solid ${ph(p, "base03")}` : undefined,
       borderRight: last4 ? `1px solid ${ph(p, "base03")}` : undefined,
-      padding: "4px 12px",
+      padding: "5px 11px",
       color: ph(p, "base03"),
       fontSize: FS_LABEL,
     }}>
@@ -139,7 +132,7 @@ function ColLabel({ p, label, first, last4, right }: { p: Pal; label: string; fi
 }
 
 // Slot ID cell
-function SlotCell({ p, slotId, last, first }: { p: Pal; slotId: string; last: boolean; first?: boolean }) {
+function SlotCell({ p, slotId, last }: { p: Pal; slotId: string; last: boolean }) {
   return (
     <div style={{
       backgroundColor: ph(p, "base00"),
@@ -168,13 +161,13 @@ function HexCell({ p, slotId, last }: { p: Pal; slotId: string; last: boolean })
       gap: "7px",
     }}>
       <div style={{
-        width: "17px",
-        height: "17px",
+        width: "18px",
+        height: "18px",
         backgroundColor: slotHex,
         border: `1px solid ${ph(p, "base03")}`,
         borderRadius: "2px",
         flexShrink: 0,
-        marginTop: "1px",
+        marginTop: "2px",
       }} />
       <span style={{ color: ph(p, "base04"), fontSize: FS_MUTED }}>{slotHex}</span>
     </div>
@@ -217,37 +210,50 @@ export default function ColorsPage() {
   const act = loadTheme(ACTIVE_THEME);
 
   return (
-    <div className="min-h-screen flex flex-col font-mono text-sm">
-      <div className="flex-1 max-w-screen-2xl mx-auto w-full sm:border-x border-base03">
-        <header className="px-3 sm:px-6 py-3 flex flex-wrap items-baseline gap-x-4 gap-y-2 border-b border-base03">
-          <span className="font-semibold text-base09">SlowBurnBot</span>
-          <span className="text-base04">colors</span>
-          <span className="text-base03 hidden sm:inline">—</span>
-          <Link href="/login" className="text-base04 hover:text-base09 transition-colors">
+    // Entire page is black — no theme var bleeds into the chrome or gaps
+    <div style={{ background: "#000", minHeight: "100vh", fontFamily: "monospace" }}>
+      <div style={{ maxWidth: "1600px", margin: "0 auto", padding: "0 16px" }}>
+
+        <header style={{
+          padding: "10px 0",
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "baseline",
+          gap: "6px 14px",
+          borderBottom: `1px solid ${ph(def.palette, "base03")}`,
+          marginBottom: "24px",
+        }}>
+          <span style={{ fontWeight: 600, color: ph(def.palette, "base09"), fontSize: "1rem" }}>SlowBurnBot</span>
+          <span style={{ color: ph(def.palette, "base04"), fontSize: "1rem" }}>colors</span>
+          <span style={{ color: ph(def.palette, "base03") }}>—</span>
+          <Link href="/login" style={{ color: ph(def.palette, "base04"), textDecoration: "none", fontSize: "1rem" }}>
             <Bracket className="">sign in</Bracket>
           </Link>
-          <Link href="/dashboard" className="text-base04 hover:text-base09 transition-colors">
+          <Link href="/dashboard" style={{ color: ph(def.palette, "base04"), textDecoration: "none", fontSize: "1rem" }}>
             <Bracket className="">dashboard</Bracket>
           </Link>
         </header>
 
-        <main className="px-3 sm:px-6 py-6 space-y-8">
-          <p className="text-base04">
-            Active: <code className="text-base0a">{ACTIVE_THEME}</code>
-            <span className="text-base03 mx-2">/</span>
-            Default: <code className="text-base04">slowburnbot</code>
-          </p>
+        <div style={{ marginBottom: "16px", fontSize: "0.9rem" }}>
+          <span style={{ color: ph(def.palette, "base04") }}>Active: </span>
+          <code style={{ color: ph(def.palette, "base0A") }}>{ACTIVE_THEME}</code>
+          <span style={{ color: ph(def.palette, "base03"), margin: "0 8px" }}>/</span>
+          <span style={{ color: ph(def.palette, "base04") }}>Default: </span>
+          <code style={{ color: ph(def.palette, "base04") }}>slowburnbot</code>
+        </div>
 
+        <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
           {SECTIONS.map(({ label, slots }) => (
             <section key={label}>
-              <h2 className="text-base04 mb-2 text-xs tracking-widest">{label}</h2>
-              <div className="overflow-x-auto">
-                {/* Single 9-col grid — both panels share rows, heights always match */}
-                <div style={{ display: "grid", gridTemplateColumns: COLS, minWidth: "900px" }}>
+              <div style={{ color: ph(def.palette, "base04"), marginBottom: "8px", fontSize: "0.75rem", letterSpacing: "0.1em" }}>
+                {label}
+              </div>
+              <div style={{ overflowX: "auto" }}>
+                <div style={{ display: "grid", gridTemplateColumns: COLS, minWidth: "860px" }}>
 
-                  {/* Banner row: theme names spanning 4 cols each */}
+                  {/* Banner row */}
                   <Banner p={def.palette} name={def.name} />
-                  <Gap lp={def.palette} rp={act.palette} />
+                  <Gap />
                   <Banner p={act.palette} name={act.name} right />
 
                   {/* Column label row */}
@@ -255,24 +261,24 @@ export default function ColorsPage() {
                   <ColLabel p={def.palette} label="hex"   />
                   <ColLabel p={def.palette} label="name"  />
                   <ColLabel p={def.palette} label="role"  />
-                  <Gap lp={def.palette} rp={act.palette} />
+                  <Gap />
                   <ColLabel p={act.palette} label="slot"  first />
                   <ColLabel p={act.palette} label="hex"   />
                   <ColLabel p={act.palette} label="name"  />
-                  <ColLabel p={act.palette} label="role"  last4 right />
+                  <ColLabel p={act.palette} label="role"  last4 />
 
-                  {/* Data rows — one row per slot, both sides in the same grid row */}
+                  {/* Data rows */}
                   {slots.map((slotId, i) => {
                     const last  = i === slots.length - 1;
-                    const linfo = SITE_INFO[slotId]   ?? { name: "—", role: "reserved" };
-                    const rinfo = BASE24_SPEC[slotId]  ?? { name: "—", role: "—" };
+                    const linfo = SITE_INFO[slotId]  ?? { name: "—", role: "reserved" };
+                    const rinfo = BASE24_SPEC[slotId] ?? { name: "—", role: "—" };
                     return (
                       <Fragment key={slotId}>
                         <SlotCell p={def.palette} slotId={slotId} last={last} />
                         <HexCell  p={def.palette} slotId={slotId} last={last} />
                         <NameCell p={def.palette} value={linfo.name} last={last} />
                         <RoleCell p={def.palette} value={linfo.role} last={last} />
-                        <Gap lp={def.palette} rp={act.palette} last={last} />
+                        <Gap last={last} />
                         <SlotCell p={act.palette} slotId={slotId} last={last} />
                         <HexCell  p={act.palette} slotId={slotId} last={last} />
                         <NameCell p={act.palette} value={rinfo.name} last={last} />
@@ -285,11 +291,12 @@ export default function ColorsPage() {
               </div>
             </section>
           ))}
+        </div>
 
-          <p className="text-base03 text-xs border-t border-base03 pt-4">
-            Change theme: edit <code>ACTIVE_THEME</code> in <code>lib/active-theme.ts</code>
-          </p>
-        </main>
+        <footer style={{ color: ph(def.palette, "base03"), fontSize: "0.75rem", borderTop: `1px solid ${ph(def.palette, "base03")}`, padding: "16px 0", marginTop: "32px" }}>
+          Change theme: edit <code>ACTIVE_THEME</code> in <code>lib/active-theme.ts</code>
+        </footer>
+
       </div>
     </div>
   );
