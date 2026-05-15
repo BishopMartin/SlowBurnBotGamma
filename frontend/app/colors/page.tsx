@@ -2,14 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Bracket } from "@/lib/bracket";
 import { loadTheme } from "@/lib/theme-loader";
+import { ACTIVE_THEME } from "@/lib/active-theme";
 
 export const metadata: Metadata = {
   title: "Colors — SlowBurnBot",
   description: "Frontend color palette reference",
 };
 
-// Site-specific descriptions for the slots that map to real website usage.
-// Slots absent from this lookup show "—" / "reserved" in the table.
 const SITE_INFO: Record<string, { name: string; role: string; description: string }> = {
   base00: { name: "charcoal bg",       role: "Page background (`--background`), selected option text on `<select>`", description: "Near-black charcoal with a warm brown cast" },
   base01: { name: "header bar",        role: "Section headers, table header strips",                                   description: "Slightly lifted warm dark panel" },
@@ -33,8 +32,25 @@ const SECTIONS: Array<{ label: string; slots: string[] }> = [
   { label: "BRIGHTS",    slots: ["base12", "base13", "base14", "base15", "base16", "base17"] },
 ];
 
+function Swatch({ hex, label }: { hex: string; label: string }) {
+  return (
+    <div className="flex items-center gap-2 min-w-[7rem]">
+      <div
+        className="h-6 w-6 rounded-sm border border-base03 shrink-0"
+        style={{ backgroundColor: hex }}
+        role="img"
+        aria-label={label}
+        title={hex}
+      />
+      <span className="text-base04 font-mono text-xs">{hex}</span>
+    </div>
+  );
+}
+
 export default function ColorsPage() {
-  const { palette } = loadTheme("slowburnbot");
+  const defaultTheme = loadTheme("slowburnbot");
+  const activeTheme  = loadTheme(ACTIVE_THEME);
+  const isDefault    = defaultTheme.name === activeTheme.name;
 
   return (
     <div className="min-h-screen flex flex-col font-mono text-sm">
@@ -53,47 +69,53 @@ export default function ColorsPage() {
 
         <main className="px-3 sm:px-6 py-6 space-y-6">
           <p className="text-base04">
-            Frontend palette reference — colors loaded from{" "}
-            <code className="text-base0a">themes/slowburnbot.yaml</code>.
-            Replace the file to change the entire theme without touching code.
+            Palette loaded from{" "}
+            <code className="text-base0a">themes/{ACTIVE_THEME}.yaml</code>.
+            {!isDefault && (
+              <> Default is <code className="text-base04">slowburnbot</code>.</>
+            )}
           </p>
 
           {SECTIONS.map(({ label, slots }) => (
             <section key={label}>
               <h2 className="text-base04 mb-2">{label}</h2>
               <div className="border border-base03 overflow-x-auto">
-                <table className="w-full min-w-[720px] text-left border-collapse">
+                <table className="w-full min-w-[760px] text-left border-collapse">
                   <thead>
                     <tr className="text-base04 border-b border-base03 bg-base01">
-                      <th className="px-3 py-2 font-normal whitespace-nowrap">Slot</th>
-                      <th className="px-2 py-2 font-normal w-20">Sample</th>
-                      <th className="px-3 py-2 font-normal whitespace-nowrap">Hex</th>
+                      <th className="px-3 py-2 font-normal whitespace-nowrap w-20">Slot</th>
+                      <th className="px-3 py-2 font-normal whitespace-nowrap">
+                        Default
+                        {!isDefault && <span className="text-base03 ml-1">(slowburnbot)</span>}
+                      </th>
+                      {!isDefault && (
+                        <th className="px-3 py-2 font-normal whitespace-nowrap text-base09">
+                          Active
+                          <span className="text-base03 ml-1">({ACTIVE_THEME})</span>
+                        </th>
+                      )}
                       <th className="px-3 py-2 font-normal">Name</th>
                       <th className="px-3 py-2 font-normal min-w-[12rem]">Role</th>
-                      <th className="px-3 py-2 font-normal min-w-[10rem]">Description</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-base03">
                     {slots.map((slotId) => {
-                      const rawHex = palette[slotId] ?? "";
-                      const hex = `#${rawHex.replace(/^#/, "")}`;
+                      const defaultHex = `#${defaultTheme.palette[slotId]?.replace(/^#/, "") ?? ""}`;
+                      const activeHex  = `#${activeTheme.palette[slotId]?.replace(/^#/, "") ?? ""}`;
                       const info = SITE_INFO[slotId];
                       return (
-                        <tr key={slotId} className="hover:bg-base02 transition-colors align-top">
-                          <td className="px-3 py-3 text-base05 whitespace-nowrap">{slotId}</td>
-                          <td className="px-2 py-2 w-20">
-                            <div
-                              className="min-h-10 min-w-14 rounded-sm border border-base03 shadow-inner shrink-0"
-                              style={{ backgroundColor: hex }}
-                              role="img"
-                              aria-label={`Swatch ${slotId}`}
-                              title={hex}
-                            />
+                        <tr key={slotId} className="hover:bg-base02 transition-colors align-middle">
+                          <td className="px-3 py-2 text-base05 whitespace-nowrap">{slotId}</td>
+                          <td className="px-3 py-2">
+                            <Swatch hex={defaultHex} label={`${slotId} default`} />
                           </td>
-                          <td className="px-3 py-3 text-base0a whitespace-nowrap">{hex}</td>
-                          <td className="px-3 py-3 text-base05">{info?.name ?? "—"}</td>
-                          <td className="px-3 py-3 text-base04">{info?.role ?? "reserved"}</td>
-                          <td className="px-3 py-3 text-base04">{info?.description ?? "—"}</td>
+                          {!isDefault && (
+                            <td className="px-3 py-2">
+                              <Swatch hex={activeHex} label={`${slotId} active`} />
+                            </td>
+                          )}
+                          <td className="px-3 py-2 text-base05 whitespace-nowrap">{info?.name ?? "—"}</td>
+                          <td className="px-3 py-2 text-base04">{info?.role ?? "reserved"}</td>
                         </tr>
                       );
                     })}
@@ -103,10 +125,9 @@ export default function ColorsPage() {
             </section>
           ))}
 
-          <p className="text-base04 text-xs border-t border-base03 pt-4">
-            Note: <code className="text-base0a">#5a5850</code> (disabled gray — system-disabled rows, muted{" "}
-            affordances) is used in the codebase but has no base24 slot assignment. It will be mapped to the nearest
-            slot in Phase 2.
+          <p className="text-base03 text-xs border-t border-base03 pt-4">
+            To switch themes: change <code>ACTIVE_THEME</code> in{" "}
+            <code>lib/active-theme.ts</code> and redeploy.
           </p>
         </main>
       </div>

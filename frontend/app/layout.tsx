@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { loadTheme } from "@/lib/theme-loader";
+import { ACTIVE_THEME } from "@/lib/active-theme";
 
 export const metadata: Metadata = {
   title: "SlowBurnBot",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const theme = loadTheme("tokyo-night-storm");
+  const theme = loadTheme(ACTIVE_THEME);
 
   return (
     <html lang="en">
