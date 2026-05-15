@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const theme = loadTheme("slowburnbot");
+  const theme = loadTheme("tokyo-night-storm");
 
   return (
     <html lang="en">
