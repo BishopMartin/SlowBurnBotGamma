@@ -77,8 +77,8 @@ function ph(p: Pal, slot: string): string {
   return `#${p[slot]?.replace(/^#/, "") ?? "000000"}`;
 }
 
-// Tighter 9-col grid: [4 left] [gap] [4 right]
-const COLS = "4.5rem 7rem 9rem 1fr 10px 4.5rem 7rem 9rem 1fr";
+// 9-col grid: [slot+hex | swatch | name | role] [gap] [slot+hex | swatch | name | role]
+const COLS = "6.5rem 3.2rem 9rem 1fr 10px 6.5rem 3.2rem 9rem 1fr";
 
 const FS = "1.05rem";
 const PAD = "10px 11px";
@@ -129,45 +129,44 @@ function ColLabel({ p, label, first, last4 }: { p: Pal; label: string; first?: b
   );
 }
 
-// Slot ID cell
-function SlotCell({ p, slotId, last }: { p: Pal; slotId: string; last: boolean }) {
+// Slot + hex stacked in one cell
+function SlotHexCell({ p, slotId, last }: { p: Pal; slotId: string; last: boolean }) {
   return (
     <div style={{
       backgroundColor: ph(p, "base00"),
       borderBottom: border(p, last),
       borderLeft: `1px solid ${ph(p, "base03")}`,
       padding: PAD,
-      color: ph(p, "base05"),
-      fontSize: FS,
+      display: "flex",
+      flexDirection: "column",
+      gap: "3px",
       alignSelf: "stretch",
     }}>
-      {slotId}
+      <span style={{ color: ph(p, "base05"), fontSize: FS }}>{slotId}</span>
+      <span style={{ color: ph(p, "base04"), fontSize: FS }}>{ph(p, slotId)}</span>
     </div>
   );
 }
 
-// Swatch + hex cell — swatch top-aligned
-function HexCell({ p, slotId, last }: { p: Pal; slotId: string; last: boolean }) {
-  const slotHex = ph(p, slotId);
+// Swatch-only cell — larger square
+function SwatchCell({ p, slotId, last }: { p: Pal; slotId: string; last: boolean }) {
   return (
     <div style={{
       backgroundColor: ph(p, "base00"),
       borderBottom: border(p, last),
-      padding: PAD,
+      padding: "8px 6px",
       display: "flex",
       alignItems: "flex-start",
-      gap: "7px",
+      justifyContent: "center",
     }}>
       <div style={{
-        width: "28px",
-        height: "28px",
-        backgroundColor: slotHex,
+        width: "38px",
+        height: "38px",
+        backgroundColor: ph(p, slotId),
         border: `1px solid ${ph(p, "base03")}`,
-        borderRadius: "2px",
+        borderRadius: "3px",
         flexShrink: 0,
-        marginTop: "2px",
       }} />
-      <span style={{ color: ph(p, "base04"), fontSize: FS }}>{slotHex}</span>
     </div>
   );
 }
@@ -255,15 +254,15 @@ export default function ColorsPage() {
                   <Banner p={act.palette} name={act.name} right />
 
                   {/* Column label row */}
-                  <ColLabel p={def.palette} label="slot"  first />
-                  <ColLabel p={def.palette} label="hex"   />
-                  <ColLabel p={def.palette} label="name"  />
-                  <ColLabel p={def.palette} label="role"  />
+                  <ColLabel p={def.palette} label="slot / hex" first />
+                  <ColLabel p={def.palette} label=""            />
+                  <ColLabel p={def.palette} label="name"        />
+                  <ColLabel p={def.palette} label="role"        />
                   <Gap />
-                  <ColLabel p={act.palette} label="slot"  first />
-                  <ColLabel p={act.palette} label="hex"   />
-                  <ColLabel p={act.palette} label="name"  />
-                  <ColLabel p={act.palette} label="role"  last4 />
+                  <ColLabel p={act.palette} label="slot / hex" first />
+                  <ColLabel p={act.palette} label=""            />
+                  <ColLabel p={act.palette} label="name"        />
+                  <ColLabel p={act.palette} label="role"        last4 />
 
                   {/* Data rows */}
                   {slots.map((slotId, i) => {
@@ -272,15 +271,15 @@ export default function ColorsPage() {
                     const rinfo = BASE24_SPEC[slotId] ?? { name: "—", role: "—" };
                     return (
                       <Fragment key={slotId}>
-                        <SlotCell p={def.palette} slotId={slotId} last={last} />
-                        <HexCell  p={def.palette} slotId={slotId} last={last} />
-                        <NameCell p={def.palette} value={linfo.name} last={last} />
-                        <RoleCell p={def.palette} value={linfo.role} last={last} />
+                        <SlotHexCell p={def.palette} slotId={slotId} last={last} />
+                        <SwatchCell  p={def.palette} slotId={slotId} last={last} />
+                        <NameCell    p={def.palette} value={linfo.name} last={last} />
+                        <RoleCell    p={def.palette} value={linfo.role} last={last} />
                         <Gap last={last} />
-                        <SlotCell p={act.palette} slotId={slotId} last={last} />
-                        <HexCell  p={act.palette} slotId={slotId} last={last} />
-                        <NameCell p={act.palette} value={rinfo.name} last={last} />
-                        <RoleCell p={act.palette} value={rinfo.role} last={last} rightBorder />
+                        <SlotHexCell p={act.palette} slotId={slotId} last={last} />
+                        <SwatchCell  p={act.palette} slotId={slotId} last={last} />
+                        <NameCell    p={act.palette} value={rinfo.name} last={last} />
+                        <RoleCell    p={act.palette} value={rinfo.role} last={last} rightBorder />
                       </Fragment>
                     );
                   })}
