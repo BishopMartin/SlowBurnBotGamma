@@ -1,0 +1,36 @@
+# Base24 scheme for SlowBurnBot
+# Spec: https://github.com/tinted-theming/home/blob/main/styling.md
+system: "base24"
+name: "Slow Burn Bot"
+slug: "slowburnbot"
+author: "SlowBurnBot"
+variant: "dark"
+palette:
+  # Monotones
+  base00: "141413"  # Default Background        — page bg
+  base01: "1a1918"  # Lighter Background        — section headers
+  base02: "1f1e1d"  # Selection Background      — select option bg, panels
+  base03: "3d3d3a"  # Comments / Line Highlight — borders, dividers
+  base04: "9a968b"  # Dark Foreground           — secondary / muted text
+  base05: "f4f3ee"  # Default Foreground        — primary text
+  base06: "faf9f4"  # Light Foreground          — (reserved)
+  base07: "ffffff"  # Light Background          — nav/tab hover
+  # Accents
+  base08: "cf3b0a"  # Red                       — error / destructive
+  base09: "d97757"  # Orange                    — links, CTAs, focus rings
+  base0A: "e5c07b"  # Yellow                    — counts, warm highlights
+  base0B: "adcc00"  # Green                     — success
+  base0C: "7ec4b8"  # Cyan                      — (reserved)
+  base0D: "8aa5c4"  # Blue                      — (reserved)
+  base0E: "b58fbf"  # Purple                    — (reserved)
+  base0F: "a8765a"  # Brown                     — (reserved)
+  # Extensions
+  base10: "0d0c0c"  # Darker Background         — (reserved)
+  base11: "2a2927"  # Brighter Background       — dropdown row hover
+  # Brights
+  base12: "e87755"  # Bright Red                — bad-control hover
+  base13: "f1d49a"  # Bright Yellow             — (reserved)
+  base14: "c8e045"  # Bright Green              — (reserved)
+  base15: "a8dccd"  # Bright Cyan               — (reserved)
+  base16: "aec2dc"  # Bright Blue               — (reserved)
+  base17: "cdadd4"  # Bright Purple             — (reserved)

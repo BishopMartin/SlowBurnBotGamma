@@ -1,17 +1,59 @@
 @import "tailwindcss";
 
+/*
+ * Theme tokens (--base00 .. --base17) are injected on :root by app/layout.tsx
+ * from frontend/themes/slowburnbot.yaml. This file only defines:
+ *   - the Tailwind @theme block exposing those vars as utility classes
+ *   - semantic aliases (--background, --foreground, --status-*)
+ *   - element-level base styles (body, select, autofill)
+ *
+ * To change the palette: edit themes/slowburnbot.yaml. Do not put hexes here.
+ */
+
 :root {
-  --background: #141413;
-  --foreground: #f4f3ee;
-  /* Positive / “green” (nav selection uses #eab308 in layouts, not this token) */
-  --status-ok: #adcc00;
-  --status-bad: #cf3b0a;
-  --status-bad-hover: #e87755;
+  /* Semantic aliases — pointers into the base24 layer. Existing classes like
+     text-status-ok and selectors using var(--background) keep working. */
+  --background:       var(--base00);
+  --foreground:       var(--base05);
+  --status-ok:        var(--base0b);
+  --status-bad:       var(--base08);
+  --status-bad-hover: var(--base12);
 }
 
 @theme {
-  --color-status-ok: var(--status-ok);
-  --color-status-bad: var(--status-bad);
+  /* Expose every base24 slot as a Tailwind color (bg-base00, text-base05,
+     border-base03, ring-base09, etc.). Values are resolved by the browser
+     against the :root vars injected from the YAML at render time. */
+  --color-base00: var(--base00);
+  --color-base01: var(--base01);
+  --color-base02: var(--base02);
+  --color-base03: var(--base03);
+  --color-base04: var(--base04);
+  --color-base05: var(--base05);
+  --color-base06: var(--base06);
+  --color-base07: var(--base07);
+  --color-base08: var(--base08);
+  --color-base09: var(--base09);
+  --color-base0a: var(--base0a);
+  --color-base0b: var(--base0b);
+  --color-base0c: var(--base0c);
+  --color-base0d: var(--base0d);
+  --color-base0e: var(--base0e);
+  --color-base0f: var(--base0f);
+  --color-base10: var(--base10);
+  --color-base11: var(--base11);
+  --color-base12: var(--base12);
+  --color-base13: var(--base13);
+  --color-base14: var(--base14);
+  --color-base15: var(--base15);
+  --color-base16: var(--base16);
+  --color-base17: var(--base17);
+
+  /* Legacy semantic Tailwind colors preserved as aliases so existing
+     text-status-ok / text-status-bad / hover:text-status-bad-hover etc.
+     keep compiling unchanged until Phase 2 sweeps them. */
+  --color-status-ok:        var(--status-ok);
+  --color-status-bad:       var(--status-bad);
   --color-status-bad-hover: var(--status-bad-hover);
 }
 
@@ -37,19 +79,17 @@ input:-webkit-autofill:focus {
 
 select {
   color-scheme: dark;
-  accent-color: #d97757;
+  accent-color: var(--base09);
 }
 
-select:focus {
-  outline: none;
-}
+select:focus { outline: none; }
 
 select option {
-  background-color: #1f1e1d;
-  color: #f4f3ee;
+  background-color: var(--base02);
+  color: var(--base05);
 }
 
 select option:checked {
-  background: linear-gradient(0deg, #d97757 0%, #d97757 100%);
-  color: #141413;
+  background: linear-gradient(0deg, var(--base09) 0%, var(--base09) 100%);
+  color: var(--base00);
 }
