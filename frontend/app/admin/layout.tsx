@@ -44,41 +44,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen flex flex-col font-mono">
-      <div className="flex-1 max-w-5xl mx-auto w-full sm:border-x border-[#3d3d3a]">
+      <div className="flex-1 max-w-5xl mx-auto w-full sm:border-x border-base03">
         <header className="px-3 sm:px-6 py-3 flex flex-col-reverse gap-y-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-3">
           <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-6 gap-y-1">
-            <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
-            <span className="hidden sm:inline text-[#3d3d3a]">--</span>
+            <span className="font-semibold text-base09">SlowBurnBot</span>
+            <span className="hidden sm:inline text-base03">--</span>
             <nav className="flex flex-wrap gap-1">
               <Link
                 href="/admin"
                 className={`transition-colors ${
-                  headerAdminActive ? "text-[#d97757]" : "text-[#9A968B] hover:text-white"
+                  headerAdminActive ? "text-base09" : "text-base04 hover:text-white"
                 }`}
               >
-                <span className="text-[#f4f3ee]">[</span>admin<span className="text-[#f4f3ee]">]</span>
+                <span className="text-base05">[</span>admin<span className="text-base05">]</span>
               </Link>
               <Link
                 href="/admin/config"
                 className={`transition-colors ${
-                  headerConfigActive ? "text-[#d97757]" : "text-[#9A968B] hover:text-white"
+                  headerConfigActive ? "text-base09" : "text-base04 hover:text-white"
                 }`}
               >
-                <span className="text-[#f4f3ee]">[</span>config<span className="text-[#f4f3ee]">]</span>
+                <span className="text-base05">[</span>config<span className="text-base05">]</span>
               </Link>
             </nav>
           </div>
           <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-            <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#9A968B] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
-            <span className="text-[#E5C07B] truncate max-w-[12rem] sm:max-w-none">{user.email}</span>
+            <button onClick={() => window.location.reload()} className="text-base03 hover:text-base04 cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
+            <span className="text-base0a truncate max-w-[12rem] sm:max-w-none">{user.email}</span>
             <button onClick={handleLogout} className="group transition-colors">
-              <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">sign out</Bracket>
+              <Bracket className="text-base04 group-hover:text-base09">sign out</Bracket>
             </button>
           </div>
         </header>
         <main className="px-3 sm:px-6 py-6 space-y-4">
-          <nav className="flex flex-wrap gap-1 text-sm border-b border-[#3d3d3a] pb-3 items-center">
-            <span className="text-[#9A968B] mr-2">admin:</span>
+          <nav className="flex flex-wrap gap-1 text-sm border-b border-base03 pb-3 items-center">
+            <span className="text-base04 mr-2">admin:</span>
             {navItems.map((item) => {
               const active =
                 item.href === "/admin"
@@ -89,7 +89,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   key={item.href}
                   href={item.href}
                   className={`transition-colors ${
-                    active ? "text-[#d97757]" : "text-[#9A968B] hover:text-white"
+                    active ? "text-base09" : "text-base04 hover:text-white"
                   }`}
                 >
                   {item.label}

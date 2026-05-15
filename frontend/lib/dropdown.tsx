@@ -59,7 +59,7 @@ export function Dropdown({
         type="button"
         disabled={disabled}
         onClick={openMenu}
-        className={`bg-transparent outline-none cursor-pointer text-[#9A968B] ${disabled ? "text-[#3d3d3a] cursor-default" : ""}`}
+        className={`bg-transparent outline-none cursor-pointer text-base04 ${disabled ? "text-base03 cursor-default" : ""}`}
       >
         {display}
       </button>
@@ -67,7 +67,7 @@ export function Dropdown({
         <div
           ref={menuRef}
           style={{ position: "fixed", top: menuPos.top, left: menuPos.left, zIndex: 9999 }}
-          className="border border-[#3d3d3a] bg-[#1f1e1d] min-w-max text-left"
+          className="border border-base03 bg-base02 min-w-max text-left"
         >
           {options.map((opt) => (
             <div
@@ -75,8 +75,8 @@ export function Dropdown({
               onClick={() => { onChange(opt.value); setOpen(false); }}
               className={`px-3 py-1 cursor-pointer transition-colors font-mono ${
                 opt.value === value
-                  ? "bg-[#d97757] text-[#141413]"
-                  : "text-[#f4f3ee] hover:bg-[#2a2927]"
+                  ? "bg-base09 text-base00"
+                  : "text-base05 hover:bg-base11"
               }`}
             >
               {opt.label}

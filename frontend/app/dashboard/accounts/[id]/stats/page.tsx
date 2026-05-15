@@ -47,7 +47,7 @@ export default function AccountStatsPage() {
     const arrow = active ? (sortDir === "asc" ? "\u2191" : "\u2193") : "\u00a0";
     return (
       <th
-        className={`px-4 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f4f3ee] ${active ? "text-[#d97757]" : ""} ${className}`}
+        className={`px-4 py-2 font-normal cursor-pointer select-none transition-colors hover:text-base05 ${active ? "text-base09" : ""} ${className}`}
         onClick={() => toggleSort(field)}
       >
         <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>
@@ -107,18 +107,18 @@ export default function AccountStatsPage() {
   return (
     <div className="space-y-4 font-mono">
       <div className="flex items-center gap-2 flex-wrap text-sm">
-        <Link href="/dashboard/accounts" className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">accounts</Link>
-        <span className="text-[#3d3d3a]">-</span>
-        <Link href="/dashboard/accounts?tab=stats" className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">stats</Link>
-        <span className="text-[#3d3d3a]">-</span>
-        <span className="text-[#f4f3ee]">{account.name}</span>
+        <Link href="/dashboard/accounts" className="text-base04 hover:text-base05 transition-colors">accounts</Link>
+        <span className="text-base03">-</span>
+        <Link href="/dashboard/accounts?tab=stats" className="text-base04 hover:text-base05 transition-colors">stats</Link>
+        <span className="text-base03">-</span>
+        <span className="text-base05">{account.name}</span>
       </div>
 
-      <div className="border border-[#3d3d3a]">
+      <div className="border border-base03">
         <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
+            <tr className="text-left text-base04 border-b border-base03 bg-base01">
               <SortTh label="source" field="source" />
               <SortTh label="Complete" field="complete" />
               <SortTh label="Followed Back" field="followed_back" />
@@ -126,31 +126,31 @@ export default function AccountStatsPage() {
               <SortTh label="Daily" field="daily" />
               <th className="px-2 py-2 font-normal w-full text-right whitespace-nowrap">
                 <span className="inline-flex items-center gap-0">
-                  <span className="text-[#9A968B]">{"results:\u00a0 "}</span>
-                  <span className="text-[#f4f3ee]">{"["}</span>
+                  <span className="text-base04">{"results:\u00a0 "}</span>
+                  <span className="text-base05">{"["}</span>
                   <Dropdown
                     value={period}
                     onChange={(v) => setPeriod(v as Period)}
                     options={periodOptions}
                   />
-                  <span className="text-[#f4f3ee]">{"]"}</span>
+                  <span className="text-base05">{"]"}</span>
                 </span>
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#3d3d3a]">
+          <tbody className="divide-y divide-base03">
             {loading ? (
-              <tr><td colSpan={6} className="px-4 py-6 text-[#9A968B]">loading&hellip;</td></tr>
+              <tr><td colSpan={6} className="px-4 py-6 text-base04">loading&hellip;</td></tr>
             ) : items.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-6 text-[#9A968B]">no follow data yet.</td></tr>
+              <tr><td colSpan={6} className="px-4 py-6 text-base04">no follow data yet.</td></tr>
             ) : (
               sorted.map((s, i) => (
-                <tr key={i} className="hover:bg-[#1f1e1d] transition-colors">
-                  <td className="px-4 py-1.5 text-[#f4f3ee]">{s.source ?? "—"}</td>
-                  <td className="px-4 py-1.5 text-[#9A968B]">{s.complete.toLocaleString()}</td>
-                  <td className="px-4 py-1.5 text-[#9A968B]">{s.followed_back.toLocaleString()}</td>
-                  <td className="px-4 py-1.5 text-[#9A968B]">{fmtPct(s.rate)}</td>
-                  <td className="px-4 py-1.5 text-[#9A968B]">{daily(s).toFixed(1)}</td>
+                <tr key={i} className="hover:bg-base02 transition-colors">
+                  <td className="px-4 py-1.5 text-base05">{s.source ?? "—"}</td>
+                  <td className="px-4 py-1.5 text-base04">{s.complete.toLocaleString()}</td>
+                  <td className="px-4 py-1.5 text-base04">{s.followed_back.toLocaleString()}</td>
+                  <td className="px-4 py-1.5 text-base04">{fmtPct(s.rate)}</td>
+                  <td className="px-4 py-1.5 text-base04">{daily(s).toFixed(1)}</td>
                   <td></td>
                 </tr>
               ))
@@ -158,8 +158,8 @@ export default function AccountStatsPage() {
           </tbody>
           {items.length > 0 && (
             <tfoot>
-              <tr className="text-[#9A968B] border-t border-[#3d3d3a] bg-[#1a1918]">
-                <td className="px-4 py-2 text-[#f4f3ee]">total</td>
+              <tr className="text-base04 border-t border-base03 bg-base01">
+                <td className="px-4 py-2 text-base05">total</td>
                 <td className="px-4 py-2">{totals.complete.toLocaleString()}</td>
                 <td className="px-4 py-2">{totals.followed_back.toLocaleString()}</td>
                 <td className="px-4 py-2">{fmtPct(totals.rate)}</td>

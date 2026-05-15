@@ -26,12 +26,12 @@ const DEFAULT_LINUX_CONFIG: DesktopBuildConfig = {
   system_type: "linux",
 };
 
-const sectionCls = "border border-[#3d3d3a]";
+const sectionCls = "border border-base03";
 
 function statusColor(status: string): string {
   if (status === "activated") return "text-status-ok";
   if (status === "revoked") return "text-status-bad";
-  return "text-[#E5C07B]";
+  return "text-base0a";
 }
 
 function fmtDate(iso: string): string {
@@ -69,32 +69,32 @@ function BuildForm({
   const canSubmit = !submitting;
 
   return (
-    <div className="px-4 py-3 bg-[#1a1918] border-t border-[#3d3d3a]">
+    <div className="px-4 py-3 bg-base01 border-t border-base03">
       <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
         <BracketInput label="client name" value={cfg.client_name} onChange={(v) => set("client_name", v.slice(0, 15))} width="15ch" placeholder="my laptop" />
         <button
           onClick={() => switchPlatform("windows")}
-          className={`cursor-pointer transition-colors ${cfg.system_type === "windows" ? "text-[#d97757]" : "text-[#9A968B] hover:text-white"}`}
+          className={`cursor-pointer transition-colors ${cfg.system_type === "windows" ? "text-base09" : "text-base04 hover:text-white"}`}
         >
-          <span className="text-[#f4f3ee]">[</span>windows<span className="text-[#f4f3ee]">]</span>
+          <span className="text-base05">[</span>windows<span className="text-base05">]</span>
         </button>
         <button
           onClick={() => switchPlatform("linux")}
-          className={`cursor-pointer transition-colors ${cfg.system_type === "linux" ? "text-[#d97757]" : "text-[#9A968B] hover:text-white"}`}
+          className={`cursor-pointer transition-colors ${cfg.system_type === "linux" ? "text-base09" : "text-base04 hover:text-white"}`}
         >
-          <span className="text-[#f4f3ee]">[</span>linux/docker<span className="text-[#f4f3ee]">]</span>
+          <span className="text-base05">[</span>linux/docker<span className="text-base05">]</span>
         </button>
         <div className="flex items-center gap-3 ml-auto">
           {error && <span className="text-status-bad">{error}</span>}
           <button
             onClick={() => onSubmit(cfg)}
             disabled={!canSubmit}
-            className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-[#2e2c2a] border border-[#555] px-2 py-0.5"
+            className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-base11 border border-base03 px-2 py-0.5"
           >
-            <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">{submitting ? "saving…" : submitLabel}</Bracket>
+            <Bracket className="text-base09 group-hover:text-base05">{submitting ? "saving…" : submitLabel}</Bracket>
           </button>
-          <button onClick={onCancel} className="group cursor-pointer transition-colors bg-[#2e2c2a] border border-[#555] px-2 py-0.5">
-            <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">cancel</Bracket>
+          <button onClick={onCancel} className="group cursor-pointer transition-colors bg-base11 border border-base03 px-2 py-0.5">
+            <Bracket className="text-base04 group-hover:text-base05">cancel</Bracket>
           </button>
         </div>
       </div>
@@ -271,48 +271,48 @@ export default function ClientPage() {
   return (
     <div className="space-y-4 font-mono">
       <div className="flex items-baseline gap-3">
-        <h1 className="font-semibold text-[#f4f3ee]">Clients</h1>
-        <span className="text-[#9A968B]">
-          -- <span className="text-[#f4f3ee]">[</span>
-          <span className="text-[#E5C07B]">{loading ? "--" : currentStr}/{maxStr}</span>
-          <span className="text-[#f4f3ee]">]</span>
+        <h1 className="font-semibold text-base05">Clients</h1>
+        <span className="text-base04">
+          -- <span className="text-base05">[</span>
+          <span className="text-base0a">{loading ? "--" : currentStr}/{maxStr}</span>
+          <span className="text-base05">]</span>
         </span>
       </div>
 
       {!bannerDismissed && currentBotVersion && (
-        <div className="border border-[#555] px-4 py-3 flex items-center gap-3 flex-wrap">
-          <span className="text-[#f4f3ee]">
-            BurnBotClient <span className="text-[#E5C07B]">v{currentBotVersion}</span>
-            {botReleaseDate && <span className="text-[#9A968B]"> released {botReleaseDate}</span>}
-            <span className="text-[#9A968B]"> — update any old versions!</span>
+        <div className="border border-base03 px-4 py-3 flex items-center gap-3 flex-wrap">
+          <span className="text-base05">
+            BurnBotClient <span className="text-base0a">v{currentBotVersion}</span>
+            {botReleaseDate && <span className="text-base04"> released {botReleaseDate}</span>}
+            <span className="text-base04"> — update any old versions!</span>
           </span>
           <button onClick={() => setBannerDismissed(true)} className="group cursor-pointer transition-colors ml-auto">
-            <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
+            <Bracket className="text-base04 group-hover:text-base05">dismiss</Bracket>
           </button>
         </div>
       )}
 
       {justCreated && (
-        <div className="border border-[#555] px-4 py-3 space-y-2">
+        <div className="border border-base03 px-4 py-3 space-y-2">
           <div className="flex items-center gap-3">
-            <span className="text-[#f4f3ee]">token configured — client {justCreated.client_id}</span>
+            <span className="text-base05">token configured — client {justCreated.client_id}</span>
             <button onClick={() => setJustCreated(null)} className="group cursor-pointer transition-colors ml-auto">
-              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">dismiss</Bracket>
+              <Bracket className="text-base04 group-hover:text-base05">dismiss</Bracket>
             </button>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-[#9A968B]">token:</span>
-            <code className="text-[#E5C07B] break-all">{justCreated.activation_token}</code>
+            <span className="text-base04">token:</span>
+            <code className="text-base0a break-all">{justCreated.activation_token}</code>
             <button onClick={() => copyToken(justCreated.activation_token)} className="group cursor-pointer transition-colors">
-              <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedToken ? "copied!" : "copy"}</Bracket>
+              <Bracket className="text-base04 group-hover:text-base05">{copiedToken ? "copied!" : "copy"}</Bracket>
             </button>
           </div>
-          <p className="text-[#9A968B]">
+          <p className="text-base04">
             {(justCreated.build_options as DesktopBuildConfig).system_type === "linux"
               ? "Copy this token, then click commands on your slot to get the docker commands."
               : "Download the generic binary and paste this token on first run."}
           </p>
-          <p className="text-[#9A968B]">This token is shown once — it expires in 24 hours and can only be used once.</p>
+          <p className="text-base04">This token is shown once — it expires in 24 hours and can only be used once.</p>
         </div>
       )}
 
@@ -320,13 +320,13 @@ export default function ClientPage() {
       {pageError && <div className="text-status-bad">{pageError}</div>}
 
       <div className={sectionCls}>
-        {loading && <div className="px-4 py-4 text-[#9A968B]">loading...</div>}
+        {loading && <div className="px-4 py-4 text-base04">loading...</div>}
 
         {!loading && (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
+                <tr className="text-left text-base04 border-b border-base03 bg-base01">
                   <th className="px-3 py-2 font-normal whitespace-nowrap">client</th>
                   <th className="px-3 py-2 font-normal whitespace-nowrap">name</th>
                   <th className="px-3 py-2 font-normal whitespace-nowrap">platform</th>
@@ -343,18 +343,18 @@ export default function ClientPage() {
                   const isExpanded = expandedKey === build.id;
                   return (
                     <>
-                      <tr key={build.id} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors">
-                        <td className="px-3 py-3 text-[#f4f3ee] whitespace-nowrap">#{String(build.client_id).padStart(2, "0")}</td>
-                        <td className="px-3 py-3 text-[#9A968B] whitespace-nowrap">{cfg.client_name || "—"}</td>
-                        <td className="px-3 py-3 text-[#9A968B] whitespace-nowrap">{cfg.system_type === "linux" ? "linux" : "windows"}</td>
-                        <td className="px-3 py-3 text-[#9A968B] whitespace-nowrap">{fmtDate(build.created_at)}</td>
+                      <tr key={build.id} className="border-t border-base03 hover:bg-base02 transition-colors">
+                        <td className="px-3 py-3 text-base05 whitespace-nowrap">#{String(build.client_id).padStart(2, "0")}</td>
+                        <td className="px-3 py-3 text-base04 whitespace-nowrap">{cfg.client_name || "—"}</td>
+                        <td className="px-3 py-3 text-base04 whitespace-nowrap">{cfg.system_type === "linux" ? "linux" : "windows"}</td>
+                        <td className="px-3 py-3 text-base04 whitespace-nowrap">{fmtDate(build.created_at)}</td>
                         <td className="px-3 py-3 whitespace-nowrap">
                           {buildIsOutdated
                             ? <span className="text-status-bad">out-dated</span>
                             : <span className={statusColor(build.status)}>{build.status === "pending_activation" ? "pending" : build.status.replace("_", " ")}</span>}
                         </td>
                         <td className="px-3 py-3 whitespace-nowrap">
-                          <span className="text-[#9A968B]">
+                          <span className="text-base04">
                             {build.bot_version ? `v${build.bot_version}` : (currentBotVersion ? `v${currentBotVersion}` : "—")}
                           </span>
                         </td>
@@ -365,7 +365,7 @@ export default function ClientPage() {
                               disabled={downloading === build.id}
                               className="group cursor-pointer transition-colors disabled:opacity-40"
                             >
-                              <Bracket className={cfg.system_type === "linux" && expandedCmdsKey === build.id ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>
+                              <Bracket className={cfg.system_type === "linux" && expandedCmdsKey === build.id ? "text-base05 group-hover:text-base04" : "text-base04 group-hover:text-base05"}>
                                 {downloading === build.id ? "…" : cfg.system_type === "linux" ? "commands" : "download"}
                               </Bracket>
                             </button>
@@ -375,18 +375,18 @@ export default function ClientPage() {
                               className="group cursor-pointer transition-colors disabled:opacity-40"
                               onBlur={() => setConfirmRevoke(null)}
                             >
-                              <Bracket className={confirmRevoke === build.id ? "text-[#E5C07B] group-hover:text-[#f4f3ee]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>
+                              <Bracket className={confirmRevoke === build.id ? "text-base0a group-hover:text-base05" : "text-base04 group-hover:text-base05"}>
                                 {revoking === build.id ? "…" : confirmRevoke === build.id ? "confirm?" : "revoke"}
                               </Bracket>
                             </button>
                             <button onClick={() => toggleExpand(build.id)} className="group cursor-pointer transition-colors">
-                              <Bracket className={isExpanded ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>token</Bracket>
+                              <Bracket className={isExpanded ? "text-base05 group-hover:text-base04" : "text-base04 group-hover:text-base05"}>token</Bracket>
                             </button>
                           </div>
                         </td>
                       </tr>
                       {isExpanded && (
-                        <tr key={`${build.id}-form`} className="border-t border-[#3d3d3a]">
+                        <tr key={`${build.id}-form`} className="border-t border-base03">
                           <td colSpan={7} className="p-0">
                             <BuildForm
                               initial={cfg}
@@ -400,23 +400,23 @@ export default function ClientPage() {
                         </tr>
                       )}
                       {cfg.system_type === "linux" && expandedCmdsKey === build.id && cmdsByBuildId[build.id] && (
-                        <tr key={`${build.id}-cmds`} className="border-t border-[#3d3d3a]">
+                        <tr key={`${build.id}-cmds`} className="border-t border-base03">
                           <td colSpan={7} className="p-0">
-                            <div className="px-4 py-3 space-y-2 bg-[#1a1918]">
+                            <div className="px-4 py-3 space-y-2 bg-base01">
                               <div className="grid gap-x-4 gap-y-1" style={{ gridTemplateColumns: "max-content 1fr" }}>
-                                <span className="text-[#9A968B]">pull:</span>
+                                <span className="text-base04">pull:</span>
                                 <div>
-                                  <code className="text-[#E5C07B] break-all">{cmdsByBuildId[build.id].pull_cmd}</code>
+                                  <code className="text-base0a break-all">{cmdsByBuildId[build.id].pull_cmd}</code>
                                   <button onClick={() => copyCmd(cmdsByBuildId[build.id].pull_cmd, `pull-${build.id}`)} className="inline group cursor-pointer transition-colors ml-2">
-                                    <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === `pull-${build.id}` ? "copied!" : "copy"}</Bracket>
+                                    <Bracket className="text-base04 group-hover:text-base05">{copiedCmd === `pull-${build.id}` ? "copied!" : "copy"}</Bracket>
                                   </button>
                                 </div>
                                 <span></span><span></span>
-                                <span className="text-[#9A968B]">run:</span>
+                                <span className="text-base04">run:</span>
                                 <div>
-                                  <code className="text-[#E5C07B] break-all">{cmdsByBuildId[build.id].run_cmd}</code>
+                                  <code className="text-base0a break-all">{cmdsByBuildId[build.id].run_cmd}</code>
                                   <button onClick={() => copyCmd(cmdsByBuildId[build.id].run_cmd, `run-${build.id}`)} className="inline group cursor-pointer transition-colors ml-2">
-                                    <Bracket className="text-[#9A968B] group-hover:text-[#f4f3ee]">{copiedCmd === `run-${build.id}` ? "copied!" : "copy"}</Bracket>
+                                    <Bracket className="text-base04 group-hover:text-base05">{copiedCmd === `run-${build.id}` ? "copied!" : "copy"}</Bracket>
                                   </button>
                                 </div>
                               </div>
@@ -434,21 +434,21 @@ export default function ClientPage() {
                   const isExpanded = expandedKey === slotKey;
                   return (
                     <>
-                      <tr key={slotKey} className="border-t border-[#3d3d3a] hover:bg-[#1f1e1d] transition-colors">
-                        <td className="px-3 py-3 text-[#3d3d3a]">#{String(slotNum).padStart(2, "0")}</td>
-                        <td className="px-3 py-3 text-[#3d3d3a]">—</td>
-                        <td className="px-3 py-3 text-[#3d3d3a]">—</td>
-                        <td className="px-3 py-3 text-[#3d3d3a]">—</td>
-                        <td className="px-3 py-3 text-[#3d3d3a]">—</td>
-                        <td className="px-3 py-3 text-[#3d3d3a]">—</td>
+                      <tr key={slotKey} className="border-t border-base03 hover:bg-base02 transition-colors">
+                        <td className="px-3 py-3 text-base03">#{String(slotNum).padStart(2, "0")}</td>
+                        <td className="px-3 py-3 text-base03">—</td>
+                        <td className="px-3 py-3 text-base03">—</td>
+                        <td className="px-3 py-3 text-base03">—</td>
+                        <td className="px-3 py-3 text-base03">—</td>
+                        <td className="px-3 py-3 text-base03">—</td>
                         <td className="px-3 py-3 text-right">
                           <button onClick={() => toggleExpand(slotKey)} className="group cursor-pointer transition-colors">
-                            <Bracket className={isExpanded ? "text-[#f4f3ee] group-hover:text-[#9A968B]" : "text-[#9A968B] group-hover:text-[#f4f3ee]"}>token</Bracket>
+                            <Bracket className={isExpanded ? "text-base05 group-hover:text-base04" : "text-base04 group-hover:text-base05"}>token</Bracket>
                           </button>
                         </td>
                       </tr>
                       {isExpanded && (
-                        <tr key={`${slotKey}-form`} className="border-t border-[#3d3d3a]">
+                        <tr key={`${slotKey}-form`} className="border-t border-base03">
                           <td colSpan={7} className="p-0">
                             <BuildForm
                               initial={DEFAULT_CONFIG}
@@ -466,8 +466,8 @@ export default function ClientPage() {
                 })}
 
                 {maxClients === 0 && !loading && (
-                  <tr className="border-t border-[#3d3d3a]">
-                    <td colSpan={7} className="px-4 py-4 text-[#9A968B]">No active subscription.</td>
+                  <tr className="border-t border-base03">
+                    <td colSpan={7} className="px-4 py-4 text-base04">No active subscription.</td>
                   </tr>
                 )}
               </tbody>
@@ -477,22 +477,22 @@ export default function ClientPage() {
       </div>
 
       <div className={sectionCls}>
-        <div className="px-4 py-2 border-b border-[#3d3d3a] bg-[#1a1918]">
-          <span className="text-[#f4f3ee]">getting started</span>
+        <div className="px-4 py-2 border-b border-base03 bg-base01">
+          <span className="text-base05">getting started</span>
         </div>
-        <div className="px-4 py-4 space-y-4 text-[#9A968B]">
+        <div className="px-4 py-4 space-y-4 text-base04">
           <div className="space-y-1">
-            <p className="text-[#f4f3ee]">windows</p>
-            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">token</span> on an empty slot, enter a name, and copy the activation token shown after saving.</p>
-            <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">download</span> on your slot to get <code className="text-[#E5C07B]">SlowBurnBot.exe</code>. Put it in a folder on your machine.</p>
-            <p><span className="text-[#f4f3ee]">3.</span> Run the EXE. On first launch it will prompt for your Activation Token. Paste it in — the config is written locally and you won't be asked again.</p>
+            <p className="text-base05">windows</p>
+            <p><span className="text-base05">1.</span> Click <span className="text-base05">token</span> on an empty slot, enter a name, and copy the activation token shown after saving.</p>
+            <p><span className="text-base05">2.</span> Click <span className="text-base05">download</span> on your slot to get <code className="text-base0a">SlowBurnBot.exe</code>. Put it in a folder on your machine.</p>
+            <p><span className="text-base05">3.</span> Run the EXE. On first launch it will prompt for your Activation Token. Paste it in — the config is written locally and you won't be asked again.</p>
           </div>
           <div className="space-y-1">
-            <p className="text-[#f4f3ee]">linux/docker</p>
-            <p><span className="text-[#f4f3ee]">1.</span> Click <span className="text-[#f4f3ee]">token</span> on an empty slot, select <span className="text-[#f4f3ee]">linux/docker</span>, enter a name, and copy the activation token shown after saving.</p>
-            <p><span className="text-[#f4f3ee]">2.</span> Click <span className="text-[#f4f3ee]">commands</span> on your slot — run <code className="text-[#E5C07B]">docker pull</code> once to fetch the image, then <code className="text-[#E5C07B]">docker run</code> to start it.</p>
-            <p><span className="text-[#f4f3ee]">3.</span> On first launch paste your Activation Token when prompted — the config is saved to a named volume and you won&apos;t be asked again.</p>
-            <p><span className="text-[#f4f3ee]">4.</span> Use the <code className="text-[#E5C07B]">docker run</code> command to restart the client after exiting or a reboot.</p>
+            <p className="text-base05">linux/docker</p>
+            <p><span className="text-base05">1.</span> Click <span className="text-base05">token</span> on an empty slot, select <span className="text-base05">linux/docker</span>, enter a name, and copy the activation token shown after saving.</p>
+            <p><span className="text-base05">2.</span> Click <span className="text-base05">commands</span> on your slot — run <code className="text-base0a">docker pull</code> once to fetch the image, then <code className="text-base0a">docker run</code> to start it.</p>
+            <p><span className="text-base05">3.</span> On first launch paste your Activation Token when prompted — the config is saved to a named volume and you won&apos;t be asked again.</p>
+            <p><span className="text-base05">4.</span> Use the <code className="text-base0a">docker run</code> command to restart the client after exiting or a reboot.</p>
           </div>
         </div>
       </div>

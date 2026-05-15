@@ -8,7 +8,7 @@ import {
 } from "@/lib/api";
 import { Bracket } from "@/lib/bracket";
 
-const sectionCls = "border border-[#3d3d3a]";
+const sectionCls = "border border-base03";
 
 export default function AdminConfigPage() {
   const [creds, setCreds] = useState<NotificationCredentials | null>(null);
@@ -75,37 +75,37 @@ export default function AdminConfigPage() {
   }
 
   if (!creds) {
-    return <div className="font-mono text-[#9A968B]">loading…</div>;
+    return <div className="font-mono text-base04">loading…</div>;
   }
 
   return (
     <div className="space-y-6 font-mono">
-      <h1 className="font-semibold text-[#f4f3ee]">admin — Config</h1>
+      <h1 className="font-semibold text-base05">admin — Config</h1>
 
       <div className={sectionCls}>
-        <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">Notification Settings</div>
+        <div className="px-4 py-2 border-b border-base03 text-base04 bg-base01">Notification Settings</div>
 
         {/* SMTP row */}
-        <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm border-b border-[#3d3d3a]">
-          <span className="text-[#9A968B]" style={{ width: "8ch" }}>smtp:</span>
+        <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm border-b border-base03">
+          <span className="text-base04" style={{ width: "8ch" }}>smtp:</span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#9A968B]">{"server: "}</span>
-            <span className="text-[#f4f3ee]">{"["}</span>
+            <span className="text-base04">{"server: "}</span>
+            <span className="text-base05">{"["}</span>
             <input
               type="text"
               value={smtpServer}
               onChange={(e) => setSmtpServer(e.target.value)}
               placeholder="----"
               style={{ width: "18ch" }}
-              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"
+              className="bg-transparent text-base05 placeholder-base04 outline-none font-mono min-w-0 px-0"
             />
-            <span className="text-[#f4f3ee]">{"]"}</span>
+            <span className="text-base05">{"]"}</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#9A968B]">{"port: "}</span>
-            <span className="text-[#f4f3ee]">{"["}</span>
+            <span className="text-base04">{"port: "}</span>
+            <span className="text-base05">{"["}</span>
             <input
               type="text"
               inputMode="numeric"
@@ -113,28 +113,28 @@ export default function AdminConfigPage() {
               onChange={(e) => setSmtpPort(e.target.value.replace(/\D/g, ""))}
               placeholder="----"
               style={{ width: "4ch" }}
-              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0 text-center"
+              className="bg-transparent text-base05 placeholder-base04 outline-none font-mono min-w-0 px-0 text-center"
             />
-            <span className="text-[#f4f3ee]">{"]"}</span>
+            <span className="text-base05">{"]"}</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#9A968B]">{"user: "}</span>
-            <span className="text-[#f4f3ee]">{"["}</span>
+            <span className="text-base04">{"user: "}</span>
+            <span className="text-base05">{"["}</span>
             <input
               type="text"
               value={smtpUser}
               onChange={(e) => setSmtpUser(e.target.value)}
               placeholder="----"
               style={{ width: "20ch" }}
-              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"
+              className="bg-transparent text-base05 placeholder-base04 outline-none font-mono min-w-0 px-0"
             />
-            <span className="text-[#f4f3ee]">{"]"}</span>
+            <span className="text-base05">{"]"}</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#9A968B]">{"password: "}</span>
-            <span className="text-[#f4f3ee]">{"["}</span>
+            <span className="text-base04">{"password: "}</span>
+            <span className="text-base05">{"["}</span>
             {editingSmtpPassword ? (
               <input
                 type="text"
@@ -144,7 +144,7 @@ export default function AdminConfigPage() {
                 autoFocus
                 onBlur={() => { if (!smtpPassword) setEditingSmtpPassword(false); }}
                 style={{ width: "14ch" }}
-                className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 pl-1"
+                className="bg-transparent text-base05 placeholder-base04 outline-none font-mono min-w-0 pl-1"
               />
             ) : (
               <button
@@ -153,50 +153,50 @@ export default function AdminConfigPage() {
                 style={{ width: "14ch" }}
                 className="bg-transparent text-left font-mono min-w-0 pl-1 cursor-pointer inline-flex items-center translate-y-px"
               >
-                <span className={creds.smtp_password_set ? "text-[#f4f3ee]" : "text-[#9A968B]"}>
+                <span className={creds.smtp_password_set ? "text-base05" : "text-base04"}>
                   {creds.smtp_password_set ? " " + "*".repeat(13) : "----"}
                 </span>
               </button>
             )}
-            <span className="text-[#f4f3ee]">{"]"}</span>
+            <span className="text-base05">{"]"}</span>
           </span>
         </div>
 
         {/* Resend row */}
-        <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm border-b border-[#3d3d3a]">
-          <span className="text-[#9A968B]" style={{ width: "8ch" }}>resend:</span>
+        <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm border-b border-base03">
+          <span className="text-base04" style={{ width: "8ch" }}>resend:</span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#9A968B]">{"from: "}</span>
-            <span className="text-[#f4f3ee]">{"["}</span>
+            <span className="text-base04">{"from: "}</span>
+            <span className="text-base05">{"["}</span>
             <input
               type="text"
               value={resendFrom}
               onChange={(e) => setResendFrom(e.target.value)}
               placeholder="----"
               style={{ width: "24ch" }}
-              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"
+              className="bg-transparent text-base05 placeholder-base04 outline-none font-mono min-w-0 px-0"
             />
-            <span className="text-[#f4f3ee]">{"]"}</span>
+            <span className="text-base05">{"]"}</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#9A968B]">{"reply-to: "}</span>
-            <span className="text-[#f4f3ee]">{"["}</span>
+            <span className="text-base04">{"reply-to: "}</span>
+            <span className="text-base05">{"["}</span>
             <input
               type="text"
               value={resendReplyTo}
               onChange={(e) => setResendReplyTo(e.target.value)}
               placeholder="----"
               style={{ width: "24ch" }}
-              className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 px-0"
+              className="bg-transparent text-base05 placeholder-base04 outline-none font-mono min-w-0 px-0"
             />
-            <span className="text-[#f4f3ee]">{"]"}</span>
+            <span className="text-base05">{"]"}</span>
           </span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#9A968B]">{"api key: "}</span>
-            <span className="text-[#f4f3ee]">{"["}</span>
+            <span className="text-base04">{"api key: "}</span>
+            <span className="text-base05">{"["}</span>
             {editingResendApiKey ? (
               <input
                 type="text"
@@ -206,7 +206,7 @@ export default function AdminConfigPage() {
                 autoFocus
                 onBlur={() => { if (!resendApiKey) setEditingResendApiKey(false); }}
                 style={{ width: "20ch" }}
-                className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 pl-1"
+                className="bg-transparent text-base05 placeholder-base04 outline-none font-mono min-w-0 pl-1"
               />
             ) : (
               <button
@@ -215,22 +215,22 @@ export default function AdminConfigPage() {
                 style={{ width: "20ch" }}
                 className="bg-transparent text-left font-mono min-w-0 pl-1 cursor-pointer inline-flex items-center translate-y-px"
               >
-                <span className={creds.resend_api_key_set ? "text-[#f4f3ee]" : "text-[#9A968B]"}>
+                <span className={creds.resend_api_key_set ? "text-base05" : "text-base04"}>
                   {creds.resend_api_key_set ? " " + "*".repeat(19) : "----"}
                 </span>
               </button>
             )}
-            <span className="text-[#f4f3ee]">{"]"}</span>
+            <span className="text-base05">{"]"}</span>
           </span>
         </div>
 
         {/* TextBelt row */}
         <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap text-sm">
-          <span className="text-[#9A968B]" style={{ width: "8ch" }}>textbelt:</span>
+          <span className="text-base04" style={{ width: "8ch" }}>textbelt:</span>
 
           <span className="inline-flex items-center gap-0">
-            <span className="text-[#9A968B]">{"api key: "}</span>
-            <span className="text-[#f4f3ee]">{"["}</span>
+            <span className="text-base04">{"api key: "}</span>
+            <span className="text-base05">{"["}</span>
             {editingTextbeltKey ? (
               <input
                 type="text"
@@ -240,7 +240,7 @@ export default function AdminConfigPage() {
                 autoFocus
                 onBlur={() => { if (!textbeltKey) setEditingTextbeltKey(false); }}
                 style={{ width: "20ch" }}
-                className="bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0 pl-1"
+                className="bg-transparent text-base05 placeholder-base04 outline-none font-mono min-w-0 pl-1"
               />
             ) : (
               <button
@@ -249,12 +249,12 @@ export default function AdminConfigPage() {
                 style={{ width: "20ch" }}
                 className="bg-transparent text-left font-mono min-w-0 pl-1 cursor-pointer inline-flex items-center translate-y-px"
               >
-                <span className={creds.textbelt_key_set ? "text-[#f4f3ee]" : "text-[#9A968B]"}>
+                <span className={creds.textbelt_key_set ? "text-base05" : "text-base04"}>
                   {creds.textbelt_key_set ? " " + "*".repeat(19) : "----"}
                 </span>
               </button>
             )}
-            <span className="text-[#f4f3ee]">{"]"}</span>
+            <span className="text-base05">{"]"}</span>
           </span>
         </div>
       </div>
@@ -263,9 +263,9 @@ export default function AdminConfigPage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="group disabled:opacity-50 transition-colors bg-[#2e2c2a] border border-[#555] px-2 py-0.5"
+          className="group disabled:opacity-50 transition-colors bg-base11 border border-base03 px-2 py-0.5"
         >
-          <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
+          <Bracket className="text-base09 group-hover:text-base05">
             {saving ? "saving…" : "save"}
           </Bracket>
         </button>

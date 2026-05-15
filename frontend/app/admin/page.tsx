@@ -79,16 +79,16 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-4 font-mono">
-      <h1 className="font-semibold text-[#f4f3ee]">admin — users</h1>
+      <h1 className="font-semibold text-base05">admin — users</h1>
       {msg && <p className="text-status-ok">{msg}</p>}
-      <div className="border border-[#3d3d3a]">
+      <div className="border border-base03">
         {users.length === 0 ? (
-          <p className="px-4 py-6 text-[#9A968B]">no users found.</p>
+          <p className="px-4 py-6 text-base04">no users found.</p>
         ) : (
           <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
+              <tr className="text-left text-base04 border-b border-base03 bg-base01">
                 <th className="px-4 py-2 font-normal">email</th>
                 <th className="px-4 py-2 font-normal">tier</th>
                 <th className="px-4 py-2 font-normal">status</th>
@@ -96,28 +96,28 @@ export default function AdminPage() {
                 <th className="px-4 py-2 font-normal"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#3d3d3a]">
+            <tbody className="divide-y divide-base03">
               {users.map((u) => (
-                <tr key={u.id} className="hover:bg-[#1f1e1d] transition-colors">
-                  <td className="px-4 py-2 text-[#f4f3ee]">{u.email}</td>
+                <tr key={u.id} className="hover:bg-base02 transition-colors">
+                  <td className="px-4 py-2 text-base05">{u.email}</td>
                   <td className="px-4 py-2">
                     <span className="inline-flex items-center gap-0">
-                      <span className="text-[#f4f3ee]">{"["}</span>
+                      <span className="text-base05">{"["}</span>
                       <Dropdown
                         value={u.plan_tier}
                         onChange={(v) => handleSetTier(u, v)}
                         options={TIER_OPTIONS}
                         disabled={busy === u.id}
                       />
-                      <span className="text-[#f4f3ee]">{"]"}</span>
+                      <span className="text-base05">{"]"}</span>
                     </span>
                   </td>
                   <td className="px-4 py-2">
-                    <Bracket className={u.subscription_status === "active" ? "text-status-ok" : "text-[#9A968B]"}>
+                    <Bracket className={u.subscription_status === "active" ? "text-status-ok" : "text-base04"}>
                       {u.subscription_status}
                     </Bracket>
                   </td>
-                  <td className="px-4 py-2 text-[#9A968B]">
+                  <td className="px-4 py-2 text-base04">
                     {new Date(u.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-2 text-right space-x-2">
@@ -126,7 +126,7 @@ export default function AdminPage() {
                       disabled={busy === u.id}
                       className="group disabled:opacity-50 transition-colors"
                     >
-                      <Bracket className={u.subscription_status === "active" ? "text-[#9A968B] group-hover:text-[#f4f3ee]" : "text-status-ok group-hover:text-[#f4f3ee]"}>
+                      <Bracket className={u.subscription_status === "active" ? "text-base04 group-hover:text-base05" : "text-status-ok group-hover:text-base05"}>
                         {busy === u.id ? "..." : u.subscription_status === "active" ? "deactivate" : "activate"}
                       </Bracket>
                     </button>
@@ -135,7 +135,7 @@ export default function AdminPage() {
                       disabled={busy === u.id}
                       className="group disabled:opacity-50 transition-colors"
                     >
-                      <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
+                      <Bracket className="text-base09 group-hover:text-base05">
                         {busy === u.id ? "..." : "sync stripe"}
                       </Bracket>
                     </button>

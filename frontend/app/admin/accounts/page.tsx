@@ -34,23 +34,23 @@ export default function AdminAccountsPage() {
 
   return (
     <div className="space-y-4 font-mono">
-      <h1 className="font-semibold text-[#f4f3ee]">
+      <h1 className="font-semibold text-base05">
         admin — accounts{" "}
-        <span className="text-[#9A968B] font-normal">
+        <span className="text-base04 font-normal">
           [{String(accounts.length).padStart(2, "0")}]
         </span>
       </h1>
 
       {error && <p className="text-status-bad text-sm">{error}</p>}
 
-      <div className="border border-[#3d3d3a]">
+      <div className="border border-base03">
         {accounts.length === 0 ? (
-          <p className="px-4 py-6 text-[#9A968B]">no accounts found.</p>
+          <p className="px-4 py-6 text-base04">no accounts found.</p>
         ) : (
           <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
+              <tr className="text-left text-base04 border-b border-base03 bg-base01">
                 <th className="px-4 py-2 font-normal">user</th>
                 <th className="px-4 py-2 font-normal">account</th>
                 <th className="px-4 py-2 font-normal">on</th>
@@ -58,25 +58,25 @@ export default function AdminAccountsPage() {
                 <th className="px-4 py-2 font-normal"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#3d3d3a]">
+            <tbody className="divide-y divide-base03">
               {accounts.map((a) => (
-                <tr key={a.id} className="hover:bg-[#1f1e1d] transition-colors">
-                  <td className="px-4 py-2 text-[#9A968B] text-sm">{a.user_email}</td>
-                  <td className="px-4 py-2 text-[#f4f3ee]">{a.name}</td>
+                <tr key={a.id} className="hover:bg-base02 transition-colors">
+                  <td className="px-4 py-2 text-base04 text-sm">{a.user_email}</td>
+                  <td className="px-4 py-2 text-base05">{a.name}</td>
                   <td className="px-4 py-2">
                     {a.system_disabled ? (
-                      <Bracket className="text-[#5a5850]">-</Bracket>
+                      <Bracket className="text-fg-disabled">-</Bracket>
                     ) : (
                       <>
-                        <span className="text-[#9A968B]">[</span>
+                        <span className="text-base04">[</span>
                         <span className={a.enabled ? "text-status-ok" : "text-status-bad"}>
                           {a.enabled ? "x" : "\u00a0"}
                         </span>
-                        <span className="text-[#9A968B]">]</span>
+                        <span className="text-base04">]</span>
                       </>
                     )}
                   </td>
-                  <td className="px-4 py-2 text-[#9A968B]">
+                  <td className="px-4 py-2 text-base04">
                     {a.group_number != null ? String(a.group_number).padStart(2, "0") : "—"}
                   </td>
                   <td className="px-4 py-2 text-right space-x-2">
@@ -84,16 +84,16 @@ export default function AdminAccountsPage() {
                       href={`/admin/accounts/${a.id}/follow-targets`}
                       className="group transition-colors"
                     >
-                      <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">
+                      <Bracket className="text-base04 group-hover:text-base09">
                         follow-targets
                       </Bracket>
                     </Link>
                     <button
                       onClick={() => handleDelete(a)}
                       disabled={busy === a.id}
-                      className="group disabled:opacity-50 transition-colors bg-[#2e2c2a] border border-[#555] px-2 py-0.5"
+                      className="group disabled:opacity-50 transition-colors bg-base11 border border-base03 px-2 py-0.5"
                     >
-                      <Bracket className="text-status-bad group-hover:text-[#f4f3ee]">
+                      <Bracket className="text-status-bad group-hover:text-base05">
                         {busy === a.id ? "..." : "delete"}
                       </Bracket>
                     </button>

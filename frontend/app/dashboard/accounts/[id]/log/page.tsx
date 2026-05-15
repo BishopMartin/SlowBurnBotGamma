@@ -59,7 +59,7 @@ export default function AccountLogPage() {
     const arrow = active ? (sortDir === "asc" ? "↑" : "↓") : "\u00a0";
     return (
       <th
-        className={`px-2 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f4f3ee] ${active ? "text-[#d97757]" : ""} ${className}`}
+        className={`px-2 py-2 font-normal cursor-pointer select-none transition-colors hover:text-base05 ${active ? "text-base09" : ""} ${className}`}
         onClick={() => toggleSort(field)}
       >
         <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>
@@ -95,24 +95,24 @@ export default function AccountLogPage() {
   return (
     <div className="space-y-4 font-mono">
       <div className="flex items-center gap-2 flex-wrap text-sm">
-        <Link href="/dashboard/accounts" className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">accounts</Link>
-        <span className="text-[#3d3d3a]">-</span>
-        <Link href="/dashboard/accounts?tab=activity" className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">activity</Link>
-        <span className="text-[#3d3d3a]">-</span>
-        <span className="text-[#f4f3ee]">{account.name}</span>
-        <span className="text-[#9A968B] ml-auto">[{total.toLocaleString()} entries]</span>
+        <Link href="/dashboard/accounts" className="text-base04 hover:text-base05 transition-colors">accounts</Link>
+        <span className="text-base03">-</span>
+        <Link href="/dashboard/accounts?tab=activity" className="text-base04 hover:text-base05 transition-colors">activity</Link>
+        <span className="text-base03">-</span>
+        <span className="text-base05">{account.name}</span>
+        <span className="text-base04 ml-auto">[{total.toLocaleString()} entries]</span>
       </div>
 
-      <div className="border border-[#3d3d3a]">
+      <div className="border border-base03">
         {loading ? (
-          <p className="px-4 py-6 text-[#9A968B]">loading...</p>
+          <p className="px-4 py-6 text-base04">loading...</p>
         ) : items.length === 0 ? (
-          <p className="px-4 py-6 text-[#9A968B]">no log entries found.</p>
+          <p className="px-4 py-6 text-base04">no log entries found.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
+                <tr className="text-left text-base04 border-b border-base03 bg-base01">
                   <SortTh label="date" field="date" />
                   <SortTh label="run" field="run" />
                   <SortTh label="start" field="start" />
@@ -135,18 +135,18 @@ export default function AccountLogPage() {
                   }
                   return items.map((entry) => {
                   const altDay = (dayGroups.get(entry.run_date ?? "") ?? 0) % 2 === 1;
-                  const rowBg = altDay ? "bg-[#252322]" : "";
+                  const rowBg = altDay ? "bg-base02" : "";
                   return (
                   <>
-                    <tr key={entry.id} className={`hover:bg-[#1f1e1d] transition-colors border-t border-[#3d3d3a] ${rowBg}`}>
-                      <td className="px-2 py-1.5 text-[#f4f3ee] whitespace-nowrap">{entry.run_date ?? "—"}</td>
-                      <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">{entry.run_sequence}</td>
-                      <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">{fmtTime(entry.start_time)}</td>
-                      <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">{fmtTime(entry.end_time)}</td>
-                      <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">{formatSessionAction(entry.action_1_type, entry.action_1_count)}</td>
-                      <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">{formatSessionAction(entry.action_2_type, entry.action_2_count)}</td>
-                      <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">{formatSessionAction(entry.action_3_type, entry.action_3_count)}</td>
-                      <td className="px-2 py-1.5 text-[#9A968B] whitespace-nowrap">{formatSessionAction(entry.action_4_type, entry.action_4_count)}</td>
+                    <tr key={entry.id} className={`hover:bg-base02 transition-colors border-t border-base03 ${rowBg}`}>
+                      <td className="px-2 py-1.5 text-base05 whitespace-nowrap">{entry.run_date ?? "—"}</td>
+                      <td className="px-2 py-1.5 text-base04 whitespace-nowrap">{entry.run_sequence}</td>
+                      <td className="px-2 py-1.5 text-base04 whitespace-nowrap">{fmtTime(entry.start_time)}</td>
+                      <td className="px-2 py-1.5 text-base04 whitespace-nowrap">{fmtTime(entry.end_time)}</td>
+                      <td className="px-2 py-1.5 text-base04 whitespace-nowrap">{formatSessionAction(entry.action_1_type, entry.action_1_count)}</td>
+                      <td className="px-2 py-1.5 text-base04 whitespace-nowrap">{formatSessionAction(entry.action_2_type, entry.action_2_count)}</td>
+                      <td className="px-2 py-1.5 text-base04 whitespace-nowrap">{formatSessionAction(entry.action_3_type, entry.action_3_count)}</td>
+                      <td className="px-2 py-1.5 text-base04 whitespace-nowrap">{formatSessionAction(entry.action_4_type, entry.action_4_count)}</td>
                       <td className="px-2 py-1.5 whitespace-nowrap">
                         {entry.error_message ? (
                           <button
@@ -156,14 +156,14 @@ export default function AccountLogPage() {
                             {expandedErrors.has(entry.id) ? "▾ error" : "▸ error"}
                           </button>
                         ) : (
-                          <span className="text-[#3d3d3a] text-xs">none</span>
+                          <span className="text-base03 text-xs">none</span>
                         )}
                       </td>
                       <td></td>
                     </tr>
                     {entry.error_message && expandedErrors.has(entry.id) && (
-                      <tr key={`${entry.id}-err`} className="bg-[#1f1e1d]">
-                        <td colSpan={COL_COUNT} className="px-2 py-1 text-[#9A968B] text-xs whitespace-pre-wrap">
+                      <tr key={`${entry.id}-err`} className="bg-base02">
+                        <td colSpan={COL_COUNT} className="px-2 py-1 text-base04 text-xs whitespace-pre-wrap">
                           {entry.error_message.split("\n").map((line) => `- ${line}`).join("\n")}
                         </td>
                       </tr>
@@ -185,9 +185,9 @@ export default function AccountLogPage() {
             onClick={() => setPage((p) => p - 1)}
             className="disabled:opacity-30 transition-colors"
           >
-            <Bracket className="text-[#9A968B] hover:text-[#f4f3ee]">prev</Bracket>
+            <Bracket className="text-base04 hover:text-base05">prev</Bracket>
           </button>
-          <span className="text-[#9A968B]">
+          <span className="text-base04">
             page {page} / {totalPages}
           </span>
           <button
@@ -195,7 +195,7 @@ export default function AccountLogPage() {
             onClick={() => setPage((p) => p + 1)}
             className="disabled:opacity-30 transition-colors"
           >
-            <Bracket className="text-[#9A968B] hover:text-[#f4f3ee]">next</Bracket>
+            <Bracket className="text-base04 hover:text-base05">next</Bracket>
           </button>
         </div>
       )}

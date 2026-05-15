@@ -38,33 +38,33 @@ export default function ColorsPage() {
 
   return (
     <div className="min-h-screen flex flex-col font-mono text-sm">
-      <div className="flex-1 max-w-6xl mx-auto w-full sm:border-x border-[#3d3d3a]">
-        <header className="px-3 sm:px-6 py-3 flex flex-wrap items-baseline gap-x-4 gap-y-2 border-b border-[#3d3d3a]">
-          <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
-          <span className="text-[#9a968b]">colors</span>
-          <span className="text-[#3d3d3a] hidden sm:inline">—</span>
-          <Link href="/login" className="text-[#9a968b] hover:text-[#d97757] transition-colors">
+      <div className="flex-1 max-w-6xl mx-auto w-full sm:border-x border-base03">
+        <header className="px-3 sm:px-6 py-3 flex flex-wrap items-baseline gap-x-4 gap-y-2 border-b border-base03">
+          <span className="font-semibold text-base09">SlowBurnBot</span>
+          <span className="text-base04">colors</span>
+          <span className="text-base03 hidden sm:inline">—</span>
+          <Link href="/login" className="text-base04 hover:text-base09 transition-colors">
             <Bracket className="">sign in</Bracket>
           </Link>
-          <Link href="/dashboard" className="text-[#9a968b] hover:text-[#d97757] transition-colors">
+          <Link href="/dashboard" className="text-base04 hover:text-base09 transition-colors">
             <Bracket className="">dashboard</Bracket>
           </Link>
         </header>
 
         <main className="px-3 sm:px-6 py-6 space-y-6">
-          <p className="text-[#9a968b]">
+          <p className="text-base04">
             Frontend palette reference — colors loaded from{" "}
-            <code className="text-[#e5c07b]">themes/slowburnbot.yaml</code>.
+            <code className="text-base0a">themes/slowburnbot.yaml</code>.
             Replace the file to change the entire theme without touching code.
           </p>
 
           {SECTIONS.map(({ label, slots }) => (
             <section key={label}>
-              <h2 className="text-[#9a968b] mb-2">{label}</h2>
-              <div className="border border-[#3d3d3a] overflow-x-auto">
+              <h2 className="text-base04 mb-2">{label}</h2>
+              <div className="border border-base03 overflow-x-auto">
                 <table className="w-full min-w-[720px] text-left border-collapse">
                   <thead>
-                    <tr className="text-[#9a968b] border-b border-[#3d3d3a] bg-[#1a1918]">
+                    <tr className="text-base04 border-b border-base03 bg-base01">
                       <th className="px-3 py-2 font-normal whitespace-nowrap">Slot</th>
                       <th className="px-2 py-2 font-normal w-20">Sample</th>
                       <th className="px-3 py-2 font-normal whitespace-nowrap">Hex</th>
@@ -73,27 +73,27 @@ export default function ColorsPage() {
                       <th className="px-3 py-2 font-normal min-w-[10rem]">Description</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#3d3d3a]">
+                  <tbody className="divide-y divide-base03">
                     {slots.map((slotId) => {
                       const rawHex = palette[slotId] ?? "";
                       const hex = `#${rawHex.replace(/^#/, "")}`;
                       const info = SITE_INFO[slotId];
                       return (
-                        <tr key={slotId} className="hover:bg-[#1f1e1d] transition-colors align-top">
-                          <td className="px-3 py-3 text-[#f4f3ee] whitespace-nowrap">{slotId}</td>
+                        <tr key={slotId} className="hover:bg-base02 transition-colors align-top">
+                          <td className="px-3 py-3 text-base05 whitespace-nowrap">{slotId}</td>
                           <td className="px-2 py-2 w-20">
                             <div
-                              className="min-h-10 min-w-14 rounded-sm border border-[#3d3d3a] shadow-inner shrink-0"
+                              className="min-h-10 min-w-14 rounded-sm border border-base03 shadow-inner shrink-0"
                               style={{ backgroundColor: hex }}
                               role="img"
                               aria-label={`Swatch ${slotId}`}
                               title={hex}
                             />
                           </td>
-                          <td className="px-3 py-3 text-[#e5c07b] whitespace-nowrap">{hex}</td>
-                          <td className="px-3 py-3 text-[#f4f3ee]">{info?.name ?? "—"}</td>
-                          <td className="px-3 py-3 text-[#9a968b]">{info?.role ?? "reserved"}</td>
-                          <td className="px-3 py-3 text-[#9a968b]">{info?.description ?? "—"}</td>
+                          <td className="px-3 py-3 text-base0a whitespace-nowrap">{hex}</td>
+                          <td className="px-3 py-3 text-base05">{info?.name ?? "—"}</td>
+                          <td className="px-3 py-3 text-base04">{info?.role ?? "reserved"}</td>
+                          <td className="px-3 py-3 text-base04">{info?.description ?? "—"}</td>
                         </tr>
                       );
                     })}
@@ -103,8 +103,8 @@ export default function ColorsPage() {
             </section>
           ))}
 
-          <p className="text-[#9a968b] text-xs border-t border-[#3d3d3a] pt-4">
-            Note: <code className="text-[#e5c07b]">#5a5850</code> (disabled gray — system-disabled rows, muted{" "}
+          <p className="text-base04 text-xs border-t border-base03 pt-4">
+            Note: <code className="text-base0a">#5a5850</code> (disabled gray — system-disabled rows, muted{" "}
             affordances) is used in the codebase but has no base24 slot assignment. It will be mapped to the nearest
             slot in Phase 2.
           </p>

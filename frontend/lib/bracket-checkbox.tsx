@@ -20,13 +20,13 @@ export function BracketCheckbox({
           className={
             checked
               ? "text-status-ok group-hover:text-status-bad"
-              : "text-[#9A968B] group-hover:text-status-ok"
+              : "text-base04 group-hover:text-status-ok"
           }
         >
           {checked ? "x" : " "}
         </Bracket>
       </button>
-      <span className="text-[#9A968B]">{label}</span>
+      <span className="text-base04">{label}</span>
     </span>
   );
 }

@@ -18,7 +18,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [user, loading, router]);
 
   if (loading || !user) {
-    return <div className="min-h-screen flex items-center justify-center font-mono text-[#9A968B]">loading…</div>;
+    return <div className="min-h-screen flex items-center justify-center font-mono text-base04">loading…</div>;
   }
 
   async function handleLogout() {
@@ -41,9 +41,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen flex flex-col font-mono">
-      <div className="flex-1 max-w-5xl mx-auto w-full sm:border-x border-[#3d3d3a]">
+      <div className="flex-1 max-w-5xl mx-auto w-full sm:border-x border-base03">
         <header className="px-3 sm:px-6 pt-5 pb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="font-semibold text-[#d97757]">SlowBurnBot <span className="text-[#3d3d3a] font-normal">--</span></span>
+          <span className="font-semibold text-base09">SlowBurnBot <span className="text-base03 font-normal">--</span></span>
           <nav className="flex flex-wrap gap-1">
             {navItems.map((item) => (
               <Link
@@ -51,23 +51,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href={item.href}
                 className={`transition-colors ${
                   isNavActive(item.href)
-                    ? "text-[#d97757]"
-                    : "text-[#9A968B] hover:text-white"
+                    ? "text-base09"
+                    : "text-base04 hover:text-white"
                 }`}
               >
-                <span className="text-[#f4f3ee]">[</span>{item.label}<span className="text-[#f4f3ee]">]</span>
+                <span className="text-base05">[</span>{item.label}<span className="text-base05">]</span>
               </Link>
             ))}
           </nav>
           <div className="flex items-center gap-3 sm:gap-4 ml-auto">
-            <button onClick={() => window.location.reload()} className="text-[#3d3d3a] hover:text-[#9A968B] cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
-            <span className="text-[#E5C07B] truncate max-w-[12rem] sm:max-w-none">{user.email}</span>
+            <button onClick={() => window.location.reload()} className="text-base03 hover:text-base04 cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
+            <span className="text-base0a truncate max-w-[12rem] sm:max-w-none">{user.email}</span>
             <div className="flex gap-1">
-              <Link href="/dashboard/plan" className={`group transition-colors ${pathname.startsWith("/dashboard/plan") ? "text-[#d97757]" : ""}`}>
-                <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">plan</Bracket>
+              <Link href="/dashboard/plan" className={`group transition-colors ${pathname.startsWith("/dashboard/plan") ? "text-base09" : ""}`}>
+                <Bracket className="text-base04 group-hover:text-base09">plan</Bracket>
               </Link>
               <button onClick={handleLogout} className="group transition-colors">
-                <Bracket className="text-[#9A968B] group-hover:text-[#d97757]">log out</Bracket>
+                <Bracket className="text-base04 group-hover:text-base09">log out</Bracket>
               </button>
             </div>
           </div>

@@ -32,34 +32,34 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col font-mono">
-      <div className="flex-1 max-w-5xl mx-auto w-full sm:border-x border-[#3d3d3a]">
+      <div className="flex-1 max-w-5xl mx-auto w-full sm:border-x border-base03">
         <header className="px-3 sm:px-6 py-3">
-          <span className="font-semibold text-[#d97757]">SlowBurnBot</span>
+          <span className="font-semibold text-base09">SlowBurnBot</span>
         </header>
         <main className="px-3 sm:px-6 py-6">
-        <div className="text-[#9A968B] mb-4">sign in</div>
+        <div className="text-base04 mb-4">sign in</div>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <div className="text-status-bad">{error}</div>}
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[#9A968B] shrink-0">email</span>
+            <span className="font-mono text-base04 shrink-0">email</span>
             <input
               type="email"
               placeholder="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] placeholder-[#9A968B] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
+              className="flex-1 bg-transparent border-b border-base03 text-base05 placeholder-base04 outline-none focus:border-base09 py-0.5 font-mono transition-colors"
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[#9A968B] shrink-0">password</span>
+            <span className="font-mono text-base04 shrink-0">password</span>
             <input
               type="password"
               placeholder="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="flex-1 bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] placeholder-[#9A968B] outline-none focus:border-[#d97757] py-0.5 font-mono transition-colors"
+              className="flex-1 bg-transparent border-b border-base03 text-base05 placeholder-base04 outline-none focus:border-base09 py-0.5 font-mono transition-colors"
             />
           </div>
           <div className="flex items-center justify-between pt-1">
@@ -68,11 +68,11 @@ export default function LoginPage() {
               disabled={loading}
               className="group disabled:opacity-50 transition-colors"
             >
-              <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
+              <Bracket className="text-base09 group-hover:text-base05">
                 {loading ? "signing in…" : "sign in"}
               </Bracket>
             </button>
-            <Link href="/register" className="text-[#9A968B] hover:text-[#d97757] transition-colors">
+            <Link href="/register" className="text-base04 hover:text-base09 transition-colors">
               register →
             </Link>
           </div>

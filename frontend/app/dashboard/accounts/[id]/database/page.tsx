@@ -12,8 +12,8 @@ type SortDir = "asc" | "desc";
 
 function statusCls(status: string): string {
   if (status === "done") return "text-status-ok";
-  if (status === "skipped") return "text-[#9A968B]";
-  return "text-[#f4f3ee]";
+  if (status === "skipped") return "text-base04";
+  return "text-base05";
 }
 
 export default function AccountDatabasePage() {
@@ -55,7 +55,7 @@ export default function AccountDatabasePage() {
     const arrow = active ? (sortDir === "asc" ? "↑" : "↓") : "\u00a0";
     return (
       <th
-        className={`px-4 py-2 font-normal cursor-pointer select-none transition-colors hover:text-[#f4f3ee] ${active ? "text-[#d97757]" : ""} ${className}`}
+        className={`px-4 py-2 font-normal cursor-pointer select-none transition-colors hover:text-base05 ${active ? "text-base09" : ""} ${className}`}
         onClick={() => toggleSort(field)}
       >
         <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>
@@ -91,24 +91,24 @@ export default function AccountDatabasePage() {
   return (
     <div className="space-y-4 font-mono">
       <div className="flex items-center gap-2 flex-wrap text-sm">
-        <Link href="/dashboard/accounts" className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">accounts</Link>
-        <span className="text-[#3d3d3a]">-</span>
-        <Link href="/dashboard/accounts?tab=database" className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">database</Link>
-        <span className="text-[#3d3d3a]">-</span>
-        <span className="text-[#f4f3ee]">{account.name}</span>
-        <span className="text-[#9A968B] ml-auto">[{total.toLocaleString()} records]</span>
+        <Link href="/dashboard/accounts" className="text-base04 hover:text-base05 transition-colors">accounts</Link>
+        <span className="text-base03">-</span>
+        <Link href="/dashboard/accounts?tab=database" className="text-base04 hover:text-base05 transition-colors">database</Link>
+        <span className="text-base03">-</span>
+        <span className="text-base05">{account.name}</span>
+        <span className="text-base04 ml-auto">[{total.toLocaleString()} records]</span>
       </div>
 
-      <div className="border border-[#3d3d3a]">
+      <div className="border border-base03">
         {loading ? (
-          <p className="px-4 py-6 text-[#9A968B]">loading…</p>
+          <p className="px-4 py-6 text-base04">loading…</p>
         ) : items.length === 0 ? (
-          <p className="px-4 py-6 text-[#9A968B]">no records found.</p>
+          <p className="px-4 py-6 text-base04">no records found.</p>
         ) : (
           <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
+              <tr className="text-left text-base04 border-b border-base03 bg-base01">
                 <SortTh label="handle" field="handle" />
                 <SortTh label="source" field="source" />
                 <SortTh label="status" field="status" />
@@ -117,15 +117,15 @@ export default function AccountDatabasePage() {
                 <SortTh label="fb" field="fb" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#3d3d3a]">
+            <tbody className="divide-y divide-base03">
               {items.map((t) => (
-                <tr key={t.id} className="hover:bg-[#1f1e1d] transition-colors">
-                  <td className="px-4 py-1.5 text-[#f4f3ee]">{t.target_handle}</td>
-                  <td className="px-4 py-1.5 text-[#9A968B] text-xs">{t.source ?? "—"}</td>
+                <tr key={t.id} className="hover:bg-base02 transition-colors">
+                  <td className="px-4 py-1.5 text-base05">{t.target_handle}</td>
+                  <td className="px-4 py-1.5 text-base04 text-xs">{t.source ?? "—"}</td>
                   <td className={`px-4 py-1.5 ${statusCls(t.status)}`}>{t.status}</td>
-                  <td className="px-4 py-1.5 text-[#9A968B]">{t.follow_date ?? "—"}</td>
-                  <td className="px-4 py-1.5 text-[#9A968B]">{t.unfollow_date ?? "—"}</td>
-                  <td className={`px-4 py-1.5 ${t.follow_back === true ? "text-status-ok" : t.follow_back === false ? "text-status-bad" : "text-[#9A968B]"}`}>
+                  <td className="px-4 py-1.5 text-base04">{t.follow_date ?? "—"}</td>
+                  <td className="px-4 py-1.5 text-base04">{t.unfollow_date ?? "—"}</td>
+                  <td className={`px-4 py-1.5 ${t.follow_back === true ? "text-status-ok" : t.follow_back === false ? "text-status-bad" : "text-base04"}`}>
                     {t.follow_back === true ? "yes" : t.follow_back === false ? "no" : "—"}
                   </td>
                 </tr>
@@ -142,17 +142,17 @@ export default function AccountDatabasePage() {
             <button
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
-              className="disabled:opacity-30 text-[#9A968B] hover:text-[#f4f3ee] transition-colors"
+              className="disabled:opacity-30 text-base04 hover:text-base05 transition-colors"
             >
               [prev]
             </button>
-            <span className="text-[#9A968B]">
+            <span className="text-base04">
               page {page} / {totalPages}
             </span>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage((p) => p + 1)}
-              className="disabled:opacity-30 text-[#9A968B] hover:text-[#f4f3ee] transition-colors"
+              className="disabled:opacity-30 text-base04 hover:text-base05 transition-colors"
             >
               [next]
             </button>
@@ -162,7 +162,7 @@ export default function AccountDatabasePage() {
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="ml-auto disabled:opacity-30 text-[#9A968B] hover:text-[#f4f3ee] transition-colors"
+            className="ml-auto disabled:opacity-30 text-base04 hover:text-base05 transition-colors"
           >
             {exporting ? "[exporting…]" : "[download csv]"}
           </button>

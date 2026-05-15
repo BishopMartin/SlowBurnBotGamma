@@ -4,13 +4,13 @@
  */
 export function Bracket({
   children,
-  className = "text-[#f4f3ee]",
+  className = "text-base05",
 }: {
   children: React.ReactNode;
   className?: string;
 }) {
   return (
-    <span className="text-[#f4f3ee]">
+    <span className="text-base05">
       [<span className={className}>{children}</span>]
     </span>
   );

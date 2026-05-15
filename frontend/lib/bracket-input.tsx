@@ -1,5 +1,5 @@
 const INPUT_CLS =
-  "bg-transparent text-[#f4f3ee] placeholder-[#9A968B] outline-none font-mono min-w-0";
+  "bg-transparent text-base05 placeholder-base04 outline-none font-mono min-w-0";
 
 export function BracketInput({
   label = "",
@@ -22,8 +22,8 @@ export function BracketInput({
   const resolvedPlaceholder = placeholder ?? "-".repeat(chCount);
   return (
     <span className="inline-flex items-center gap-0 pr-5">
-      {label && <span className="text-[#9A968B]">{label}: </span>}
-      <span className="text-[#f4f3ee]">[</span>
+      {label && <span className="text-base04">{label}: </span>}
+      <span className="text-base05">[</span>
       <input
         type={type}
         value={value}
@@ -33,7 +33,7 @@ export function BracketInput({
         style={{ width, paddingLeft: "1ch", paddingRight: "1ch", boxSizing: "content-box" }}
         className={INPUT_CLS}
       />
-      <span className="text-[#f4f3ee]">]</span>
+      <span className="text-base05">]</span>
     </span>
   );
 }

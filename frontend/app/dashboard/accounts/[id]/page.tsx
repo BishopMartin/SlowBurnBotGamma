@@ -64,7 +64,7 @@ function parseTime(v: string): string | null {
 
 // ── styles ────────────────────────────────────────────────────────────────────
 
-const sectionCls = "border border-[#3d3d3a]";
+const sectionCls = "border border-base03";
 
 // ── component ─────────────────────────────────────────────────────────────────
 
@@ -147,18 +147,18 @@ export default function AccountDetailPage() {
 
       {/* Header */}
       <div className="flex items-center gap-2 flex-wrap">
-        <Link href="/dashboard/accounts" className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">accounts</Link>
-        <span className="text-[#3d3d3a]">-</span>
-        <Link href="/dashboard/accounts?tab=settings" className="text-[#9A968B] hover:text-[#f4f3ee] transition-colors">settings</Link>
-        <span className="text-[#3d3d3a]">-</span>
-        <span className="text-[#f4f3ee]">{account.name}</span>
+        <Link href="/dashboard/accounts" className="text-base04 hover:text-base05 transition-colors">accounts</Link>
+        <span className="text-base03">-</span>
+        <Link href="/dashboard/accounts?tab=settings" className="text-base04 hover:text-base05 transition-colors">settings</Link>
+        <span className="text-base03">-</span>
+        <span className="text-base05">{account.name}</span>
       </div>
 
       <form onSubmit={handleSaveSettings} className="space-y-4">
 
         {/* Configuration */}
         <div className={sectionCls}>
-          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">configuration</div>
+          <div className="px-4 py-2 border-b border-base03 text-base04 bg-base01">configuration</div>
           <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap">
 
             <BracketCheckbox
@@ -168,8 +168,8 @@ export default function AccountDetailPage() {
             />
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#9A968B]">{"client: "}</span>
-              <span className="text-[#f4f3ee]">{"["}</span>
+              <span className="text-base04">{"client: "}</span>
+              <span className="text-base05">{"["}</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -181,16 +181,16 @@ export default function AccountDetailPage() {
                   setAccount((a) => a && { ...a, group_number: val ? +val : null });
                 }}
                 onBlur={() => handleAccountField({ group_number: account.group_number })}
-                className="w-5 bg-transparent border-b border-[#3d3d3a] text-[#f4f3ee] outline-none focus:border-[#d97757] font-mono transition-colors placeholder-[#9A968B] text-center"
+                className="w-5 bg-transparent border-b border-base03 text-base05 outline-none focus:border-base09 font-mono transition-colors placeholder-base04 text-center"
               />
-              <span className="text-[#f4f3ee]">{"]"}</span>
+              <span className="text-base05">{"]"}</span>
             </span>
 
             <span className="inline-flex items-center gap-1">
-              <span className="text-[#9A968B]">password:</span>
+              <span className="text-base04">password:</span>
               {editingPw ? (
                 <span className="inline-flex items-center gap-0">
-                  <span className="text-[#f4f3ee]">{"["}</span>
+                  <span className="text-base05">{"["}</span>
                   <input
                     type="password"
                     autoFocus
@@ -206,9 +206,9 @@ export default function AccountDetailPage() {
                       if (e.key === "Escape") { setEditingPw(false); setPwValue(""); }
                     }}
                     style={{ width: "6ch", paddingLeft: "1ch", paddingRight: "1ch", boxSizing: "content-box" }}
-                    className="bg-transparent text-[#f4f3ee] outline-none font-mono"
+                    className="bg-transparent text-base05 outline-none font-mono"
                   />
-                  <span className="text-[#f4f3ee]">{"]"}</span>
+                  <span className="text-base05">{"]"}</span>
                 </span>
               ) : (
                 <button
@@ -216,11 +216,11 @@ export default function AccountDetailPage() {
                   onClick={() => setEditingPw(true)}
                   className="group cursor-pointer transition-colors inline-flex items-center gap-0"
                 >
-                  <span className="text-[#f4f3ee]">[</span>
-                  <span style={{ paddingLeft: "1ch", paddingRight: "1ch" }} className={account.has_password ? "text-status-ok group-hover:text-[#d97757]" : "text-[#9A968B] group-hover:text-[#d97757]"}>
+                  <span className="text-base05">[</span>
+                  <span style={{ paddingLeft: "1ch", paddingRight: "1ch" }} className={account.has_password ? "text-status-ok group-hover:text-base09" : "text-base04 group-hover:text-base09"}>
                     {account.has_password ? "******" : "------"}
                   </span>
-                  <span className="text-[#f4f3ee]">]</span>
+                  <span className="text-base05">]</span>
                 </button>
               )}
             </span>
@@ -230,13 +230,13 @@ export default function AccountDetailPage() {
 
         {/* Schedule */}
         <div className={sectionCls}>
-          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">schedule</div>
+          <div className="px-4 py-2 border-b border-base03 text-base04 bg-base01">schedule</div>
           <div className="px-4 py-3 space-y-2">
 
             <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
               <span className="inline-flex items-center gap-0">
-                <span className="text-[#9A968B]">{"days: "}</span>
-                <span className="text-[#f4f3ee]">{"["}</span>
+                <span className="text-base04">{"days: "}</span>
+                <span className="text-base05">{"["}</span>
                 <Dropdown
                   value={settings.schedule_days ?? ""}
                   onChange={(v) => setSettings((s) => ({ ...s, schedule_days: v || null }))}
@@ -246,12 +246,12 @@ export default function AccountDetailPage() {
                     ...SCHEDULE_DAYS.map((d) => ({ value: d, label: d })),
                   ]}
                 />
-                <span className="text-[#f4f3ee]">{"]"}</span>
+                <span className="text-base05">{"]"}</span>
               </span>
 
               <span className="inline-flex items-center gap-0">
-                <span className="text-[#9A968B]">{"start: "}</span>
-                <span className="text-[#f4f3ee]">{"["}</span>
+                <span className="text-base04">{"start: "}</span>
+                <span className="text-base05">{"["}</span>
                 <input
                   type="text"
                   value={editingStart ?? (settings.schedule_start ? formatTime(settings.schedule_start) : "")}
@@ -260,14 +260,14 @@ export default function AccountDetailPage() {
                   onBlur={() => { setSettings((s) => ({ ...s, schedule_start: parseTime(editingStart ?? "") })); setEditingStart(null); }}
                   placeholder="10:00 AM"
                   style={{ width: "8ch", paddingLeft: "1ch", paddingRight: "0", boxSizing: "content-box" }}
-                  className="bg-transparent text-[#f4f3ee] outline-none font-mono min-w-0"
+                  className="bg-transparent text-base05 outline-none font-mono min-w-0"
                 />
-                <span className="text-[#f4f3ee]">{"]"}</span>
+                <span className="text-base05">{"]"}</span>
               </span>
 
               <span className="inline-flex items-center gap-0">
-                <span className="text-[#9A968B]">{"end: "}</span>
-                <span className="text-[#f4f3ee]">{"["}</span>
+                <span className="text-base04">{"end: "}</span>
+                <span className="text-base05">{"["}</span>
                 <input
                   type="text"
                   value={editingEnd ?? (settings.schedule_end ? formatTime(settings.schedule_end) : "")}
@@ -276,50 +276,50 @@ export default function AccountDetailPage() {
                   onBlur={() => { setSettings((s) => ({ ...s, schedule_end: parseTime(editingEnd ?? "") })); setEditingEnd(null); }}
                   placeholder="10:00 PM"
                   style={{ width: "8ch", paddingLeft: "1ch", paddingRight: "0", boxSizing: "content-box" }}
-                  className="bg-transparent text-[#f4f3ee] outline-none font-mono min-w-0"
+                  className="bg-transparent text-base05 outline-none font-mono min-w-0"
                 />
-                <span className="text-[#f4f3ee]">{"]"}</span>
+                <span className="text-base05">{"]"}</span>
               </span>
             </div>
 
             <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
               <span className="inline-flex items-center gap-0">
-                <span className="text-[#9A968B]">{"sessions/day - fixed: "}</span>
-                <span className="text-[#f4f3ee]">{"["}</span>
+                <span className="text-base04">{"sessions/day - fixed: "}</span>
+                <span className="text-base05">{"["}</span>
                 <NumberInput
                   value={settings.max_runs_per_day}
                   onChange={(n) => setSettings((s) => ({ ...s, max_runs_per_day: n || 1 }))}
                   placeholder="1"
                 />
-                <span className="text-[#f4f3ee]">{"]"}</span>
-                <span className="text-[#9A968B] leading-none">{" + random: "}</span>
-                <span className="text-[#f4f3ee]">{"["}</span>
+                <span className="text-base05">{"]"}</span>
+                <span className="text-base04 leading-none">{" + random: "}</span>
+                <span className="text-base05">{"["}</span>
                 <NumberInput
                   value={settings.max_runs_random_per_day}
                   onChange={(n) => setSettings((s) => ({ ...s, max_runs_random_per_day: n }))}
                   placeholder="0"
                 />
-                <span className="text-[#f4f3ee]">{"]"}</span>
+                <span className="text-base05">{"]"}</span>
               </span>
 
               <span className="inline-flex items-center gap-0">
-                <span className="text-[#9A968B]">{"delay - fixed: "}</span>
-                <span className="text-[#f4f3ee]">{"["}</span>
+                <span className="text-base04">{"delay - fixed: "}</span>
+                <span className="text-base05">{"["}</span>
                 <NumberInput
                   value={settings.delay_base_minutes}
                   onChange={(n) => setSettings((s) => ({ ...s, delay_base_minutes: n }))}
                   placeholder="60"
                 />
-                <span className="text-[#f4f3ee]">{"]"}</span>
-                <span className="text-[#9A968B] leading-none">{" + random: "}</span>
-                <span className="text-[#f4f3ee]">{"["}</span>
+                <span className="text-base05">{"]"}</span>
+                <span className="text-base04 leading-none">{" + random: "}</span>
+                <span className="text-base05">{"["}</span>
                 <NumberInput
                   value={settings.delay_random_minutes}
                   onChange={(n) => setSettings((s) => ({ ...s, delay_random_minutes: n }))}
                   placeholder="0"
                 />
-                <span className="text-[#f4f3ee]">{"]"}</span>
-                <span className="text-[#9A968B]">{" - minutes between each session"}</span>
+                <span className="text-base05">{"]"}</span>
+                <span className="text-base04">{" - minutes between each session"}</span>
               </span>
             </div>
 
@@ -328,11 +328,11 @@ export default function AccountDetailPage() {
 
         {/* Actions */}
         <div className={sectionCls}>
-          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">session actions</div>
+          <div className="px-4 py-2 border-b border-base03 text-base04 bg-base01">session actions</div>
           <div className="overflow-x-auto">
           <table className="w-full font-mono">
             <thead>
-              <tr className="text-left text-[#9A968B] border-b border-[#3d3d3a] bg-[#1a1918]">
+              <tr className="text-left text-base04 border-b border-base03 bg-base01">
                 <th className="px-4 py-2 font-normal w-10"></th>
                 <th className="px-4 py-2 font-normal w-10">on</th>
                 <th className="px-4 py-2 font-normal">type</th>
@@ -341,19 +341,19 @@ export default function AccountDetailPage() {
                 <th className="px-4 py-2 font-normal w-28">random</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#3d3d3a]">
+            <tbody className="divide-y divide-base03">
               {actions.map((action, i) => {
                 const targets = action.type ? (ACTION_TARGETS[action.type] ?? []) : [];
                 return (
                   <tr key={i}>
-                    <td className="px-4 py-2 text-[#9A968B]">{ACTION_LABELS[i]}</td>
+                    <td className="px-4 py-2 text-base04">{ACTION_LABELS[i]}</td>
                     <td className="px-4 py-2">
                       <button
                         type="button"
                         onClick={() => updateAction(i, { enabled: !action.enabled })}
                         className="group text-left cursor-pointer transition-colors"
                       >
-                        <Bracket className={action.enabled ? "text-status-ok group-hover:text-status-bad" : "text-[#9A968B] group-hover:text-status-ok"}>
+                        <Bracket className={action.enabled ? "text-status-ok group-hover:text-status-bad" : "text-base04 group-hover:text-status-ok"}>
                           {action.enabled ? "x" : "\u00a0"}
                         </Bracket>
                       </button>
@@ -383,24 +383,24 @@ export default function AccountDetailPage() {
                     </td>
                     <td className="px-4 py-2">
                       <span className="inline-flex items-center gap-0">
-                        <span className="text-[#f4f3ee]">{"["}</span>
+                        <span className="text-base05">{"["}</span>
                         <NumberInput
                           value={action.fixed_count}
                           onChange={(n) => updateAction(i, { fixed_count: n })}
                           placeholder="0"
                         />
-                        <span className="text-[#f4f3ee]">{"]"}</span>
+                        <span className="text-base05">{"]"}</span>
                       </span>
                     </td>
                     <td className="px-4 py-2">
                       <span className="inline-flex items-center gap-0">
-                        <span className="text-[#f4f3ee]">{"["}</span>
+                        <span className="text-base05">{"["}</span>
                         <NumberInput
                           value={action.variable_count}
                           onChange={(n) => updateAction(i, { variable_count: n })}
                           placeholder="0"
                         />
-                        <span className="text-[#f4f3ee]">{"]"}</span>
+                        <span className="text-base05">{"]"}</span>
                       </span>
                     </td>
                   </tr>
@@ -409,7 +409,7 @@ export default function AccountDetailPage() {
             </tbody>
           </table>
           </div>
-          <div className="px-4 py-3 border-t border-[#3d3d3a]">
+          <div className="px-4 py-3 border-t border-base03">
             <BracketCheckbox
               label="run session actions in random order"
               checked={settings.actions_random_order ?? false}
@@ -420,37 +420,37 @@ export default function AccountDetailPage() {
 
         {/* Follow Settings */}
         <div className={sectionCls}>
-          <div className="px-4 py-2 border-b border-[#3d3d3a] text-[#9A968B] bg-[#1a1918]">follow settings</div>
-          <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap border-b border-[#3d3d3a]">
+          <div className="px-4 py-2 border-b border-base03 text-base04 bg-base01">follow settings</div>
+          <div className="px-4 py-3 flex items-center gap-x-5 gap-y-2 flex-wrap border-b border-base03">
 
             <span className="inline-flex items-center gap-0">
-              <span className="text-[#9A968B]">{"unfollow after: "}</span>
-              <span className="text-[#f4f3ee]">{"["}</span>
+              <span className="text-base04">{"unfollow after: "}</span>
+              <span className="text-base05">{"["}</span>
               <NumberInput
                 value={settings.unfollow_days}
                 onChange={(n) => setSettings((s) => ({ ...s, unfollow_days: n || 30 }))}
                 placeholder="30"
               />
-              <span className="text-[#f4f3ee]">{"]"}</span>
-              <span className="text-[#9A968B]">{" days"}</span>
+              <span className="text-base05">{"]"}</span>
+              <span className="text-base04">{" days"}</span>
             </span>
 
           </div>
           <div className="px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-4">
             <div>
-              <div className="text-[#9A968B] mb-1">account group</div>
+              <div className="text-base04 mb-1">account group</div>
               <textarea placeholder="comma-separated" rows={5}
                 value={settings.account_group ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, account_group: e.target.value || null }))}
-                className="w-full bg-transparent border border-[#3d3d3a] text-[#f4f3ee] placeholder-[#9A968B] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
+                className="w-full bg-transparent border border-base03 text-base05 placeholder-base04 outline-none focus:border-base09 p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
               />
             </div>
             <div>
-              <div className="text-[#9A968B] mb-1">instagram topics</div>
+              <div className="text-base04 mb-1">instagram topics</div>
               <textarea placeholder="comma-separated" rows={5}
                 value={settings.topics ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, topics: e.target.value || null }))}
-                className="w-full bg-transparent border border-[#3d3d3a] text-[#f4f3ee] placeholder-[#9A968B] outline-none focus:border-[#d97757] p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
+                className="w-full bg-transparent border border-base03 text-base05 placeholder-base04 outline-none focus:border-base09 p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
               />
             </div>
           </div>
@@ -461,16 +461,16 @@ export default function AccountDetailPage() {
           <button
             type="submit"
             disabled={saving || !settingsLoaded}
-            className="group disabled:opacity-50 transition-colors bg-[#2e2c2a] border border-[#555] px-2 py-0.5"
+            className="group disabled:opacity-50 transition-colors bg-base11 border border-base03 px-2 py-0.5"
           >
-            <Bracket className="text-[#d97757] group-hover:text-[#f4f3ee]">
+            <Bracket className="text-base09 group-hover:text-base05">
               {saving ? "saving…" : "save settings"}
             </Bracket>
           </button>
           {loadError && <span className="text-status-bad">{loadError}</span>}
           {msg && <span className="text-status-ok">{msg}</span>}
-          <button type="button" onClick={handleDelete} className="group transition-colors ml-auto bg-[#2e2c2a] border border-[#555] px-2 py-0.5">
-            <Bracket className="text-[#9A968B] group-hover:text-status-bad">delete account</Bracket>
+          <button type="button" onClick={handleDelete} className="group transition-colors ml-auto bg-base11 border border-base03 px-2 py-0.5">
+            <Bracket className="text-base04 group-hover:text-status-bad">delete account</Bracket>
           </button>
         </div>
 
