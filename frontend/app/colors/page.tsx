@@ -78,10 +78,10 @@ function ph(p: Pal, slot: string): string {
 }
 
 // 9-col grid: [slot+hex | swatch | name | role] [gap] [slot+hex | swatch | name | role]
-const COLS = "6.5rem 3.2rem 9rem 1fr 10px 6.5rem 3.2rem 9rem 1fr";
+const COLS = "6.5rem 3.2rem 18rem 1fr 10px 6.5rem 3.2rem 18rem 1fr";
 
-const FS = "1.05rem";
-const PAD = "10px 11px";
+const FS = "0.95rem";
+const PAD = "7px 10px";
 
 function border(p: Pal, last: boolean) {
   return last ? "none" : `1px solid ${ph(p, "base03")}`;
@@ -214,7 +214,7 @@ export default function ColorsPage() {
         <header style={{
           padding: "10px 0",
           display: "flex",
-          flexWrap: "wrap",
+          flexWrap: "nowrap",
           alignItems: "baseline",
           gap: "6px 14px",
           borderBottom: `1px solid ${ph(def.palette, "base03")}`,
@@ -254,12 +254,12 @@ export default function ColorsPage() {
                   <Banner p={act.palette} name={act.name} right />
 
                   {/* Column label row */}
-                  <ColLabel p={def.palette} label="slot / hex" first />
+                  <ColLabel p={def.palette} label="slot/hex" first />
                   <ColLabel p={def.palette} label=""            />
                   <ColLabel p={def.palette} label="name"        />
                   <ColLabel p={def.palette} label="role"        />
                   <Gap />
-                  <ColLabel p={act.palette} label="slot / hex" first />
+                  <ColLabel p={act.palette} label="slot/hex" first />
                   <ColLabel p={act.palette} label=""            />
                   <ColLabel p={act.palette} label="name"        />
                   <ColLabel p={act.palette} label="role"        last4 />
