@@ -20,7 +20,7 @@ palette:
   base09: "b58fbf"  # Orange                    — (reserved)
   base0A: "e5c07b"  # Yellow                    — counts, warm highlights
   base0B: "adcc00"  # Green                     — success
-  base0C: "89b09a"  # Cyan                      — (reserved)
+  base0C: "a0b87c"  # Cyan                      — (reserved)
   base0D: "8aa5c4"  # Blue                      — (reserved)
   base0E: "d97757"  # Purple                    — links, CTAs, focus rings, accent
   base0F: "a8765a"  # Brown                     — (reserved)
