@@ -67,7 +67,7 @@ fi
 
 # Poll sync endpoint until both artifacts exist (EXE in S3 + Docker image in GHCR)
 echo "==> Waiting for build artifacts..."
-DEADLINE=$(( $(date +%s) + 600 ))
+DEADLINE=$(( $(date +%s) + 1200 ))
 POLL_INTERVAL=20
 
 while :; do
@@ -86,7 +86,7 @@ d = json.load(open('/tmp/_sync_resp.json'))
 print(f'exe={d.get(\"exe_ready\")} image={d.get(\"image_ready\")}')" 2>/dev/null)
     NOW=$(date +%s)
     if [ "$NOW" -ge "$DEADLINE" ]; then
-      echo "error: build did not complete within 10 min (${STATE})" >&2
+      echo "error: build did not complete within 20 min (${STATE})" >&2
       exit 1
     fi
     REMAINING=$(( DEADLINE - NOW ))
