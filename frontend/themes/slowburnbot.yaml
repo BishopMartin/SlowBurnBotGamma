@@ -19,8 +19,8 @@ palette:
   base08: "e87755"  # Red                       — bad-control hover
   base09: "b58fbf"  # Orange                    — (reserved)
   base0A: "e5c07b"  # Yellow                    — counts, warm highlights
-  base0B: "adcc00"  # Green                     — success
-  base0C: "a0b87c"  # Cyan                      — (reserved)
+  base0B: "a0b87c"  # Green                     — success
+  base0C: "7aaa96"  # Cyan                      — (reserved)
   base0D: "8aa5c4"  # Blue                      — (reserved)
   base0E: "d97757"  # Purple                    — links, CTAs, focus rings, accent
   base0F: "a8765a"  # Brown                     — (reserved)
@@ -30,7 +30,7 @@ palette:
   # Brights
   base12: "cf3b0a"  # Bright Red                — error / destructive
   base13: "f1d49a"  # Bright Yellow             — (reserved)
-  base14: "c8e045"  # Bright Green              — (reserved)
-  base15: "aed4c2"  # Bright Cyan               — (reserved)
+  base14: "bdd498"  # Bright Green              — (reserved)
+  base15: "a0ccbc"  # Bright Cyan               — (reserved)
   base16: "aec2dc"  # Bright Blue               — (reserved)
   base17: "cdadd4"  # Bright Purple             — (reserved)

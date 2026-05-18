@@ -22,7 +22,7 @@ const SITE_INFO: Record<string, { name: string; role: string }> = {
   base08: { name: "coral hover",     role: "Bad control hover  —  --status-bad-hover" },
   base09: { name: "—",              role: "reserved" },
   base0A: { name: "wheat",          role: "Counts, tokens, warm highlights" },
-  base0B: { name: "chartreuse",     role: "Success  —  --status-ok" },
+  base0B: { name: "olive sage",      role: "Success  —  --status-ok" },
   base0C: { name: "—",              role: "reserved" },
   base0D: { name: "—",              role: "reserved" },
   base0E: { name: "terracotta",      role: "Links, CTAs, focus rings, accent" },
