@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,7 +13,7 @@ from app.auth import current_superuser
 from app.crypto import decrypt, encrypt
 from app.database import get_async_session
 from app.models.account import Account
-from app.services import github_actions
+from app.services import github_actions, object_storage
 from app.models.follow_target import FollowTarget
 from app.models.invite_code import InviteCode
 from app.models.subscription import Subscription
@@ -452,13 +453,31 @@ async def sync_bot_version(
     _: User = Depends(current_superuser),
     session: AsyncSession = Depends(get_async_session),
 ):
-    """Force-sync current_bot_version from GitHub main branch to DB."""
+    """Advance current_bot_version once both build artifacts (EXE + Docker image) exist.
+
+    Returns 200 when the DB is updated, 202 while the build is still running.
+    """
     try:
         version = await github_actions.get_main_branch_bot_version()
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"GitHub API error: {e}")
     if not version:
         raise HTTPException(status_code=502, detail="Could not read BOT_VERSION from GitHub main branch.")
+
+    exe_key = f"releases/windows/SlowBurnBot-{version}.exe"
+    exe_ready = object_storage.object_exists(exe_key)
+    image_ready = await github_actions.ghcr_image_has_tag(version)
+
+    if not (exe_ready and image_ready):
+        return JSONResponse(
+            status_code=202,
+            content={
+                "status": "pending",
+                "target_version": version,
+                "exe_ready": exe_ready,
+                "image_ready": image_ready,
+            },
+        )
 
     config = await _get_system_config(session)
     old_version = config.current_bot_version
@@ -469,4 +488,6 @@ async def sync_bot_version(
         "previous_version": old_version,
         "updated_to": version,
         "release_date": config.current_bot_release_date,
+        "exe_ready": True,
+        "image_ready": True,
     }

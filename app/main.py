@@ -11,19 +11,28 @@ from app.database import async_session_maker
 from app.models.system_config import SystemConfig
 from app.routers import accounts, admin, auth_refresh, bot, config, desktop_builds, subscription, webhooks
 from app.schemas.user import UserCreate, UserRead, UserUpdate
-from app.services import github_actions
+from app.services import github_actions, object_storage
 from app.settings import settings
 
 logging.basicConfig(level=logging.INFO)
 
 
 async def _sync_bot_version() -> None:
-    """On startup, read BOT_VERSION from the main branch and update system_configs if newer."""
+    """On startup, advance current_bot_version only if both build artifacts exist."""
     if not settings.github_token or not settings.github_repo:
         return
     try:
         version = await github_actions.get_main_branch_bot_version()
         if not version:
+            return
+        exe_key = f"releases/windows/SlowBurnBot-{version}.exe"
+        exe_ready = object_storage.object_exists(exe_key)
+        image_ready = await github_actions.ghcr_image_has_tag(version)
+        if not (exe_ready and image_ready):
+            logging.info(
+                f"Startup bot sync skipped — artifacts not yet ready for {version} "
+                f"(exe={exe_ready}, image={image_ready})"
+            )
             return
         async with async_session_maker() as session:
             sc = await session.scalar(select(SystemConfig))

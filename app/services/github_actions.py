@@ -32,3 +32,28 @@ async def get_main_branch_bot_version() -> str | None:
     except Exception:
         pass
     return None
+
+
+async def ghcr_image_has_tag(tag: str) -> bool:
+    """Return True if slowburnbot-client:{tag} exists in GHCR.
+
+    The workflow pushes to ghcr.io/{repo_lower}/slowburnbot-client, where
+    repo_lower is github.repository lowercased (e.g. bishopmartin/slowburnbotgamma).
+    The GitHub Packages API requires the slash in the package name to be
+    percent-encoded, and scopes to the repo owner.
+    """
+    owner, repo_name = settings.github_repo.lower().split("/", 1)
+    package = f"{repo_name}%2Fslowburnbot-client"
+    url = f"{_GH_API}/users/{owner}/packages/container/{package}/versions?per_page=100"
+    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+        resp = await client.get(url, headers=_headers())
+    if resp.status_code != 200:
+        return False
+    try:
+        for version in resp.json():
+            tags = version.get("metadata", {}).get("container", {}).get("tags", [])
+            if tag in tags:
+                return True
+    except Exception:
+        pass
+    return False
