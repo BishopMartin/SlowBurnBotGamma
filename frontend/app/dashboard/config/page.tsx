@@ -141,7 +141,7 @@ export default function ConfigPage() {
       <div className={sectionCls}>
         <div className="px-4 py-2 border-b border-base03 text-base04 bg-base01">notifications</div>
 
-        <div className="px-4 grid items-center gap-x-3" style={{ gridTemplateColumns: "28ch auto auto auto" }}>
+        <div className="px-4 grid items-center gap-x-3" style={{ gridTemplateColumns: "14ch auto auto auto" }}>
           <div className="py-2 border-b border-base03"><BracketCheckbox label="Session" checked={noticesSession} onChange={setNoticesSession} /></div>
           <div className="py-2 border-b border-base03 inline-flex items-center gap-0 pr-5">
             <span className="text-base04">{"type: "}</span>
@@ -149,7 +149,7 @@ export default function ConfigPage() {
             <Dropdown value={noticesType} onChange={(v) => setNoticesType(v)} placeholder="----" options={NOTICES_OPTIONS} />
             <span className="text-base05">{"]"}</span>
           </div>
-          <div className="py-2 border-b border-base03"><BracketInput label="email" value={notifyEmail} onChange={setNotifyEmail} type="email" placeholder="email@example.com" width="20ch" /></div>
+          <div className="py-2 border-b border-base03"><BracketInput label="email" value={notifyEmail} onChange={setNotifyEmail} type="email" placeholder="email@example.com" width="16ch" /></div>
           <div className="py-2 border-b border-base03"><BracketInput label="phone" value={formatPhone(notifyPhone)} onChange={(v) => setNotifyPhone(stripPhone(v))} type="tel" placeholder="(123) 456-7890" width="14ch" /></div>
 
           <div className="py-2"><BracketCheckbox label="Login/Error" checked={noticesLogin} onChange={setNoticesLogin} /></div>
@@ -159,7 +159,7 @@ export default function ConfigPage() {
             <Dropdown value={loginNoticesType} onChange={(v) => setLoginNoticesType(v)} placeholder="----" options={NOTICES_OPTIONS} />
             <span className="text-base05">{"]"}</span>
           </div>
-          <div className="py-2"><BracketInput label="email" value={loginNotifyEmail} onChange={setLoginNotifyEmail} type="email" width="20ch" /></div>
+          <div className="py-2"><BracketInput label="email" value={loginNotifyEmail} onChange={setLoginNotifyEmail} type="email" width="16ch" /></div>
           <div className="py-2"><BracketInput label="phone" value={formatPhone(loginNotifyPhone)} onChange={(v) => setLoginNotifyPhone(stripPhone(v))} type="tel" width="14ch" /></div>
         </div>
       </div>
