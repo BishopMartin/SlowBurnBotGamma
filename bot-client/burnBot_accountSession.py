@@ -220,7 +220,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                 status_store.update(account, status="running", last_action="—")
 
                 # CHECK LOGIN / ACCOUNT STATUS
-                login_success, current_user, loginFailureExit, login_attempts, verification_requested = handle_account_login(
+                login_success, current_user, loginFailureExit, login_attempts, verification_requested, loginDiag = handle_account_login(
                     driver, account, accountPass, apiClient
                 )
 
@@ -231,12 +231,14 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     else:
                         error_msg = f"[login failure] - {login_attempts} attempt(s) failed"
 
+                    log_msg = (error_msg + " " + loginDiag).strip() if loginDiag else error_msg
+
                     try:
                         run_seq = apiClient.get_run_count(account_id) + 1
                         apiClient.log_session_run(
                             account_id, session_start_time, session_end_time,
                             "", 0, "", 0, "", 0, "", 0,
-                            error_msg, run_sequence=run_seq
+                            log_msg, run_sequence=run_seq
                         )
                         run_count = run_seq
                         max_runs = scheduleMax

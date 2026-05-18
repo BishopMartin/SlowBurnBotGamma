@@ -297,7 +297,13 @@ def enter_sms_code_in_browser(driver, code):
                 continue
 
         if not code_input:
-            return False, None, "Could not find SMS code input field on page"
+            _log_diag, _print_diag = _capture_page_diag(driver)
+            if _print_diag:
+                print(client_log_line(None, "login", _print_diag))
+            err = "Could not find SMS code input field on page"
+            if _log_diag:
+                err += f" | login-diag: {_log_diag}"
+            return False, None, err
 
         code_input.click()
         time.sleep(0.4)
@@ -587,6 +593,24 @@ def dismiss_instagram_account_picker(driver, context_label="login", max_passes=4
     )
 
     return clicked_any
+
+
+def _capture_page_diag(driver):
+    """
+    Capture page URL, visible button texts, and a page source snippet for
+    element-not-found diagnostics. Returns (log_str, print_str).
+    log_str is compact (URL + buttons only); print_str also includes page source.
+    """
+    try:
+        page_url = driver.current_url
+        buttons = driver.find_elements(By.TAG_NAME, "button")
+        btn_texts = [b.text.strip() for b in buttons if b.text.strip()]
+        src_snippet = (driver.page_source or "")[:3000].replace("\n", " ")
+        log_str = f"url={page_url} | buttons={btn_texts}"
+        print_str = f"[login-diag] {log_str} | src={src_snippet}"
+        return log_str, print_str
+    except Exception:
+        return "", ""
 
 
 def dismiss_instagram_cookie_consent(driver, context_label="login"):
@@ -920,17 +944,11 @@ def do_login(driver, username, password):
                     continue
             
             if not loginUsername:
-                try:
-                    page_url = driver.current_url
-                    src = driver.page_source or ""
-                    snippet = src[:3000].replace("\n", " ")
-                    buttons = driver.find_elements(By.TAG_NAME, "button")
-                    btn_texts = [b.text.strip() for b in buttons if b.text.strip()]
-                    diag = f"[login-diag] url={page_url} | buttons={btn_texts} | src={snippet}"
-                    print(client_log_line(None, "login", diag))
-                    moduleErrorsLog += f" | login-diag: url={page_url} buttons={btn_texts}"
-                except Exception:
-                    pass
+                _log_diag, _print_diag = _capture_page_diag(driver)
+                if _print_diag:
+                    print(client_log_line(None, "login", _print_diag))
+                if _log_diag:
+                    moduleErrorsLog += f" | login-diag: {_log_diag}"
                 raise Exception("Could not find username input field")
             
             # Clear and enter username
@@ -969,6 +987,11 @@ def do_login(driver, username, password):
                     continue
             
             if not loginPassword:
+                _log_diag, _print_diag = _capture_page_diag(driver)
+                if _print_diag:
+                    print(client_log_line(None, "login", _print_diag))
+                if _log_diag:
+                    moduleErrorsLog += f" | login-diag: {_log_diag}"
                 raise Exception("Could not find password input field")
             
             # Clear and enter password
@@ -1252,10 +1275,11 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
     loginFailureExit = False
     attempts_made = 0
     verification_requested = False
-    
+    loginDiag = ""
+
     if skipLoginCheck:
         print(client_log_line(account, "login", "skipping login check (manual setting)"))
-        return True, account, False, 0, False  # Assume logged in if skipping check
+        return True, account, False, 0, False, ""  # Assume logged in if skipping check
     else:
         current_user = None
         is_logged_in = False
@@ -1321,10 +1345,11 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
                         verification_requested = True
                         break
                 
-                # Log errors if any (to console only, session log will capture final result)
-                if loginErrors and is_bot_debug_enabled():
-                    print(client_log_line(account, "login", f"debug do_login errors: {loginErrors}"))
-                
+                if loginErrors:
+                    loginDiag += loginErrors
+                    if is_bot_debug_enabled():
+                        print(client_log_line(account, "login", f"debug do_login errors: {loginErrors}"))
+
                 print(client_log_line(
                     account, "login",
                     f"login try={attempt}/{login_tries} → ok={is_logged_in} user={current_user}",
@@ -1349,7 +1374,7 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
                 time.sleep(2.0)
                 dismiss_notifications_prompt(driver, context_label="post_login")
                 # Note: Success will be logged by accountSession.py in log_session_run()
-                return True, current_user, False, attempts_made, False
+                return True, current_user, False, attempts_made, False, ""
             
             time.sleep(4 + attempt)
         
@@ -1360,11 +1385,11 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
             if is_logged_in == "VERIFICATION_REQUIRED":
                 verification_requested = True
                 # Challenge already summarized above; avoid repeating ERROR line
-                return False, current_user, True, attempts_made, verification_requested
-            
+                return False, current_user, True, attempts_made, verification_requested, loginDiag
+
             error_msg = f"Login failure - wrong user: {current_user} or not logged in: {is_logged_in}"
             print(client_log_line(account, "login", f"failed — {error_msg}"))
-            return False, current_user, True, attempts_made, verification_requested
-        
+            return False, current_user, True, attempts_made, verification_requested, loginDiag
+
         # Should not reach here, but return success if we do
-        return True, current_user, False, attempts_made, False
+        return True, current_user, False, attempts_made, False, ""
