@@ -472,9 +472,13 @@ class ApiClient:
             payload["subject"] = subject
         try:
             self._request("POST", "/bot/notify", json=payload)
-            return True
-        except Exception:
-            return False
+            return True, ""
+        except Exception as e:
+            try:
+                detail = e.response.json().get("detail", str(e))
+            except Exception:
+                detail = str(e)
+            return False, detail
 
     # ------------------------------------------------------------------
     # User config (notification prefs)

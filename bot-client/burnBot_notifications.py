@@ -79,13 +79,15 @@ def _dispatch(account, notices_type, email, phone, subject, message, sms_summary
             sms_msg = sms_summary if sms_summary else message
             if len(sms_msg) > 160:
                 sms_msg = sms_msg[:157] + "..."
-            if apiClient.notify("sms", phone, sms_msg):
+            sms_ok, sms_err = apiClient.notify("sms", phone, sms_msg)
+            if sms_ok:
                 _print(client_log_line(account, "notify", "SMS sent"))
                 success = True
             else:
-                _print(client_log_line(account, "notify", "ERROR: SMS failed to send"))
+                err_detail = f": {sms_err}" if sms_err else ""
+                _print(client_log_line(account, "notify", f"ERROR: SMS failed to send{err_detail}"))
                 if account_id:
-                    apiClient.log_error(account_id, "Notification SMS failed to send")
+                    apiClient.log_error(account_id, f"Notification SMS failed{err_detail}")
 
     if notices_type in ('email', 'both'):
         if not email:
@@ -93,11 +95,13 @@ def _dispatch(account, notices_type, email, phone, subject, message, sms_summary
             if account_id:
                 apiClient.log_error(account_id, "Notification email failed: email not set")
         else:
-            if apiClient.notify("email", email, message, subject=subject):
+            email_ok, email_err = apiClient.notify("email", email, message, subject=subject)
+            if email_ok:
                 _print(client_log_line(account, "notify", "Email sent"))
                 success = True
             else:
-                _print(client_log_line(account, "notify", "ERROR: Email failed to send"))
+                err_detail = f": {email_err}" if email_err else ""
+                _print(client_log_line(account, "notify", f"ERROR: Email failed to send{err_detail}"))
                 if account_id:
                     apiClient.log_error(account_id, "Notification email failed to send")
 
