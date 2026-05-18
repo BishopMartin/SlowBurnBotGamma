@@ -1109,8 +1109,6 @@ def do_login(driver, username, password, apiClient=None):
                 _cur_url = driver.current_url
                 if "auth_platform/recaptcha" in _cur_url:
                     _log_diag, _print_diag = _capture_page_diag(driver)
-                    if _print_diag:
-                        print(client_log_line(username, "login", _print_diag))
 
                     # Read noVNC URL from config (set by customer in INI)
                     try:
@@ -1127,10 +1125,8 @@ def do_login(driver, username, password, apiClient=None):
                     except Exception:
                         pass
 
-                    # Pause bot thread — TUI shows prompt, customer types 'done' after solving
-                    status_store.request_operator_input(
-                        f"CAPTCHA: Open {novnc_url} in your browser, solve the challenge, then type 'done':"
-                    )
+                    # Pause bot thread — TUI shows short prompt in input field
+                    status_store.request_operator_input("Type 'done' after solving CAPTCHA:")
 
                     # Verify page state after operator confirms — don't navigate, check in place
                     try:
