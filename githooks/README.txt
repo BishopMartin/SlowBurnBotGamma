@@ -9,3 +9,7 @@ Skip once:
 
 Manual bump (no commit):
   cd frontend && npm run bump-version
+
+Bot client release (push tag + sync server version):
+  bash scripts/release-bot-client.sh
+  Requires ADMIN_EMAIL and ADMIN_PASSWORD in .env (see .env.example).
