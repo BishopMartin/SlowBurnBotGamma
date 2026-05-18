@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
+import { ThemeProvider } from "@/lib/theme-provider";
 import { loadTheme } from "@/lib/theme-loader";
 import { ACTIVE_THEME } from "@/lib/active-theme";
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen">
+        <ThemeProvider />
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
