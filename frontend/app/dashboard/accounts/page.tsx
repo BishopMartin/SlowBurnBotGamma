@@ -426,7 +426,7 @@ export default function AccountsPage() {
 
       </div>
 
-      <form onSubmit={handleAdd} className="border border-base0e px-4 py-3 font-mono flex items-center gap-3 flex-wrap">
+      <form onSubmit={handleAdd} className="border border-base0c px-4 py-3 font-mono flex items-center gap-3 flex-wrap">
         <span className="text-base04">New Account --</span>
         <BracketInput label="user name" value={newName} onChange={setNewName} width="16ch" autoComplete="off" />
         <BracketInput label="password" value={newPassword} onChange={setNewPassword} width="24ch" type="password" autoComplete="new-password" />

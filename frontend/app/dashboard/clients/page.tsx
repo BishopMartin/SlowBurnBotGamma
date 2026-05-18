@@ -280,7 +280,7 @@ export default function ClientPage() {
       </div>
 
       {!bannerDismissed && currentBotVersion && (
-        <div className="border border-base03 px-4 py-3 flex items-center gap-3 flex-wrap">
+        <div className="border border-base0c px-4 py-3 flex items-center gap-3 flex-wrap">
           <span className="text-base05">
             BurnBotClient <span className="text-base0a">v{currentBotVersion}</span>
             {botReleaseDate && <span className="text-base04"> released {botReleaseDate}</span>}
@@ -293,7 +293,7 @@ export default function ClientPage() {
       )}
 
       {justCreated && (
-        <div className="border border-base03 px-4 py-3 space-y-2">
+        <div className="border border-base0c px-4 py-3 space-y-2">
           <div className="flex items-center gap-3">
             <span className="text-base05">token configured — client {justCreated.client_id}</span>
             <button onClick={() => setJustCreated(null)} className="group cursor-pointer transition-colors ml-auto">
