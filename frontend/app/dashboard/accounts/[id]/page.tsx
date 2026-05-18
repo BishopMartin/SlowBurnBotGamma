@@ -181,7 +181,7 @@ export default function AccountDetailPage() {
                   setAccount((a) => a && { ...a, group_number: val ? +val : null });
                 }}
                 onBlur={() => handleAccountField({ group_number: account.group_number })}
-                className="w-5 bg-transparent border-b border-base03 text-base05 outline-none focus:border-base09 font-mono transition-colors placeholder-base04 text-center"
+                className="w-5 bg-transparent border-b border-base03 text-base05 outline-none focus:border-base0e font-mono transition-colors placeholder-base04 text-center"
               />
               <span className="text-base05">{"]"}</span>
             </span>
@@ -217,7 +217,7 @@ export default function AccountDetailPage() {
                   className="group cursor-pointer transition-colors inline-flex items-center gap-0"
                 >
                   <span className="text-base05">[</span>
-                  <span style={{ paddingLeft: "1ch", paddingRight: "1ch" }} className={account.has_password ? "text-status-ok group-hover:text-base09" : "text-base04 group-hover:text-base09"}>
+                  <span style={{ paddingLeft: "1ch", paddingRight: "1ch" }} className={account.has_password ? "text-status-ok group-hover:text-base0e" : "text-base04 group-hover:text-base0e"}>
                     {account.has_password ? "******" : "------"}
                   </span>
                   <span className="text-base05">]</span>
@@ -442,7 +442,7 @@ export default function AccountDetailPage() {
               <textarea placeholder="comma-separated" rows={5}
                 value={settings.account_group ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, account_group: e.target.value || null }))}
-                className="w-full bg-transparent border border-base03 text-base05 placeholder-base04 outline-none focus:border-base09 p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
+                className="w-full bg-transparent border border-base03 text-base05 placeholder-base04 outline-none focus:border-base0e p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
               />
             </div>
             <div>
@@ -450,7 +450,7 @@ export default function AccountDetailPage() {
               <textarea placeholder="comma-separated" rows={5}
                 value={settings.topics ?? ""}
                 onChange={(e) => setSettings((s) => ({ ...s, topics: e.target.value || null }))}
-                className="w-full bg-transparent border border-base03 text-base05 placeholder-base04 outline-none focus:border-base09 p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
+                className="w-full bg-transparent border border-base03 text-base05 placeholder-base04 outline-none focus:border-base0e p-2 font-mono transition-colors resize-none break-words whitespace-pre-wrap"
               />
             </div>
           </div>
@@ -463,7 +463,7 @@ export default function AccountDetailPage() {
             disabled={saving || !settingsLoaded}
             className="group disabled:opacity-50 transition-colors bg-base11 border border-base03 px-2 py-0.5"
           >
-            <Bracket className="text-base09 group-hover:text-base05">
+            <Bracket className="text-base0e group-hover:text-base05">
               {saving ? "saving…" : "save settings"}
             </Bracket>
           </button>

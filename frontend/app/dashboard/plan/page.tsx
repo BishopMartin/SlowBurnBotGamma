@@ -75,7 +75,7 @@ export default function PlanPage() {
                   className={`transition-colors ${isCurrent ? "bg-base02" : "hover:bg-base02"}`}
                 >
                   <td className="px-4 py-3">
-                    <span className={`capitalize font-semibold ${isCurrent ? "text-base09" : "text-base04"}`}>
+                    <span className={`capitalize font-semibold ${isCurrent ? "text-base0e" : "text-base04"}`}>
                       {tier.name}
                     </span>
                   </td>
@@ -84,7 +84,7 @@ export default function PlanPage() {
                   <td className={`px-4 py-3 ${isCurrent ? "text-base05" : "text-base04"}`}>{tier.max_clients}</td>
                   <td className="px-4 py-3 text-right">
                     {isCurrent ? (
-                      <Bracket className="text-base09">current plan</Bracket>
+                      <Bracket className="text-base0e">current plan</Bracket>
                     ) : isUpgrade ? (
                       <Bracket className="text-base04">upgrade</Bracket>
                     ) : (

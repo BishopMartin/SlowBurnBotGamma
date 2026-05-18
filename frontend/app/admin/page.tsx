@@ -135,7 +135,7 @@ export default function AdminPage() {
                       disabled={busy === u.id}
                       className="group disabled:opacity-50 transition-colors"
                     >
-                      <Bracket className="text-base09 group-hover:text-base05">
+                      <Bracket className="text-base0e group-hover:text-base05">
                         {busy === u.id ? "..." : "sync stripe"}
                       </Bracket>
                     </button>

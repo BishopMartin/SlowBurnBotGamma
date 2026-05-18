@@ -178,7 +178,7 @@ export default function ConfigPage() {
             onChange={(e) => setIgnoreHandles(e.target.value)}
             placeholder="----"
             rows={9}
-            className="w-full bg-transparent text-base05 placeholder-base04 outline-none font-mono border border-base03 px-2 py-1 focus:border-base09 transition-colors resize-y"
+            className="w-full bg-transparent text-base05 placeholder-base04 outline-none font-mono border border-base03 px-2 py-1 focus:border-base0e transition-colors resize-y"
           />
         </div>
       </div>
@@ -189,7 +189,7 @@ export default function ConfigPage() {
           disabled={saving}
           className="group disabled:opacity-50 transition-colors bg-base11 border border-base03 px-2 py-0.5"
         >
-          <Bracket className="text-base09 group-hover:text-base05">
+          <Bracket className="text-base0e group-hover:text-base05">
             {saving ? "saving…" : "save"}
           </Bracket>
         </button>

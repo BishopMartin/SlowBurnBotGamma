@@ -20,12 +20,12 @@ const SITE_INFO: Record<string, { name: string; role: string }> = {
   base06: { name: "—",              role: "reserved" },
   base07: { name: "white",          role: "Nav/tab hover" },
   base08: { name: "coral hover",     role: "Bad control hover  —  --status-bad-hover" },
-  base09: { name: "terracotta",     role: "Links, CTAs, focus rings, accent" },
+  base09: { name: "—",              role: "reserved" },
   base0A: { name: "wheat",          role: "Counts, tokens, warm highlights" },
   base0B: { name: "chartreuse",     role: "Success  —  --status-ok" },
   base0C: { name: "—",              role: "reserved" },
   base0D: { name: "—",              role: "reserved" },
-  base0E: { name: "—",              role: "reserved" },
+  base0E: { name: "terracotta",      role: "Links, CTAs, focus rings, accent" },
   base0F: { name: "—",              role: "reserved" },
   base10: { name: "—",              role: "reserved" },
   base11: { name: "dropdown hover", role: "Dropdown row hover" },
@@ -103,7 +103,7 @@ function Banner({ p, name, right }: { p: Pal; name: string; right?: boolean }) {
       borderRight:  `1px solid ${ph(p, "base03")}`,
       borderTop:    `1px solid ${ph(p, "base03")}`,
       padding: PAD,
-      color: ph(p, "base09"),
+      color: ph(p, "base0E"),
       fontWeight: 600,
       fontSize: FS,
     }}>
@@ -220,7 +220,7 @@ export default function ColorsPage() {
           borderBottom: `1px solid ${ph(def.palette, "base03")}`,
           marginBottom: "24px",
         }}>
-          <span style={{ fontWeight: 600, color: ph(def.palette, "base09"), fontSize: "1rem" }}>SlowBurnBot</span>
+          <span style={{ fontWeight: 600, color: ph(def.palette, "base0E"), fontSize: "1rem" }}>SlowBurnBot</span>
           <span style={{ color: ph(def.palette, "base04"), fontSize: "1rem" }}>colors</span>
           <span style={{ color: ph(def.palette, "base03") }}>—</span>
           <Link href="/login" style={{ color: ph(def.palette, "base04"), textDecoration: "none", fontSize: "1rem" }}>

@@ -17,12 +17,12 @@ palette:
   base07: "ffffff"  # Light Background          — nav/tab hover
   # Accents
   base08: "e87755"  # Red                       — bad-control hover
-  base09: "d97757"  # Orange                    — links, CTAs, focus rings
+  base09: "b58fbf"  # Orange                    — (reserved)
   base0A: "e5c07b"  # Yellow                    — counts, warm highlights
   base0B: "adcc00"  # Green                     — success
   base0C: "7ec4b8"  # Cyan                      — (reserved)
   base0D: "8aa5c4"  # Blue                      — (reserved)
-  base0E: "b58fbf"  # Purple                    — (reserved)
+  base0E: "d97757"  # Purple                    — links, CTAs, focus rings, accent
   base0F: "a8765a"  # Brown                     — (reserved)
   # Extensions
   base10: "0d0c0c"  # Darker Background         — (reserved)

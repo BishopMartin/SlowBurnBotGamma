@@ -159,7 +159,7 @@ export default function DashboardPage() {
     const arrow = active ? (sortDir === "asc" ? "↑" : "↓") : "\u00a0";
     return (
       <th
-        className={`px-[10px] py-2 font-normal cursor-pointer select-none transition-colors hover:text-base05 ${active ? "text-base09" : ""} ${className}`}
+        className={`px-[10px] py-2 font-normal cursor-pointer select-none transition-colors hover:text-base05 ${active ? "text-base0e" : ""} ${className}`}
         onClick={() => toggleSort(field)}
       >
         <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>
@@ -331,7 +331,7 @@ export default function DashboardPage() {
               onClick={() => setTab(t.key)}
               className="group cursor-pointer transition-colors"
             >
-              <Bracket className={tab === t.key ? "text-base09" : "text-base04 group-hover:text-white"}>{t.label}</Bracket>
+              <Bracket className={tab === t.key ? "text-base0e" : "text-base04 group-hover:text-white"}>{t.label}</Bracket>
             </button>
           ))}
         </div>
@@ -479,22 +479,22 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-end gap-1">
                         {tab === "settings" && (
                           <Link href={`/dashboard/accounts/${account.id}`} className="group font-mono transition-colors">
-                            <Bracket className="text-base04 group-hover:text-base09">settings</Bracket>
+                            <Bracket className="text-base04 group-hover:text-base0e">settings</Bracket>
                           </Link>
                         )}
                         {tab === "activity" && (
                           <Link href={`/dashboard/accounts/${account.id}/log`} className="group font-mono transition-colors">
-                            <Bracket className="text-base04 group-hover:text-base09">log</Bracket>
+                            <Bracket className="text-base04 group-hover:text-base0e">log</Bracket>
                           </Link>
                         )}
                         {tab === "stats" && (
                           <Link href={`/dashboard/accounts/${account.id}/stats`} className="group font-mono transition-colors">
-                            <Bracket className="text-base04 group-hover:text-base09">stats</Bracket>
+                            <Bracket className="text-base04 group-hover:text-base0e">stats</Bracket>
                           </Link>
                         )}
                         {tab === "database" && (
                           <Link href={`/dashboard/accounts/${account.id}/database`} className="group font-mono transition-colors">
-                            <Bracket className="text-base04 group-hover:text-base09">data</Bracket>
+                            <Bracket className="text-base04 group-hover:text-base0e">data</Bracket>
                           </Link>
                         )}
                       </div>
@@ -514,7 +514,7 @@ export default function DashboardPage() {
       <div className="flex items-center gap-4">
         <h2 className="font-semibold text-base05">Recent Activity</h2>
         <span className="text-base04">--</span>
-        <Link href="/dashboard/accounts?tab=activity" className="text-base09 hover:text-base05 transition-colors">
+        <Link href="/dashboard/accounts?tab=activity" className="text-base0e hover:text-base05 transition-colors">
           by account →
         </Link>
       </div>
@@ -556,7 +556,7 @@ export default function DashboardPage() {
                     <td className="px-2 py-1.5 whitespace-nowrap">
                       <Link
                         href={`/dashboard/accounts/${entry.account_id}/log`}
-                        className="text-base09 hover:text-base05 transition-colors"
+                        className="text-base0e hover:text-base05 transition-colors"
                       >
                         {entry.account_name}
                       </Link>

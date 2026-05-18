@@ -143,7 +143,7 @@ export default function AccountsPage() {
     const arrow = active ? (sortDir === "asc" ? "↑" : "↓") : "\u00a0";
     return (
       <th
-        className={`px-[10px] py-2 font-normal cursor-pointer select-none transition-colors hover:text-base05 ${active ? "text-base09" : ""} ${className}`}
+        className={`px-[10px] py-2 font-normal cursor-pointer select-none transition-colors hover:text-base05 ${active ? "text-base0e" : ""} ${className}`}
         onClick={() => toggleSort(field)}
       >
         <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>
@@ -245,7 +245,7 @@ export default function AccountsPage() {
               onClick={() => setTab(t.key)}
               className="group cursor-pointer transition-colors"
             >
-              <Bracket className={tab === t.key ? "text-base09" : "text-base04 group-hover:text-white"}>{t.label}</Bracket>
+              <Bracket className={tab === t.key ? "text-base0e" : "text-base04 group-hover:text-white"}>{t.label}</Bracket>
             </button>
           ))}
         </div>
@@ -396,22 +396,22 @@ export default function AccountsPage() {
                       <div className="flex items-center justify-end gap-1">
                         {tab === "settings" && (
                           <Link href={`/dashboard/accounts/${account.id}`} className="group font-mono transition-colors">
-                            <Bracket className="text-base04 group-hover:text-base09">settings</Bracket>
+                            <Bracket className="text-base04 group-hover:text-base0e">settings</Bracket>
                           </Link>
                         )}
                         {tab === "activity" && (
                           <Link href={`/dashboard/accounts/${account.id}/log`} className="group font-mono transition-colors">
-                            <Bracket className="text-base04 group-hover:text-base09">log</Bracket>
+                            <Bracket className="text-base04 group-hover:text-base0e">log</Bracket>
                           </Link>
                         )}
                         {tab === "stats" && (
                           <Link href={`/dashboard/accounts/${account.id}/stats`} className="group font-mono transition-colors">
-                            <Bracket className="text-base04 group-hover:text-base09">stats</Bracket>
+                            <Bracket className="text-base04 group-hover:text-base0e">stats</Bracket>
                           </Link>
                         )}
                         {tab === "database" && (
                           <Link href={`/dashboard/accounts/${account.id}/database`} className="group font-mono transition-colors">
-                            <Bracket className="text-base04 group-hover:text-base09">data</Bracket>
+                            <Bracket className="text-base04 group-hover:text-base0e">data</Bracket>
                           </Link>
                         )}
                       </div>
@@ -426,13 +426,13 @@ export default function AccountsPage() {
 
       </div>
 
-      <form onSubmit={handleAdd} className="border border-base09 px-4 py-3 font-mono flex items-center gap-3 flex-wrap">
+      <form onSubmit={handleAdd} className="border border-base0e px-4 py-3 font-mono flex items-center gap-3 flex-wrap">
         <span className="text-base04">New Account --</span>
         <BracketInput label="user name" value={newName} onChange={setNewName} width="16ch" autoComplete="off" />
         <BracketInput label="password" value={newPassword} onChange={setNewPassword} width="24ch" type="password" autoComplete="new-password" />
         {error && <span className="text-status-bad">{error}</span>}
         <button type="submit" disabled={adding} className="group cursor-pointer disabled:opacity-40 transition-colors ml-auto bg-base11 border border-base03 px-2 py-0.5">
-          <Bracket className="text-base09 group-hover:text-base05">{adding ? "adding…" : "add"}</Bracket>
+          <Bracket className="text-base0e group-hover:text-base05">{adding ? "adding…" : "add"}</Bracket>
         </button>
       </form>
     </div>

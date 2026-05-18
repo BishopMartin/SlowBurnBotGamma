@@ -93,7 +93,7 @@ export default function AdminInvitesPage() {
                 placeholder="optional"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-transparent border-b border-base03 text-base05 placeholder-base04 outline-none focus:border-base09 py-0.5 font-mono transition-colors w-56"
+                className="bg-transparent border-b border-base03 text-base05 placeholder-base04 outline-none focus:border-base0e py-0.5 font-mono transition-colors w-56"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -137,7 +137,7 @@ export default function AdminInvitesPage() {
               disabled={busy}
               className="group disabled:opacity-50 transition-colors"
             >
-              <Bracket className="text-base09 group-hover:text-base05">
+              <Bracket className="text-base0e group-hover:text-base05">
                 {busy ? "..." : "generate"}
               </Bracket>
             </button>

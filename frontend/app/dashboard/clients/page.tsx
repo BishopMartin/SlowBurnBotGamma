@@ -74,13 +74,13 @@ function BuildForm({
         <BracketInput label="client name" value={cfg.client_name} onChange={(v) => set("client_name", v.slice(0, 15))} width="15ch" placeholder="my laptop" />
         <button
           onClick={() => switchPlatform("windows")}
-          className={`cursor-pointer transition-colors ${cfg.system_type === "windows" ? "text-base09" : "text-base04 hover:text-white"}`}
+          className={`cursor-pointer transition-colors ${cfg.system_type === "windows" ? "text-base0e" : "text-base04 hover:text-white"}`}
         >
           <span className="text-base05">[</span>windows<span className="text-base05">]</span>
         </button>
         <button
           onClick={() => switchPlatform("linux")}
-          className={`cursor-pointer transition-colors ${cfg.system_type === "linux" ? "text-base09" : "text-base04 hover:text-white"}`}
+          className={`cursor-pointer transition-colors ${cfg.system_type === "linux" ? "text-base0e" : "text-base04 hover:text-white"}`}
         >
           <span className="text-base05">[</span>linux/docker<span className="text-base05">]</span>
         </button>
@@ -91,7 +91,7 @@ function BuildForm({
             disabled={!canSubmit}
             className="group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors bg-base11 border border-base03 px-2 py-0.5"
           >
-            <Bracket className="text-base09 group-hover:text-base05">{submitting ? "saving…" : submitLabel}</Bracket>
+            <Bracket className="text-base0e group-hover:text-base05">{submitting ? "saving…" : submitLabel}</Bracket>
           </button>
           <button onClick={onCancel} className="group cursor-pointer transition-colors bg-base11 border border-base03 px-2 py-0.5">
             <Bracket className="text-base04 group-hover:text-base05">cancel</Bracket>

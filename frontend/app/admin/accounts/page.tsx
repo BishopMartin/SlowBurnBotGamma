@@ -84,7 +84,7 @@ export default function AdminAccountsPage() {
                       href={`/admin/accounts/${a.id}/follow-targets`}
                       className="group transition-colors"
                     >
-                      <Bracket className="text-base04 group-hover:text-base09">
+                      <Bracket className="text-base04 group-hover:text-base0e">
                         follow-targets
                       </Bracket>
                     </Link>

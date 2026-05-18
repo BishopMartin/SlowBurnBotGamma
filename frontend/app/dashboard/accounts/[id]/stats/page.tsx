@@ -47,7 +47,7 @@ export default function AccountStatsPage() {
     const arrow = active ? (sortDir === "asc" ? "\u2191" : "\u2193") : "\u00a0";
     return (
       <th
-        className={`px-4 py-2 font-normal cursor-pointer select-none transition-colors hover:text-base05 ${active ? "text-base09" : ""} ${className}`}
+        className={`px-4 py-2 font-normal cursor-pointer select-none transition-colors hover:text-base05 ${active ? "text-base0e" : ""} ${className}`}
         onClick={() => toggleSort(field)}
       >
         <span className="whitespace-nowrap">{label}<span className="inline-block w-[1em] text-center">{arrow}</span></span>

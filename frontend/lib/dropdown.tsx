@@ -75,7 +75,7 @@ export function Dropdown({
               onClick={() => { onChange(opt.value); setOpen(false); }}
               className={`px-3 py-1 cursor-pointer transition-colors font-mono ${
                 opt.value === value
-                  ? "bg-base09 text-base00"
+                  ? "bg-base0e text-base00"
                   : "text-base05 hover:bg-base11"
               }`}
             >

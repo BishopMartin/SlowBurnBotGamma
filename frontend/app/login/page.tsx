@@ -34,7 +34,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col font-mono">
       <div className="flex-1 max-w-5xl mx-auto w-full sm:border-x border-base03">
         <header className="px-3 sm:px-6 py-3">
-          <span className="font-semibold text-base09">SlowBurnBot</span>
+          <span className="font-semibold text-base0e">SlowBurnBot</span>
         </header>
         <main className="px-3 sm:px-6 py-6">
         <div className="text-base04 mb-4">sign in</div>
@@ -48,7 +48,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="flex-1 bg-transparent border-b border-base03 text-base05 placeholder-base04 outline-none focus:border-base09 py-0.5 font-mono transition-colors"
+              className="flex-1 bg-transparent border-b border-base03 text-base05 placeholder-base04 outline-none focus:border-base0e py-0.5 font-mono transition-colors"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -59,7 +59,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="flex-1 bg-transparent border-b border-base03 text-base05 placeholder-base04 outline-none focus:border-base09 py-0.5 font-mono transition-colors"
+              className="flex-1 bg-transparent border-b border-base03 text-base05 placeholder-base04 outline-none focus:border-base0e py-0.5 font-mono transition-colors"
             />
           </div>
           <div className="flex items-center justify-between pt-1">
@@ -68,11 +68,11 @@ export default function LoginPage() {
               disabled={loading}
               className="group disabled:opacity-50 transition-colors"
             >
-              <Bracket className="text-base09 group-hover:text-base05">
+              <Bracket className="text-base0e group-hover:text-base05">
                 {loading ? "signing in…" : "sign in"}
               </Bracket>
             </button>
-            <Link href="/register" className="text-base04 hover:text-base09 transition-colors">
+            <Link href="/register" className="text-base04 hover:text-base0e transition-colors">
               register →
             </Link>
           </div>
