@@ -80,11 +80,12 @@ def _write_ini_from_activation(response: dict, config_path: str) -> None:
             "add_argument": "",
         }
         cp["browser-session"] = {
-            "headless": "True",
+            "headless": "False",
             "detach": "False",
             "close_browser_after_session": "False",
             "close_browser_after_exit": "False",
             "bot_idle_delay": "0.25",
+            "novnc_url": opts.get("novnc_url", "http://localhost:6080/vnc.html"),
         }
     else:
         cp["browser-config"] = {

@@ -476,6 +476,7 @@ export interface FollowTarget {
 export interface DesktopBuildConfig {
   client_name: string;
   system_type: "windows" | "linux";
+  novnc_url?: string;
 }
 
 export interface DesktopBuild {

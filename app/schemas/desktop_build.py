@@ -15,6 +15,7 @@ class DesktopBuildConfig(BaseModel):
 
     client_name: str = Field(default="", max_length=15)
     system_type: Literal["windows", "linux"] = "windows"
+    novnc_url: str = Field(default="http://localhost:6080/vnc.html", max_length=200)
 
 
 class DesktopBuildCreate(BaseModel):

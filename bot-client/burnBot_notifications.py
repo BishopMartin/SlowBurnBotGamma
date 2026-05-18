@@ -129,6 +129,37 @@ def send_login_failure_alert(account, error_message, run_count=0, max_runs=0, ap
         _print(client_log_line(account, "notify", f"Failed to send login failure alert: {e}"))
 
 
+def send_captcha_challenge_alert(account, novnc_url, run_count=0, max_runs=0, apiClient=None, account_id=None, _print=None):
+    """Send an action-required alert when Instagram serves a CAPTCHA challenge during login."""
+    if _print is None:
+        _print = builtins.print
+    try:
+        user_config = apiClient.get_user_config() if apiClient else None
+        if not user_config or not user_config.get('notices_login', True):
+            return
+
+        login_type = (user_config.get('login_notices_type') or user_config.get('notices_type') or 'none').strip().lower()
+        login_email = user_config.get('login_notify_email') or user_config.get('notify_email') or ''
+        login_phone = user_config.get('login_notify_phone') or user_config.get('notify_phone') or ''
+
+        if login_type == 'none':
+            return
+
+        run_info = f"run {run_count}/{max_runs}" if max_runs > 0 else f"run {run_count}"
+        body = (
+            f"CAPTCHA Challenge — Action Required ({run_info})\n\n"
+            f"Account: {account}\n\n"
+            f"Instagram is showing a CAPTCHA challenge. Open the link below in your browser "
+            f"to view and solve it, then type 'done' in the bot terminal.\n\n"
+            f"Browser: {novnc_url}"
+        )
+        sms_summary = f"{account} - CAPTCHA REQUIRED\nOpen {novnc_url} to solve"
+        subject = f"SlowBurnBot CAPTCHA Challenge - {account}"
+        _dispatch(account, login_type, login_email, login_phone, subject, body, sms_summary, apiClient, account_id=account_id, _print=_print)
+    except Exception as e:
+        _print(client_log_line(account, "notify", f"Failed to send CAPTCHA alert: {e}"))
+
+
 def send_session_complete_notification(account, start_time, end_time,
                                        action1_type, action1_count, action1_target,
                                        action2_type, action2_count, action2_target,

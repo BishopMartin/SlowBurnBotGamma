@@ -24,6 +24,7 @@ const DEFAULT_CONFIG: DesktopBuildConfig = {
 const DEFAULT_LINUX_CONFIG: DesktopBuildConfig = {
   client_name: "",
   system_type: "linux",
+  novnc_url: "http://localhost:6080/vnc.html",
 };
 
 const sectionCls = "border border-base03";
@@ -84,6 +85,15 @@ function BuildForm({
         >
           <span className="text-base05">[</span>linux/docker<span className="text-base05">]</span>
         </button>
+        {cfg.system_type === "linux" && (
+          <BracketInput
+            label="vnc url"
+            value={cfg.novnc_url ?? "http://localhost:6080/vnc.html"}
+            onChange={(v) => set("novnc_url", v)}
+            width="32ch"
+            placeholder="http://localhost:6080/vnc.html"
+          />
+        )}
         <div className="flex items-center gap-3 ml-auto">
           {error && <span className="text-status-bad">{error}</span>}
           <button
@@ -489,10 +499,11 @@ export default function ClientPage() {
           </div>
           <div className="space-y-1">
             <p className="text-base05">linux/docker</p>
-            <p><span className="text-base05">1.</span> Click <span className="text-base05">token</span> on an empty slot, select <span className="text-base05">linux/docker</span>, enter a name, and copy the activation token shown after saving.</p>
-            <p><span className="text-base05">2.</span> Click <span className="text-base05">commands</span> on your slot — run <code className="text-base0a">docker pull</code> once to fetch the image, then <code className="text-base0a">docker run</code> to start it.</p>
+            <p><span className="text-base05">1.</span> Click <span className="text-base05">token</span> on an empty slot, select <span className="text-base05">linux/docker</span>, enter a name and your VNC URL, and copy the activation token shown after saving.</p>
+            <p><span className="text-base05">2.</span> Click <span className="text-base05">commands</span> on your slot — run <code className="text-base0a">docker pull</code> once to fetch the image, then <code className="text-base0a">docker run</code> to start it. Port <code className="text-base0a">6080</code> is included for browser access.</p>
             <p><span className="text-base05">3.</span> On first launch paste your Activation Token when prompted — the config is saved to a named volume and you won&apos;t be asked again.</p>
-            <p><span className="text-base05">4.</span> Use the <code className="text-base0a">docker run</code> command to restart the client after exiting or a reboot.</p>
+            <p><span className="text-base05">4.</span> If a CAPTCHA challenge appears during login, open your VNC URL in a browser to solve it, then type <code className="text-base0a">done</code> in the terminal.</p>
+            <p><span className="text-base05">5.</span> Use the <code className="text-base0a">docker run</code> command to restart the client after exiting or a reboot.</p>
           </div>
         </div>
       </div>

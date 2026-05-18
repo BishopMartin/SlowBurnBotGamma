@@ -855,7 +855,7 @@ def check_login(driver, account=None):
         return False, None, moduleErrorsLog
 
 
-def do_login(driver, username, password):
+def do_login(driver, username, password, apiClient=None):
     """
     Attempt to log in to Instagram
 
@@ -1103,7 +1103,61 @@ def do_login(driver, username, password):
                 error_msg = f"PHONE VERIFICATION REQUIRED - Reason: {verification_reason}"
                 moduleErrorsLog += error_msg
                 return "VERIFICATION_REQUIRED", None, moduleErrorsLog
-            
+
+            # Detect reCAPTCHA / bot-challenge page — not caught by check_phone_verification
+            try:
+                _cur_url = driver.current_url
+                if "auth_platform/recaptcha" in _cur_url:
+                    _log_diag, _print_diag = _capture_page_diag(driver)
+                    if _print_diag:
+                        print(client_log_line(username, "login", _print_diag))
+
+                    # Read noVNC URL from config (set by customer in INI)
+                    try:
+                        novnc_url = CONFIG.get('browser-session', 'novnc_url', fallback='http://localhost:6080/vnc.html')
+                    except Exception:
+                        novnc_url = 'http://localhost:6080/vnc.html'
+
+                    print(client_log_line(username, "login", f"CAPTCHA challenge detected — open {novnc_url} to solve"))
+
+                    # Send notification so customer knows action is required
+                    try:
+                        from burnBot_notifications import send_captcha_challenge_alert
+                        send_captcha_challenge_alert(username, novnc_url, apiClient=apiClient, _print=print)
+                    except Exception:
+                        pass
+
+                    # Pause bot thread — TUI shows prompt, customer types 'done' after solving
+                    status_store.request_operator_input(
+                        f"CAPTCHA: Open {novnc_url} in your browser, solve the challenge, then type 'done':"
+                    )
+
+                    # Verify page state after operator confirms — don't navigate, check in place
+                    try:
+                        WebDriverWait(driver, 10).until(
+                            lambda d: d.execute_script("return document.readyState") == "complete"
+                        )
+                        _post_url = driver.current_url
+                        _post_src = driver.page_source
+                        if "auth_platform/recaptcha" not in _post_url and "accounts/login" not in _post_url:
+                            if '"xdt_viewer":{"user":{"username":"' in _post_src:
+                                _s = _post_src.find('"xdt_viewer":{"user":{"username":"') + len('"xdt_viewer":{"user":{"username":"')
+                                _e = _post_src.find('"', _s)
+                                _solved_user = _post_src[_s:_e]
+                                if _solved_user:
+                                    print(client_log_line(username, "login", f"CAPTCHA solved — logged in as {_solved_user}"))
+                                    return True, _solved_user, moduleErrorsLog
+                    except Exception:
+                        pass
+
+                    err = "Instagram CAPTCHA challenge — not resolved after operator input"
+                    if _log_diag:
+                        err += f" | login-diag: {_log_diag}"
+                    moduleErrorsLog += err
+                    return False, None, moduleErrorsLog
+            except Exception:
+                pass
+
             # Look for username in page source JSON data
             page_source = driver.page_source
             
@@ -1335,7 +1389,7 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
             # Attempt login if needed
             if not is_logged_in:
                 print(client_log_line(account, "login", f"login try={attempt}/{login_tries} → attempting"))
-                is_logged_in, current_user, loginErrors = do_login(driver, account, accountPass)
+                is_logged_in, current_user, loginErrors = do_login(driver, account, accountPass, apiClient=apiClient)
 
                 if is_logged_in == "VERIFICATION_REQUIRED":
                     print(client_log_line(

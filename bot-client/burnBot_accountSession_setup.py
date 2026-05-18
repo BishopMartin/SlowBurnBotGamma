@@ -1054,8 +1054,9 @@ def setup_chrome_options(account, accountAgent, chrome_user_data_dir, debugging_
         options.add_argument(arg)
     
     # Headless + Linux/Docker flags
-    headless = CONFIG.getboolean('browser-session', 'headless', fallback=False)
     system_type = CONFIG.get('bot_settings', 'system_type', fallback='windows')
+    # Linux always runs headed into Xvfb via noVNC — headless config is ignored
+    headless = False if system_type == 'linux' else CONFIG.getboolean('browser-session', 'headless', fallback=False)
     if headless:
         options.add_argument('--headless=new')
     if system_type == 'linux':

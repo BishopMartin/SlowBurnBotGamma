@@ -537,6 +537,7 @@ export default function DashboardPage() {
                   <th className="px-[6px] py-2 font-normal whitespace-nowrap">action 3</th>
                   <th className="px-[6px] py-2 font-normal whitespace-nowrap">action 4</th>
                   <th className="px-[6px] py-2 font-normal whitespace-nowrap">errors</th>
+                  <th className="w-full"></th>
                 </tr>
               </thead>
               <tbody>
@@ -589,10 +590,11 @@ export default function DashboardPage() {
                         <span className="text-base03 text-xs">none</span>
                       )}
                     </td>
+                    <td></td>
                   </tr>
                   {entry.error_message && expandedErrors.has(entry.id) && (
                     <tr key={`${entry.id}-err`} className="bg-base02">
-                      <td colSpan={10} className="px-2 py-1 text-base04 text-xs whitespace-pre-wrap">
+                      <td colSpan={11} className="px-2 py-1 text-base04 text-xs whitespace-pre-wrap">
                         {entry.error_message.split("\n").map((line) => `- ${line}`).join("\n")}
                       </td>
                     </tr>

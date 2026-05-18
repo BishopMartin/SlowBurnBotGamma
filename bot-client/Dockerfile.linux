@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 libnss3 libx11-6 libxext6 \
     libxrender1 libxi6 libxtst6 libatk1.0-0 \
     libgtk-3-0 libasound2 \
+    xvfb x11vnc novnc websockify \
     && wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
     && apt-get install -y ./google-chrome-stable_current_amd64.deb \
     && rm google-chrome-stable_current_amd64.deb \
@@ -23,11 +24,18 @@ ENV COLORTERM=truecolor
 ENV SLOWBURN_FROZEN=1
 # Force keyrings.alt plaintext backend — no desktop keyring daemon in container
 ENV PYTHON_KEYRING_BACKEND=keyrings.alt.file.PlaintextKeyring
+# Virtual display — Chrome runs headed into Xvfb; noVNC exposes it on port 6080
+ENV DISPLAY=:99
+
+EXPOSE 6080
 
 # /data is the persistent volume mount point.
 # Mount a named volume or bind mount here so the INI (and JWT token) survive container restarts:
-#   docker run -v slowburnbot_data:/data myimage
+#   docker run -v slowburnbot_data:/data -p 6080:6080 myimage
 VOLUME /data
 
-# Pass the INI path explicitly so burnBot.py writes/reads config from the mounted volume.
-CMD ["./slowburnbot", "/data/burnBot_config.ini"]
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["/data/burnBot_config.ini"]

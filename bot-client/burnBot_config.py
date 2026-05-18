@@ -37,11 +37,13 @@ def _inject_missing_sections() -> None:
         CONFIG.set("browser-config", "add_argument", "")
     if not CONFIG.has_section("browser-session"):
         CONFIG.add_section("browser-session")
-        CONFIG.set("browser-session", "headless", "True" if system_type == "linux" else "False")
+        CONFIG.set("browser-session", "headless", "False")
         CONFIG.set("browser-session", "detach", "False")
         CONFIG.set("browser-session", "close_browser_after_session", "False")
         CONFIG.set("browser-session", "close_browser_after_exit", "False")
         CONFIG.set("browser-session", "bot_idle_delay", "0.25")
+        if system_type == "linux":
+            CONFIG.set("browser-session", "novnc_url", "http://localhost:6080/vnc.html")
 
 
 def load_config(default_config_file):

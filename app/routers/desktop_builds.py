@@ -193,6 +193,7 @@ async def get_download_url(
                 f"--name slowburn-client{cid} "
                 f"-v slowburn-client{cid}-data:/data "
                 f"-v /etc/localtime:/etc/localtime:ro "
+                f"-p 6080:6080 "
                 f"{image_ref}"
             ),
         }
