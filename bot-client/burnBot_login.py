@@ -920,6 +920,16 @@ def do_login(driver, username, password):
                     continue
             
             if not loginUsername:
+                try:
+                    src = driver.page_source or ""
+                    snippet = src[:3000].replace("\n", " ")
+                    print(client_log_line(None, "login", f"[DEBUG] page url={driver.current_url}"))
+                    print(client_log_line(None, "login", f"[DEBUG] page source (first 3000): {snippet}"))
+                    buttons = driver.find_elements(By.TAG_NAME, "button")
+                    btn_texts = [b.text.strip() for b in buttons if b.text.strip()]
+                    print(client_log_line(None, "login", f"[DEBUG] visible buttons: {btn_texts}"))
+                except Exception:
+                    pass
                 raise Exception("Could not find username input field")
             
             # Clear and enter username
