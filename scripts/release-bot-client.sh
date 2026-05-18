@@ -55,12 +55,19 @@ echo "==> Pushed ${TAG} — GitHub Actions build triggered."
 
 # Authenticate and sync server bot version
 echo "==> Syncing server bot version..."
-TOKEN=$(curl -sf -X POST "${PUBLIC_API_URL}/auth/jwt/login" \
-  -d "username=${ADMIN_EMAIL}&password=${ADMIN_PASSWORD}" \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+LOGIN_RESP=$(curl -s -X POST "${PUBLIC_API_URL}/auth/jwt/login" \
+  -d "username=${ADMIN_EMAIL}&password=${ADMIN_PASSWORD}")
+TOKEN=$(echo "$LOGIN_RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('access_token',''))" 2>/dev/null)
+if [ -z "$TOKEN" ]; then
+  echo "error: login failed — $(echo "$LOGIN_RESP" | python3 -m json.tool 2>/dev/null || echo "$LOGIN_RESP")" >&2
+  exit 1
+fi
 
-RESULT=$(curl -sf -X POST "${PUBLIC_API_URL}/admin/sync-bot-version" \
+SYNC_RESP=$(curl -s -X POST "${PUBLIC_API_URL}/admin/sync-bot-version" \
   -H "Authorization: Bearer ${TOKEN}")
-
-UPDATED_TO=$(echo "$RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('updated_to','?'))")
+UPDATED_TO=$(echo "$SYNC_RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('updated_to',''))" 2>/dev/null)
+if [ -z "$UPDATED_TO" ]; then
+  echo "error: sync failed — $(echo "$SYNC_RESP" | python3 -m json.tool 2>/dev/null || echo "$SYNC_RESP")" >&2
+  exit 1
+fi
 echo "==> Server synced: current_bot_version = ${UPDATED_TO}"
