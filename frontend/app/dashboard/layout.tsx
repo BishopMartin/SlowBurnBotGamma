@@ -61,7 +61,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </nav>
           <div className="flex items-center gap-3 sm:gap-4 ml-auto">
             <button onClick={() => window.location.reload()} className="text-base03 hover:text-base04 cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
-            <span className="text-base0a truncate max-w-[12rem] sm:max-w-none">{user.email}</span>
+            <span className="text-base0b truncate max-w-[12rem] sm:max-w-none">{user.email}</span>
             <div className="flex gap-1">
               <Link href="/dashboard/plan" className={`group transition-colors ${pathname.startsWith("/dashboard/plan") ? "text-base0e" : ""}`}>
                 <Bracket className="text-base04 group-hover:text-base0e">plan</Bracket>
