@@ -16,8 +16,8 @@
   --background:       var(--base00);
   --foreground:       var(--base05);
   --status-ok:        var(--base0b);
-  --status-bad:       var(--base08);
-  --status-bad-hover: var(--base12);
+  --status-bad:       var(--base12);
+  --status-bad-hover: var(--base08);
 }
 
 @theme {
