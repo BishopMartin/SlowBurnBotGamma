@@ -589,6 +589,53 @@ def dismiss_instagram_account_picker(driver, context_label="login", max_passes=4
     return clicked_any
 
 
+def dismiss_instagram_cookie_consent(driver, context_label="login"):
+    """
+    Click 'Allow all cookies' on Instagram's GDPR cookie consent overlay.
+    This dialog appears on Linux/fresh profiles before the login form renders,
+    blocking all input fields. Safe no-op when not present.
+    """
+    accept_labels = [
+        "Allow all cookies",
+        "Allow All",
+        "Accept All",
+        "Allow essential and optional cookies",
+        "Allow",
+    ]
+    tr = "'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'"
+
+    def _click_el(el):
+        try:
+            driver.execute_script("arguments[0].scrollIntoView({block:'center'});", el)
+            driver.execute_script("arguments[0].click();", el)
+            return True
+        except Exception:
+            try:
+                el.click()
+                return True
+            except Exception:
+                return False
+
+    for label in accept_labels:
+        esc = label.replace("'", "\\'")
+        for tag in ("button", "div", "span"):
+            xp = (
+                f"//{tag}[normalize-space(.)='{esc}' or "
+                f"contains(translate(normalize-space(string(.)), {tr}), '{label.lower()}')]"
+            )
+            try:
+                els = driver.find_elements(By.XPATH, xp)
+                for el in els:
+                    if el.is_displayed() and _click_el(el):
+                        print(client_log_line(None, "login", f"{context_label} cookie consent: clicked '{label}'"))
+                        time.sleep(1.8)
+                        return True
+            except Exception:
+                continue
+
+    return False
+
+
 def check_phone_verification(driver):
     """
     Check if Instagram is asking for phone verification code.
@@ -713,11 +760,12 @@ def check_login(driver, account=None):
             os_presses=3,
         )
         dismiss_instagram_account_picker(driver, context_label="check_login")
+        dismiss_instagram_cookie_consent(driver, context_label="check_login")
         press_escape_to_dismiss_overlays(
             driver, presses=2, pause=0.35, context_label="check_login_light", os_esc_before=False
         )
         time.sleep(0.8)
-        
+
         # Check for phone verification first
         is_verification_required, verification_reason = check_phone_verification(driver)
         if is_verification_required:
@@ -843,7 +891,8 @@ def do_login(driver, username, password):
             time.sleep(1.0)
             
             dismiss_instagram_account_picker(driver, context_label="do_login_pre_fields")
-            
+            dismiss_instagram_cookie_consent(driver, context_label="do_login_pre_fields")
+
             # Check current URL after ESC to see if page changed
             try:
                 current_url = driver.current_url
