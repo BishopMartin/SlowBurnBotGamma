@@ -42,8 +42,8 @@ export default function PlanPage() {
       </div>
 
       {/* Available plans table */}
+      <h2 className="font-semibold text-base05">available plans</h2>
       <div className="border border-base03">
-        <div className="border-b border-base03 px-[6px] py-2 bg-base01 text-base04">available plans</div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -62,7 +62,7 @@ export default function PlanPage() {
                 return (
                   <tr
                     key={tier.name}
-                    className={`transition-colors ${isCurrent ? "bg-base01" : "hover:bg-base02"}`}
+                    className={`transition-colors ${isCurrent ? "" : "hover:bg-base02"}`}
                   >
                     <td className="px-[6px] py-2">
                       <span className={`capitalize font-semibold ${isCurrent ? "text-base0e" : "text-base04"}`}>
