@@ -150,6 +150,7 @@ jobs:
           IMAGE_LATEST="ghcr.io/${REPO_LOWER}/slowburnbot-client:latest"
           cp bot-client/slowburnbot .
           docker build -f bot-client/Dockerfile.linux \
+            --build-arg BOT_VERSION="${BOT_VERSION}" \
             -t "${IMAGE_VERSION}" \
             -t "${IMAGE_LATEST}" \
             .

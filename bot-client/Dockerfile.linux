@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm google-chrome-stable_current_amd64.deb \
     && rm -rf /var/lib/apt/lists/*
 
+ARG BOT_VERSION=unknown
+LABEL bot.version=${BOT_VERSION}
+
 WORKDIR /app
 COPY slowburnbot .
 RUN chmod +x slowburnbot
