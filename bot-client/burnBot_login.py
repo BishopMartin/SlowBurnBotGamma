@@ -1128,16 +1128,28 @@ def do_login(driver, username, password):
             
             # Check if we're still on login page (login failed)
             if any(text in page_source.lower() for text in ["log in to instagram", "trouble logging in", "forgot password"]):
-                moduleErrorsLog += "Still on login page after login attempt - login likely failed"
+                _log_diag, _print_diag = _capture_page_diag(driver)
+                if _print_diag:
+                    print(client_log_line(username, "login", _print_diag))
+                err = "Still on login page after login attempt - login likely failed"
+                if _log_diag:
+                    err += f" | login-diag: {_log_diag}"
+                moduleErrorsLog += err
                 return False, None, moduleErrorsLog
-                
+
         except Exception as error:
             noteError = f"Error verifying login: {str(error)}"
             printError = False
             logError = True
             debugError = False
             moduleErrorsLog += process_exception(printError, noteError, logError, debugError)
-        
+
+        # Fallback: login result unrecognised — capture page state for diagnostics
+        _log_diag, _print_diag = _capture_page_diag(driver)
+        if _print_diag:
+            print(client_log_line(username, "login", _print_diag))
+        if _log_diag:
+            moduleErrorsLog += f"login result unrecognised | login-diag: {_log_diag}"
         return False, None, moduleErrorsLog
     
     except Exception as error:  ### catch all errors
@@ -1360,7 +1372,8 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
                 print(client_log_line(account, "login", f"switch try={attempt}/{login_tries} → switching"))
                 is_logged_in, current_user, loginErrors = switch_login(driver, account)
                 
-                # Log errors if any (to console only, session log will capture final result)
+                if loginErrors:
+                    loginDiag += loginErrors
                 if loginErrors and is_bot_debug_enabled():
                     print(client_log_line(account, "login", f"debug switch_login errors: {loginErrors}"))
                 
