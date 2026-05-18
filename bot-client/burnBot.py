@@ -285,7 +285,7 @@ threads = []
 threads_active = []
 stop_flag = threading.Event()
 
-run_counter = RunCounter()
+run_counter = RunCounter(resolve_path("burnBot_runs.json"))
 
 client_id = CONFIG.get('bot_settings', 'client_id', fallback='')
 
