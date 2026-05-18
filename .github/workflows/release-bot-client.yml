@@ -149,6 +149,7 @@ jobs:
           IMAGE_VERSION="ghcr.io/${REPO_LOWER}/slowburnbot-client:${BOT_VERSION}"
           IMAGE_LATEST="ghcr.io/${REPO_LOWER}/slowburnbot-client:latest"
           cp bot-client/slowburnbot .
+          cp bot-client/entrypoint.sh .
           docker build -f bot-client/Dockerfile.linux \
             --build-arg BOT_VERSION="${BOT_VERSION}" \
             -t "${IMAGE_VERSION}" \
