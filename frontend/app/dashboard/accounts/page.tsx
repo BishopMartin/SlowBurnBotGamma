@@ -235,7 +235,7 @@ export default function AccountsPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <h1 className="font-semibold text-base05 font-mono">
-          Accounts <span className="text-base04 font-normal">[{String(accounts.length).padStart(2, "0")}/{String(maxAccounts).padStart(2, "0")}]</span>
+          Accounts <span className="text-base0a font-normal">[{String(accounts.length).padStart(2, "0")}/{String(maxAccounts).padStart(2, "0")}]</span>
         </h1>
         <span className="text-base04 font-mono">--</span>
         <div className="basis-full sm:basis-auto flex flex-wrap items-center gap-2 font-mono text-sm">

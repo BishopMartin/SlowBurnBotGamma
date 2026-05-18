@@ -248,7 +248,7 @@ export default function DashboardPage() {
 
       <div className="space-y-2">
       <h2 className="font-semibold text-base05">
-        Clients <span className="text-base04 font-normal">[{String(subInfo?.current_clients ?? 0).padStart(2, "0")}/{subInfo?.max_clients ? String(subInfo.max_clients).padStart(2, "0") : "--"}]</span>
+        Clients <span className="text-base0a font-normal">[{String(subInfo?.current_clients ?? 0).padStart(2, "0")}/{subInfo?.max_clients ? String(subInfo.max_clients).padStart(2, "0") : "--"}]</span>
       </h2>
 
       <div className="border border-base03">
@@ -321,7 +321,7 @@ export default function DashboardPage() {
       <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <h2 className="font-semibold text-base05">
-          Accounts <span className="text-base04 font-normal">[{String(subInfo?.current_accounts ?? accounts.length).padStart(2, "0")}/{String(maxAccounts).padStart(2, "0")}]</span>
+          Accounts <span className="text-base0a font-normal">[{String(subInfo?.current_accounts ?? accounts.length).padStart(2, "0")}/{String(maxAccounts).padStart(2, "0")}]</span>
         </h2>
         <span className="text-base04">--</span>
         <div className="basis-full sm:basis-auto flex flex-wrap items-center gap-2">
