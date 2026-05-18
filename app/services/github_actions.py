@@ -1,5 +1,6 @@
 """GitHub API helpers — bot version lookups only."""
 import base64
+import logging
 
 import httpx
 
@@ -7,6 +8,7 @@ from app.settings import settings
 
 _GH_API = "https://api.github.com"
 _TIMEOUT = httpx.Timeout(30.0)
+_log = logging.getLogger(__name__)
 
 
 def _headers() -> dict:
@@ -37,17 +39,44 @@ async def get_main_branch_bot_version() -> str | None:
 async def ghcr_image_has_tag(tag: str) -> bool:
     """Return True if slowburnbot-client:{tag} exists in GHCR.
 
-    The workflow pushes to ghcr.io/{repo_lower}/slowburnbot-client, where
-    repo_lower is github.repository lowercased (e.g. bishopmartin/slowburnbotgamma).
-    The GitHub Packages API requires the slash in the package name to be
-    percent-encoded, and scopes to the repo owner.
+    Uses the OCI distribution spec manifest check (ghcr.io/v2/…) which works
+    with repo-scoped tokens (no read:packages scope required). Falls back to
+    the GitHub Packages REST API if the OCI check itself errors.
     """
     owner, repo_name = settings.github_repo.lower().split("/", 1)
+    image = f"{owner}/{repo_name}/slowburnbot-client"
+
+    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+        # Exchange the GitHub PAT for a GHCR registry token.
+        # GHCR maps repo read access → package read access, so this works
+        # without an explicit read:packages scope on the PAT.
+        basic = base64.b64encode(f"{owner}:{settings.github_token}".encode()).decode()
+        token_resp = await client.get(
+            f"https://ghcr.io/token?service=ghcr.io&scope=repository:{image}:pull",
+            headers={"Authorization": f"Basic {basic}"},
+        )
+        if token_resp.status_code == 200:
+            registry_token = token_resp.json().get("token", "")
+            manifest_resp = await client.head(
+                f"https://ghcr.io/v2/{image}/manifests/{tag}",
+                headers={
+                    "Authorization": f"Bearer {registry_token}",
+                    "Accept": "application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json",
+                },
+            )
+            if manifest_resp.status_code == 200:
+                return True
+            _log.info("GHCR manifest HEAD returned %s for %s:%s", manifest_resp.status_code, image, tag)
+        else:
+            _log.warning("GHCR token exchange failed: HTTP %s — %s", token_resp.status_code, token_resp.text[:200])
+
+    # Fallback: GitHub Packages REST API (requires read:packages scope)
     package = f"{repo_name}%2Fslowburnbot-client"
     url = f"{_GH_API}/users/{owner}/packages/container/{package}/versions?per_page=100"
     async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
         resp = await client.get(url, headers=_headers())
     if resp.status_code != 200:
+        _log.warning("GitHub Packages API returned %s for %s (token may lack read:packages scope)", resp.status_code, package)
         return False
     try:
         for version in resp.json():
