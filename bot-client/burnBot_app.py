@@ -69,6 +69,8 @@ class BurnBotApp(App):
         border: none;
         color: #9A968B;
         padding: 0 0 0 1;
+    }
+    #log {
         scrollbar-color: #9A968B;
         scrollbar-background: transparent;
         background: transparent;
