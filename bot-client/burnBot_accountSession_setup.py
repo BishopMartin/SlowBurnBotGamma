@@ -1062,6 +1062,9 @@ def setup_chrome_options(account, accountAgent, chrome_user_data_dir, debugging_
     if system_type == 'linux':
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--disable-software-rasterizer')
+        options.add_argument('--disable-setuid-sandbox')
 
     # Add minimal stealth arguments - only the most critical ones
     stealth_args = [
