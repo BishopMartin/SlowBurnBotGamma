@@ -57,10 +57,10 @@ class BurnBotApp(App):
     }
 
     #header-bar {
-        height: 2;
+        height: 3;
         background: #1a1a1a;
         color: #f4f3ee;
-        padding: 0 1;
+        padding: 1 1 0 1;
         border: solid #9A968B;
         border-top: none;
     }
@@ -362,7 +362,7 @@ class BurnBotApp(App):
             bar.append(vnc_url, style="#adcc00")
             if vnc_pin:
                 bar.append("   PIN: ", style=status_store.DIM)
-                bar.append(vnc_pin, style="bold #f4f3ee")
+                bar.append(vnc_pin, style="#f4f3ee")
             vnc_bar.update(bar)
             vnc_bar.display = True
         else:
