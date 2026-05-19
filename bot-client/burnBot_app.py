@@ -86,7 +86,7 @@ class BurnBotApp(App):
     RichLog {
         border: none;
         color: #9A968B;
-        padding: 0 0 0 1;
+        padding: 0;
     }
     #log {
         scrollbar-color: #9A968B;
@@ -310,7 +310,9 @@ class BurnBotApp(App):
         settings = self.query_one("#settings-table", DataTable)
         settings.add_columns("Setting", "Value")
 
-        self.query_one("#log", DefaultBgRichLog).styles.background = Color(0, 0, 0, a=0)
+        log = self.query_one("#log", DefaultBgRichLog)
+        log.styles.background = Color(0, 0, 0, a=0)
+        log.styles.scrollbar_background = Color(0, 0, 0, a=0)
 
         self._refresh_header()
         self.set_interval(1.0, self._refresh_header)
