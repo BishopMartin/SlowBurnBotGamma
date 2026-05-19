@@ -234,6 +234,13 @@ def _start_vnc_services():
         return
     import subprocess
 
+    # Nuitka sets LD_LIBRARY_PATH to its extracted temp dir. Subprocesses inherit
+    # this and pick up the frozen libcrypto/libssl instead of system ones, causing
+    # websockify (and potentially x11vnc) to crash on import. Strip them here.
+    clean_env = os.environ.copy()
+    for _var in ('LD_LIBRARY_PATH', 'LD_PRELOAD'):
+        clean_env.pop(_var, None)
+
     def _drain(proc, label):
         try:
             for raw in proc.stdout:
@@ -246,7 +253,8 @@ def _start_vnc_services():
     try:
         x11vnc = subprocess.Popen(
             ['x11vnc', '-display', ':99', '-forever', '-nopw', '-rfbport', '5900', '-quiet'],
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            env=clean_env
         )
         threading.Thread(target=_drain, args=(x11vnc, 'vnc'), daemon=True).start()
     except FileNotFoundError:
@@ -255,7 +263,8 @@ def _start_vnc_services():
     try:
         wsify = subprocess.Popen(
             ['websockify', '--web', '/usr/share/novnc/', '6080', 'localhost:5900'],
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            env=clean_env
         )
         threading.Thread(target=_drain, args=(wsify, 'novnc'), daemon=True).start()
     except FileNotFoundError:
