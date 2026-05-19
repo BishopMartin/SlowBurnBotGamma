@@ -81,6 +81,7 @@ class BotUserConfigRead(BaseModel):
     notices_session: bool
     notify_email: str | None = None
     notify_phone: str | None = None
+    vnc_pin: str | None = None
 
 
 class BotNotifyRequest(BaseModel):

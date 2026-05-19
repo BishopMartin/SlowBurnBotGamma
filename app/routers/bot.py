@@ -1,6 +1,7 @@
 """Exe-facing endpoints — called by the compiled SlowBurnBot client."""
 import hashlib
 import hmac
+import secrets
 import uuid
 from datetime import date, datetime, timedelta, timezone
 
@@ -87,8 +88,10 @@ async def get_bot_config(
     if config is None:
         config = UserConfig(user_id=user.id, notify_email=user.email)
         session.add(config)
-        await session.commit()
-        await session.refresh(config)
+    if config.vnc_pin is None:
+        config.vnc_pin = secrets.token_hex(4).upper()
+    await session.commit()
+    await session.refresh(config)
     return config
 
 

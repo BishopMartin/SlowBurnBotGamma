@@ -228,10 +228,15 @@ def _try_api_relogin_from_config(client):
     return bool(ok)
 
 
-def _start_vnc_services():
-    """Start x11vnc and websockify on Linux, routing their output to the TUI log."""
-    if sys.platform != 'linux':
+_vnc_services_started = False
+
+def _start_vnc_services(pin=''):
+    """Start x11vnc and websockify on Linux, routing their output to the TUI log.
+    Called once after login so the PIN is available to pass to x11vnc."""
+    global _vnc_services_started
+    if _vnc_services_started or sys.platform != 'linux':
         return
+    _vnc_services_started = True
     import subprocess
 
     # Nuitka sets LD_LIBRARY_PATH to its extracted temp dir. Subprocesses inherit
@@ -250,9 +255,15 @@ def _start_vnc_services():
         except Exception:
             pass
 
+    x11vnc_args = ['x11vnc', '-display', ':99', '-forever', '-rfbport', '5900', '-quiet']
+    if pin:
+        x11vnc_args += ['-passwd', pin]
+    else:
+        x11vnc_args += ['-nopw']
+
     try:
         x11vnc = subprocess.Popen(
-            ['x11vnc', '-display', ':99', '-forever', '-nopw', '-rfbport', '5900', '-quiet'],
+            x11vnc_args,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             env=clean_env
         )
@@ -269,8 +280,6 @@ def _start_vnc_services():
         threading.Thread(target=_drain, args=(wsify, 'novnc'), daemon=True).start()
     except FileNotFoundError:
         pass
-
-_start_vnc_services()
 
 # Load bot_idle_delay for main loop check interval (in minutes, convert to seconds)
 bot_idle_delay_minutes = CONFIG.getfloat('browser-session', 'bot_idle_delay', fallback=0.25)
@@ -437,9 +446,9 @@ try:
         _st  = CONFIG.get('bot_settings', 'system_type',           fallback='').strip()
         _notif_cfg = apiClient.get_user_config() or {}
         _vnc_pin = (_notif_cfg.get('vnc_pin') or '').strip()
-        if _vnc_pin:
-            _cur_vnc_url, _ = status_store.get_vnc_info()
-            status_store.set_vnc_info(url=_cur_vnc_url, pin=_vnc_pin)
+        _cur_vnc_url, _ = status_store.get_vnc_info()
+        status_store.set_vnc_info(url=_cur_vnc_url, pin=_vnc_pin)
+        _start_vnc_services(pin=_vnc_pin)
         _skl = str(_notif_cfg.get('skip_login_check', False)).upper()
         _lgt = str(_notif_cfg.get('login_tries', 3)).zfill(2)
         _lks = str(_notif_cfg.get('like_suggested', False)).upper()
