@@ -139,6 +139,17 @@ class BurnBotApp(App):
         color: #adcc00;
     }
 
+    #vnc-bar {
+        height: 1;
+        background: #1a1a1a;
+        color: #9A968B;
+        padding: 0 1;
+        border: solid #9A968B;
+        border-top: none;
+        border-bottom: none;
+        display: none;
+    }
+
     #input-row {
         height: 3;
         background: #1a1a1a;
@@ -249,6 +260,7 @@ class BurnBotApp(App):
                     yield Static(row)
             yield Static("[#9A968B]Esc: [/][#E5C07B]Close[/]", id="help-hint-inline")
         yield DataTable(id="accounts", show_cursor=False)
+        yield Static("", id="vnc-bar")
         with Horizontal(id="input-row"):
             with Horizontal(id="cmd-inner"):
                 yield Input(placeholder="enter a command", id="cmd-input")
@@ -345,6 +357,20 @@ class BurnBotApp(App):
         header.append("|", style=status_store.DIM)
 
         self.query_one("#header-bar", Static).update(header)
+
+        vnc_url, vnc_pin = status_store.get_vnc_info()
+        vnc_bar = self.query_one("#vnc-bar", Static)
+        if vnc_url:
+            bar = Text(no_wrap=True)
+            bar.append("Remote View  ", style="bold #f4f3ee")
+            bar.append(vnc_url, style="#adcc00")
+            if vnc_pin:
+                bar.append("   PIN: ", style=status_store.DIM)
+                bar.append(vnc_pin, style="bold #f4f3ee")
+            vnc_bar.update(bar)
+            vnc_bar.display = True
+        else:
+            vnc_bar.display = False
 
         try:
             hint = self.query_one("#hint-toggle", CmdHint)

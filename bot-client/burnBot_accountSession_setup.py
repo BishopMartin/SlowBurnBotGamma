@@ -854,6 +854,16 @@ def kill_chrome_processes_for_profile(chrome_user_data_dir, account, portable_ch
     except Exception as e:
         print(f"- [{account}]: Error killing Chrome processes: {e}")
 
+    # Remove stale Chrome singleton lock files — left behind when Chrome crashes and
+    # will cause the next launch to exit immediately thinking another instance is running.
+    for lock_file in ("SingletonLock", "SingletonSocket", "SingletonCookie"):
+        path = os.path.join(chrome_user_data_dir, lock_file)
+        try:
+            if os.path.exists(path):
+                os.remove(path)
+        except OSError:
+            pass
+
 
 def update_profile_preferences(account, chrome_user_data_dir):
     """

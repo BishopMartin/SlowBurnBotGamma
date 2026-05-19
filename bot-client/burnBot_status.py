@@ -30,6 +30,9 @@ _browser_only: bool = False
 
 _last_heartbeat_at: float = 0.0  # monotonic timestamp of last heartbeat send
 
+_vnc_url: str = ""
+_vnc_pin: str = ""
+
 _NOTIFY_OPTIONS = ["none", "email", "sms", "both"]
 _session_notify: str = "none"
 _login_notify: str = "none"
@@ -209,6 +212,18 @@ def _toggle_setting_locked(idx: int) -> None:
         CONFIG.set('bot_settings', 'bot_debug', str(not cur))
     elif key == "_browser_only":
         _browser_only = not _browser_only
+
+
+def set_vnc_info(url: str = "", pin: str = "") -> None:
+    global _vnc_url, _vnc_pin
+    with _lock:
+        _vnc_url = url or ""
+        _vnc_pin = pin or ""
+
+
+def get_vnc_info() -> tuple[str, str]:
+    with _lock:
+        return _vnc_url, _vnc_pin
 
 
 def mark_heartbeat() -> None:

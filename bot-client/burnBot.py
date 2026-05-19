@@ -228,6 +228,41 @@ def _try_api_relogin_from_config(client):
     return bool(ok)
 
 
+def _start_vnc_services():
+    """Start x11vnc and websockify on Linux, routing their output to the TUI log."""
+    if sys.platform != 'linux':
+        return
+    import subprocess
+
+    def _drain(proc, label):
+        try:
+            for raw in proc.stdout:
+                line = raw.decode(errors='replace').rstrip()
+                if line:
+                    status_store.add_log(f"[{status_store.DIM}][[{label}]][/] {line}")
+        except Exception:
+            pass
+
+    try:
+        x11vnc = subprocess.Popen(
+            ['x11vnc', '-display', ':99', '-forever', '-nopw', '-rfbport', '5900', '-quiet'],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        )
+        threading.Thread(target=_drain, args=(x11vnc, 'vnc'), daemon=True).start()
+    except FileNotFoundError:
+        pass
+
+    try:
+        wsify = subprocess.Popen(
+            ['websockify', '--web', '/usr/share/novnc/', '6080', 'localhost:5900'],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        )
+        threading.Thread(target=_drain, args=(wsify, 'novnc'), daemon=True).start()
+    except FileNotFoundError:
+        pass
+
+_start_vnc_services()
+
 # Load bot_idle_delay for main loop check interval (in minutes, convert to seconds)
 bot_idle_delay_minutes = CONFIG.getfloat('browser-session', 'bot_idle_delay', fallback=0.25)
 bot_idle_delay = bot_idle_delay_minutes * 60  # Convert to seconds
@@ -272,6 +307,10 @@ if not apiClient.has_token():
             print(f"[api]: Could not store credentials in keyring: {e}")
 
     status_store.add_log(client_log_line(None, "api", "Login successful."))
+
+_novnc_url = CONFIG.get('browser-session', 'novnc_url', fallback='').strip()
+if _novnc_url:
+    status_store.set_vnc_info(url=_novnc_url)
 
 # Account tracking data structures
 all_accounts = []
@@ -388,6 +427,9 @@ try:
         _idl = str(bot_idle_delay_minutes).zfill(2)
         _st  = CONFIG.get('bot_settings', 'system_type',           fallback='').strip()
         _notif_cfg = apiClient.get_user_config() or {}
+        _vnc_pin = (_notif_cfg.get('vnc_pin') or '').strip()
+        if _vnc_pin:
+            status_store.set_vnc_info(url=_novnc_url, pin=_vnc_pin)
         _skl = str(_notif_cfg.get('skip_login_check', False)).upper()
         _lgt = str(_notif_cfg.get('login_tries', 3)).zfill(2)
         _lks = str(_notif_cfg.get('like_suggested', False)).upper()
