@@ -67,11 +67,9 @@ class BurnBotApp(App):
 
     RichLog {
         border: none;
-        background: #000000;
         color: #9A968B;
         padding: 0 0 0 1;
         scrollbar-color: #9A968B;
-        scrollbar-background: #000000;
     }
 
     #settings-overlay {
@@ -360,7 +358,7 @@ class BurnBotApp(App):
         vnc_bar = self.query_one("#vnc-bar", Static)
         if vnc_url:
             bar = Text(no_wrap=True)
-            bar.append("Remote View  ", style="bold #f4f3ee")
+            bar.append("Remote View  ", style="#f4f3ee")
             bar.append(vnc_url, style="#adcc00")
             if vnc_pin:
                 bar.append("   PIN: ", style=status_store.DIM)
