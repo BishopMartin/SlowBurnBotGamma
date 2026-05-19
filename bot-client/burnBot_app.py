@@ -68,7 +68,7 @@ class BurnBotApp(App):
     RichLog {
         border: none;
         background: #000000;
-        color: #c9c7c0;
+        color: #9A968B;
         padding: 0 0 0 1;
         scrollbar-color: #9A968B;
         scrollbar-background: #000000;
