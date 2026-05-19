@@ -58,7 +58,6 @@ class BurnBotApp(App):
 
     #header-bar {
         height: 2;
-        margin-top: 1;
         background: #1a1a1a;
         color: #f4f3ee;
         padding: 0 1;
