@@ -22,6 +22,15 @@ from rich.color import Color as RichColor
 class DefaultBgRichLog(RichLog):
     """RichLog that renders with the terminal's default background (\033[49m)."""
 
+    DEFAULT_CSS = """
+    DefaultBgRichLog {
+        background: transparent;
+        scrollbar-background: transparent;
+        color: $foreground;
+        overflow-y: scroll;
+    }
+    """
+
     def render_line(self, y: int) -> Strip:
         strip = super().render_line(y)
         default_bg = RichStyle(bgcolor=RichColor.default())
