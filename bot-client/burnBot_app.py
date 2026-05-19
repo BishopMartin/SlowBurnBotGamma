@@ -126,6 +126,9 @@ class BurnBotApp(App):
         border: solid #9A968B;
         border-bottom: none;
     }
+    #accounts {
+        border-bottom: solid #9A968B;
+    }
     DataTable > .datatable--header {
         background: #1a1a1a;
         color: #f4f3ee;
