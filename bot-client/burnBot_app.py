@@ -328,29 +328,30 @@ class BurnBotApp(App):
         now    = datetime.now().strftime("%I:%M %p")
         client_id_str = str(self._client_id).zfill(2)
 
+        _W = "#f4f3ee"
         header = Text(no_wrap=True)
         header.append(f"SlowBurnBot Client v{self._version}", style="bold #d97757")
-        header.append(" | ", style=status_store.DIM)
-        header.append(f"Client ID: {client_id_str}", style=status_store.DIM)
+        header.append(" | ", style=_W)
+        header.append(f"Client ID: {client_id_str}", style=_W)
         if self._client_name:
-            header.append(f" ({self._client_name})", style=status_store.DIM)
-        header.append(" | ", style=status_store.DIM)
-        header.append(now, style=status_store.DIM)
-        header.append(" | Current State: ", style=status_store.DIM)
+            header.append(f" ({self._client_name})", style=_W)
+        header.append(" | ", style=_W)
+        header.append(now, style=_W)
+        header.append(" | Current State: ", style=_W)
         if paused:
-            header.append("[", style=status_store.DIM)
+            header.append("[", style=_W)
             header.append("STOPPED", style="bold #E5C07B")
-            header.append("]", style=status_store.DIM)
+            header.append("]", style=_W)
         else:
-            header.append("[", style=status_store.DIM)
+            header.append("[", style=_W)
             header.append("RUNNING", style="bold #adcc00")
-            header.append("]", style=status_store.DIM)
+            header.append("]", style=_W)
 
         filled = status_store.seconds_since_heartbeat() % 15
-        header.append(" |", style=status_store.DIM)
+        header.append(" |", style=_W)
         header.append("█" * filled, style=status_store.TEXT)
         header.append("░" * (15 - filled), style=status_store.DIM)
-        header.append("|", style=status_store.DIM)
+        header.append("|", style=_W)
 
         self.query_one("#header-bar", Static).update(header)
 

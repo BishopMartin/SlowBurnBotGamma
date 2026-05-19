@@ -157,7 +157,7 @@ def send_captcha_challenge_alert(account, novnc_url, run_count=0, max_runs=0, ap
             f"to view and solve it, then type 'done' in the bot terminal.\n\n"
             f"Browser: {novnc_url}"
         )
-        sms_summary = f"{account} - CAPTCHA REQUIRED\nOpen {novnc_url} to solve"
+        sms_summary = f"{account} - CAPTCHA REQUIRED\nOpen the remote view link in your email to solve"
         subject = f"SlowBurnBot CAPTCHA Challenge - {account}"
         _dispatch(account, login_type, login_email, login_phone, subject, body, sms_summary, apiClient, account_id=account_id, _print=_print)
     except Exception as e:

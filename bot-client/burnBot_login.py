@@ -906,13 +906,13 @@ def do_login(driver, username, password, apiClient=None):
         
         # Enter username and password
         try:
-            time.sleep(3.5)  # Wait for page to stabilize
+            time.sleep(1.5)  # Wait for page to stabilize
             
             # OS Escape already ran after /accounts/login/ load; more PyAutoGUI ESC here tended to reload IG.
             press_escape_to_dismiss_overlays(
                 driver, presses=3, pause=0.4, context_label="do_login_before_fields", os_esc_before=False
             )
-            time.sleep(1.0)
+            time.sleep(0.4)
             
             dismiss_instagram_account_picker(driver, context_label="do_login_pre_fields")
             dismiss_instagram_cookie_consent(driver, context_label="do_login_pre_fields")
@@ -953,18 +953,18 @@ def do_login(driver, username, password, apiClient=None):
             
             # Clear and enter username
             loginUsername.click()
-            time.sleep(0.5)
-            
+            time.sleep(0.2)
+
             # Check for dialogs after clicking (clicking can trigger dialogs)
             if dismiss_browser_dialogs(driver, max_attempts=2):
                 # Re-click the field after dismissing dialog
                 loginUsername.click()
-                time.sleep(0.5)
-            
+                time.sleep(0.2)
+
             loginUsername.clear()
-            time.sleep(0.75)
+            time.sleep(0.2)
             loginUsername.send_keys(username)
-            time.sleep(0.75)
+            time.sleep(0.3)
             
             if is_bot_debug_enabled():
                 print(f"-- DEBUG: Username entered successfully")
@@ -996,18 +996,18 @@ def do_login(driver, username, password, apiClient=None):
             
             # Clear and enter password
             loginPassword.click()
-            time.sleep(0.5)
-            
+            time.sleep(0.2)
+
             # Check for dialogs after clicking password field
             if dismiss_browser_dialogs(driver, max_attempts=2):
                 # Re-click the field after dismissing dialog
                 loginPassword.click()
-                time.sleep(0.5)
-            
+                time.sleep(0.2)
+
             loginPassword.clear()
-            time.sleep(0.75)
+            time.sleep(0.2)
             loginPassword.send_keys(password)
-            time.sleep(0.75)
+            time.sleep(0.3)
             
             if is_bot_debug_enabled():
                 print(f"-- DEBUG: Password entered successfully")

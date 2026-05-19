@@ -904,6 +904,8 @@ def update_profile_preferences(account, chrome_user_data_dir):
             
             prefs['profile']['name'] = account
             prefs['profile']['user_name'] = account
+            prefs['profile']['exit_type'] = 'Normal'
+            prefs['profile']['exited_cleanly'] = True
             
             # Hide automation and DevTools protocol detection
             # Remove webdriver indicator
