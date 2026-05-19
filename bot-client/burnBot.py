@@ -786,6 +786,7 @@ try:
                     run_count = run_counter.get_run_count(account_name)
                     _max_run_info = f"[{run_count}/{int(schedule_max)}]" if schedule_max > 0 else f"[{run_count}]"
                     status_store.update(account_name, status="max runs", next_run="—", run_info=_max_run_info)
+                    apiClient.invalidate_settings_cache(account_id)
                 else:
                     next_run_str = account_next_run[account_name].strftime("%I:%M %p") if account_next_run.get(account_name) else "—"
                     run_count = run_counter.get_run_count(account_name)

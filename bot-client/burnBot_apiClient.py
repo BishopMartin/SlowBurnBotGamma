@@ -62,7 +62,7 @@ class ApiClient:
 
         # Caches
         self._settings_cache = {}       # {account_id: (data, timestamp)}
-        self._settings_cache_ttl = 300  # 5 minutes
+        self._settings_cache_ttl = 60  # 1 minute
         self._ignore_cache = None
         self._ignore_cache_ts = 0.0
         self._ignore_cache_ttl = 300
