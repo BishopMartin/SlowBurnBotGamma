@@ -53,14 +53,14 @@ class BurnBotApp(App):
     Screen {
         layers: base overlay;
         color: #c9c7c0;
+        background: transparent;
     }
 
     #header-bar {
         height: 3;
         background: #1a1a1a;
         color: #f4f3ee;
-        padding: 0 1;
-        content-align: left middle;
+        padding: 0 1 0 1;
         border: solid #9A968B;
         border-top: none;
     }
@@ -70,6 +70,7 @@ class BurnBotApp(App):
         color: #9A968B;
         padding: 0 0 0 1;
         scrollbar-color: #9A968B;
+        background: transparent;
     }
 
     #settings-overlay {
