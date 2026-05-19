@@ -9,6 +9,7 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import DataTable, Input, RichLog, Static
 from textual.containers import Horizontal, Vertical
+from textual.color import Color
 from textual import on
 from textual.events import Click
 from rich.text import Text
@@ -73,7 +74,7 @@ class BurnBotApp(App):
     #log {
         scrollbar-color: #9A968B;
         scrollbar-background: transparent;
-        background: transparent;
+        background: transparent !important;
     }
 
     #settings-overlay {
@@ -291,6 +292,8 @@ class BurnBotApp(App):
 
         settings = self.query_one("#settings-table", DataTable)
         settings.add_columns("Setting", "Value")
+
+        self.query_one("#log", RichLog).styles.background = Color(0, 0, 0, a=0)
 
         self._refresh_header()
         self.set_interval(1.0, self._refresh_header)
