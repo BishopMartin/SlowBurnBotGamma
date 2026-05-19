@@ -60,7 +60,7 @@ class BurnBotApp(App):
         height: 3;
         background: #1a1a1a;
         color: #f4f3ee;
-        padding: 0 1 0 1;
+        padding: 1 1 0 1;
         border: solid #9A968B;
         border-top: none;
     }
@@ -70,7 +70,6 @@ class BurnBotApp(App):
         color: #9A968B;
         padding: 0 0 0 1;
         scrollbar-color: #9A968B;
-        background: transparent;
     }
 
     #settings-overlay {
@@ -288,6 +287,8 @@ class BurnBotApp(App):
 
         settings = self.query_one("#settings-table", DataTable)
         settings.add_columns("Setting", "Value")
+
+        self.query_one("#log", RichLog).styles.background = "transparent"
 
         self._refresh_header()
         self.set_interval(1.0, self._refresh_header)
