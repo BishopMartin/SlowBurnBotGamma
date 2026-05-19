@@ -51,7 +51,6 @@ class BurnBotApp(App):
 
     CSS = """
     Screen {
-        background: #1a1a1a;
         layers: base overlay;
         color: #c9c7c0;
     }
@@ -60,7 +59,8 @@ class BurnBotApp(App):
         height: 3;
         background: #1a1a1a;
         color: #f4f3ee;
-        padding: 1 1 0 1;
+        padding: 0 1;
+        content-align: left middle;
         border: solid #9A968B;
         border-top: none;
     }
@@ -80,6 +80,7 @@ class BurnBotApp(App):
     }
     #settings-section-header {
         width: 50;
+        background: #1a1a1a;
         color: #f4f3ee;
         padding: 0 0 0 1;
     }
@@ -91,6 +92,7 @@ class BurnBotApp(App):
     }
     #settings-hint {
         width: auto;
+        background: #1a1a1a;
         color: #9A968B;
         margin-top: 0;
         padding: 0 0 0 1;
@@ -105,11 +107,13 @@ class BurnBotApp(App):
     #help-box {
         width: 62;
         height: auto;
+        background: #1a1a1a;
         border: solid #9A968B;
         padding: 0 1;
     }
     #help-hint-inline {
         width: auto;
+        background: #1a1a1a;
         color: #9A968B;
         margin-top: 0;
         padding: 0 0 0 1;

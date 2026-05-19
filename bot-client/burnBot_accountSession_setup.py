@@ -1247,9 +1247,19 @@ def create_driver(account, accountAgent, account_idx=0):
         except (socket.error, socket.timeout):
             pass
     
+    # Always clean singleton lock files before launch — stale locks from a previous
+    # container session (persisted on the volume) cause "Chrome instance exited" crashes.
+    for _lock in ("SingletonLock", "SingletonSocket", "SingletonCookie"):
+        _lock_path = os.path.join(chrome_user_data_dir, _lock)
+        try:
+            if os.path.exists(_lock_path):
+                os.remove(_lock_path)
+        except OSError:
+            pass
+
     # Update Local State file
     update_local_state(account, chrome_user_data_dir)
-    
+
     # Update profile preferences (will retry if locked)
     update_profile_preferences(account, chrome_user_data_dir)
     
