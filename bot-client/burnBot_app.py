@@ -10,9 +10,26 @@ from textual.binding import Binding
 from textual.widgets import DataTable, Input, RichLog, Static
 from textual.containers import Horizontal, Vertical
 from textual.color import Color
+from textual.strip import Strip
 from textual import on
 from textual.events import Click
 from rich.text import Text
+from rich.segment import Segment
+from rich.style import Style as RichStyle
+from rich.color import Color as RichColor
+
+
+class DefaultBgRichLog(RichLog):
+    """RichLog that renders with the terminal's default background (\033[49m)."""
+
+    def render_line(self, y: int) -> Strip:
+        strip = super().render_line(y)
+        default_bg = RichStyle(bgcolor=RichColor.default())
+        segments = [
+            Segment(seg.text, (seg.style + default_bg) if seg.style else default_bg)
+            for seg in strip
+        ]
+        return Strip(segments)
 
 import burnBot_status as status_store
 
@@ -251,7 +268,7 @@ class BurnBotApp(App):
 
     def compose(self) -> ComposeResult:
         yield Static("", id="header-bar")
-        yield RichLog(highlight=False, markup=True, wrap=True, id="log")
+        yield DefaultBgRichLog(highlight=False, markup=True, wrap=True, id="log")
         with Vertical(id="settings-overlay"):
             yield Static("Client Settings", id="settings-section-header")
             yield DataTable(id="settings-table", show_header=False, cursor_type="row")
@@ -293,7 +310,7 @@ class BurnBotApp(App):
         settings = self.query_one("#settings-table", DataTable)
         settings.add_columns("Setting", "Value")
 
-        self.query_one("#log", RichLog).styles.background = Color(0, 0, 0, a=0)
+        self.query_one("#log", DefaultBgRichLog).styles.background = Color(0, 0, 0, a=0)
 
         self._refresh_header()
         self.set_interval(1.0, self._refresh_header)
@@ -481,7 +498,7 @@ class BurnBotApp(App):
     # ------------------------------------------------------------------
 
     def _write_log(self, line: str) -> None:
-        self.query_one("#log", RichLog).write(line)
+        self.query_one("#log", DefaultBgRichLog).write(line)
         try:
             plain = Text.from_markup(line).plain
         except Exception:
