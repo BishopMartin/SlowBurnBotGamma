@@ -317,8 +317,8 @@ if not apiClient.has_token():
 
     status_store.add_log(client_log_line(None, "api", "Login successful."))
 
-_novnc_url = CONFIG.get('browser-session', 'novnc_url', fallback='').strip()
-if _novnc_url:
+if sys.platform == 'linux':
+    _novnc_url = CONFIG.get('browser-session', 'novnc_url', fallback='http://localhost:6080/vnc.html').strip() or 'http://localhost:6080/vnc.html'
     status_store.set_vnc_info(url=_novnc_url)
 
 # Account tracking data structures
@@ -438,7 +438,8 @@ try:
         _notif_cfg = apiClient.get_user_config() or {}
         _vnc_pin = (_notif_cfg.get('vnc_pin') or '').strip()
         if _vnc_pin:
-            status_store.set_vnc_info(url=_novnc_url, pin=_vnc_pin)
+            _cur_vnc_url, _ = status_store.get_vnc_info()
+            status_store.set_vnc_info(url=_cur_vnc_url, pin=_vnc_pin)
         _skl = str(_notif_cfg.get('skip_login_check', False)).upper()
         _lgt = str(_notif_cfg.get('login_tries', 3)).zfill(2)
         _lks = str(_notif_cfg.get('like_suggested', False)).upper()
