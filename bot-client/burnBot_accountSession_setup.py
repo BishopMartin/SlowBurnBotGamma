@@ -1240,9 +1240,22 @@ def create_driver(account, accountAgent, account_idx=0):
             result = sock.connect_ex(('127.0.0.1', debugging_port))
             sock.close()
             if result == 0:
-                # Port is in use - kill processes using this port
-                print(f"- [{account}]: Port {debugging_port} is in use, killing processes...")
-                kill_chrome_processes_for_profile(chrome_user_data_dir, account, chrome_path)
+                # Port is in use — kill the process holding it (may belong to another account's Chrome)
+                print(f"- [{account}]: Port {debugging_port} is in use, killing process on port...")
+                killed_port = False
+                if psutil:
+                    try:
+                        for conn in psutil.net_connections(kind='tcp'):
+                            if conn.laddr.port == debugging_port and conn.status == 'LISTEN':
+                                try:
+                                    psutil.Process(conn.pid).kill()
+                                    killed_port = True
+                                except Exception:
+                                    pass
+                    except Exception:
+                        pass
+                if not killed_port:
+                    kill_chrome_processes_for_profile(chrome_user_data_dir, account, chrome_path)
                 time.sleep(2)
         except (socket.error, socket.timeout):
             pass
