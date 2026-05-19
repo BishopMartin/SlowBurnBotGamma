@@ -145,7 +145,6 @@ class BurnBotApp(App):
         color: #9A968B;
         padding: 0 1;
         border: solid #9A968B;
-        border-top: none;
         border-bottom: none;
         display: none;
     }
