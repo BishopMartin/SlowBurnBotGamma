@@ -1107,6 +1107,8 @@ def setup_chrome_options(account, accountAgent, chrome_user_data_dir, debugging_
     additional_args = [
         '--disable-features=PasswordManager,AutofillPasswordManager',  # Disable password manager completely
         '--disable-save-password-bubble',  # No save password prompts
+        '--no-restore-last-session',        # Suppress "Restore pages?" dialog after crash
+        '--disable-session-crashed-bubble', # Suppress crash recovery infobar
     ]
     for arg in additional_args:
         if arg not in [a for a in options.arguments]:
