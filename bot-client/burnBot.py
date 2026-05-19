@@ -248,6 +248,7 @@ def _start_vnc_services(pin=''):
 
     def _drain(proc, label):
         try:
+            time.sleep(3)  # let cfg startup messages finish before VNC output appears
             for raw in proc.stdout:
                 line = raw.decode(errors='replace').rstrip()
                 if line:

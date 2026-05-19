@@ -139,7 +139,7 @@ class BurnBotApp(App):
     }
 
     #vnc-bar {
-        height: 1;
+        height: 2;
         background: #1a1a1a;
         color: #9A968B;
         padding: 0 1;
