@@ -330,7 +330,7 @@ if not apiClient.has_token():
 if sys.platform == 'linux':
     _novnc_url = CONFIG.get('browser-session', 'novnc_url', fallback='http://localhost:6080/vnc.html').strip() or 'http://localhost:6080/vnc.html'
     if 'resize=' not in _novnc_url:
-        _sep = '&' if '?' in _novnc_url else '?'
+        _sep = '&' if '#' in _novnc_url else '#'
         _novnc_url += f'{_sep}autoconnect=1&resize=scale'
     status_store.set_vnc_info(url=_novnc_url)
 
