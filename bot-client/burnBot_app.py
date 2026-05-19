@@ -72,7 +72,6 @@ class BurnBotApp(App):
         scrollbar-color: #9A968B;
         scrollbar-background: transparent;
         background: transparent;
-        text-background: transparent;
     }
 
     #settings-overlay {
