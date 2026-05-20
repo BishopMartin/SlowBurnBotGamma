@@ -856,10 +856,12 @@ def kill_chrome_processes_for_profile(chrome_user_data_dir, account, portable_ch
 
     # Remove stale Chrome singleton lock files — left behind when Chrome crashes and
     # will cause the next launch to exit immediately thinking another instance is running.
+    # On Linux, SingletonLock is a symlink; os.path.exists() returns False for dangling
+    # symlinks (e.g. after a container restart changes the hostname), so use lexists().
     for lock_file in ("SingletonLock", "SingletonSocket", "SingletonCookie"):
         path = os.path.join(chrome_user_data_dir, lock_file)
         try:
-            if os.path.exists(path):
+            if os.path.lexists(path):
                 os.remove(path)
         except OSError:
             pass
@@ -1262,10 +1264,11 @@ def create_driver(account, accountAgent, account_idx=0):
     
     # Always clean singleton lock files before launch — stale locks from a previous
     # container session (persisted on the volume) cause "Chrome instance exited" crashes.
+    # Use lexists() so dangling symlinks (SingletonLock on Linux) are also removed.
     for _lock in ("SingletonLock", "SingletonSocket", "SingletonCookie"):
         _lock_path = os.path.join(chrome_user_data_dir, _lock)
         try:
-            if os.path.exists(_lock_path):
+            if os.path.lexists(_lock_path):
                 os.remove(_lock_path)
         except OSError:
             pass
