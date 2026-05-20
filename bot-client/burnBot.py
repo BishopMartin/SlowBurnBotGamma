@@ -473,28 +473,21 @@ try:
         _lkp_on = _lkp.upper() == "TRUE"
         _skl_on = _skl.upper() == "TRUE"
         _ans_on = _ans.upper() == "TRUE"
-        _log(client_log_line(
-            None, "cfg",
-            f"SlowBurnBot v{BOT_VERSION} · started {_started_at} · plan={_plan} · client {_sg} · {_client_label} · {_st or 'unknown'}",
-        ))
-        _log(client_log_line(None, "cfg", f"api_url  {api_url}"))
-        _log(client_log_line(None, "cfg", f"config_file  {config_file}"))
-        _log(client_log_line(
-            None, "cfg",
-            f"bot  debug={_dbg_on}  idle_delay={_idl}m  close_session={_cs_on}  close_exit={_ce_on}",
-        ))
-        _log(client_log_line(
-            None, "cfg",
-            f"session_web  like_suggested={_lks_on}  like_sponsored={_lkp_on}  skip_login_check={_skl_on}  login_tries={_lgt}",
-        ))
-        _log(client_log_line(
-            None, "cfg",
-            f"notify  type={_ant}  session={_ans_on}  email={mask_email(_ane)}  phone={mask_phone(_anp)}",
-        ))
+        _log(client_log_line(None, "config", f"SlowBurn Client v{BOT_VERSION}  id:[{_sg}] / tag:[{_client_label}] / system:[{_st or 'unknown'}]"))
+        _log(client_log_line("config", "api_url", f"[{api_url}]"))
+        _log(client_log_line("config", "config_file", f"[{config_file}]"))
+        _log(client_log_line("config", "debug-output", f"[{_dbg_on}]"))
+        _log(client_log_line("config", "script-loop-delay", f"[{_idl}m]"))
+        _log(client_log_line("config", "close_session", f"[{_cs_on}]"))
+        _log(client_log_line("config", "close_exit", f"[{_ce_on}]"))
+        _log(client_log_line("config", "like", f"suggested:[{_lks_on}] / sponsored:[{_lkp_on}]"))
+        _log(client_log_line("config", "login", f"skip_check:[{_skl_on}] / login_attempts:[{_lgt}]"))
+        _log(client_log_line("config", "notify[session]", f"type:[{_ant}] / email:[{mask_email(_ane)}] / phone:[{mask_phone(_anp)}]"))
+        _log(client_log_line("config", "notify[issues]", f"type:[{_ant}] / email:[{mask_email(_ane)}] / phone:[{mask_phone(_anp)}]"))
         _ua_display = (_ua[:120] + "…") if len(_ua) > 120 else _ua
         if _ua_display:
-            _log(client_log_line(None, "cfg", f"user_agent  {_ua_display}"))
-        _log(client_log_line(None, "api", f"subscription active (plan={_plan})"))
+            _log(client_log_line("config", "user_agent", f"[{_ua_display}]"))
+        _log(client_log_line("config", "api", f"Subscription:[active] / plan:[{_plan}]"))
         _beep('startup')
 
         # Redirect stdout so plain print() in any module routes to the TUI log

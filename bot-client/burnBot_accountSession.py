@@ -13,7 +13,7 @@ from burnBot_unfollowDatabase import do_unfollow_database
 from burnBot_followSuggested import do_follow_suggested
 from burnBot_followGroup import do_follow_group
 from burnBot_randomActions import do_random_action
-from burnBot_client_log import client_log_line, action_combo_slug
+from burnBot_client_log import client_log_line, action_combo_slug, action_target_label
 import burnBot_status as status_store
 
 # Global dictionary to store driver instances
@@ -76,7 +76,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
     global drivers
 
     time.sleep(1)
-    _print(client_log_line(account, "init", "thread start"))
+    _print(client_log_line(account, "browser", "start thread"))
 
     # User agent from local config
     accountAgent = CONFIG.get('browser-config', 'system_user_agent', fallback='').strip()
@@ -86,7 +86,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
     # Fetch initial settings from API
     settings = apiClient.get_account_settings(account_id)
     if not settings:
-        _print(client_log_line(account, "init", "ERROR: Could not fetch settings from API"))
+        _print(client_log_line(account, "browser", "ERROR: Could not fetch settings from API"))
         threads_active[idx].clear()
         return
 
@@ -111,7 +111,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
     # Signal initial setup complete (main loop may already show "running"; do not
     # overwrite with "idle" here — that caused the TUI to drop to idle during Chrome/login.)
     threads_active[idx].clear()
-    _print(client_log_line(account, "init", "setup complete, awaiting activation"))
+    _print(client_log_line(account, "browser", "setup complete and idle"))
 
     # Main loop: Idle <-> Active
     while not stop_flag.is_set():
@@ -127,7 +127,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     driver.current_url  # quick connectivity check
                     drivers[account] = driver
                     if is_bot_debug_enabled():
-                        _print(client_log_line(account, "init", "reusing existing browser session"))
+                        _print(client_log_line(account, "browser", "reusing existing browser session"))
                 except Exception:
                     driver = None
 
@@ -136,7 +136,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     driver = create_driver(account, accountAgent, account_idx=account_idx_for_port)
                     drivers[account] = driver
                     if is_bot_debug_enabled():
-                        _print(client_log_line(account, "init", "browser opened for session"))
+                        _print(client_log_line(account, "browser", "browser opened for session"))
                 except Exception as driver_error:
                     _print(client_log_line(account, "error", f"Failed to create Chrome driver: {driver_error}"))
                     apiClient.log_error(account_id, f"Chrome driver creation failed: {driver_error}")
@@ -165,10 +165,10 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     account_list_tab = settings.get("account_list_tab") or ""
 
                     if is_bot_debug_enabled():
-                        _print(client_log_line(account, "init", "Re-read settings from API"))
+                        _print(client_log_line(account, "browser", "Re-read settings from API"))
             except Exception as e:
                 if is_bot_debug_enabled():
-                    _print(client_log_line(account, "init", f"Error re-reading settings, using cached: {e}"))
+                    _print(client_log_line(account, "browser", f"Error re-reading settings, using cached: {e}"))
 
             # Track session start time
             session_start_time = datetime.now().astimezone()
@@ -178,7 +178,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
 
             # Check schedule before attempting login
             if not check_schedule(scheduleDays, scheduleStart, scheduleEnd):
-                _print(client_log_line(account, "session", "skip — outside scheduled time/day"))
+                _print(client_log_line(account, "summary", "skip — outside scheduled time/day"))
                 session_end_time = datetime.now().astimezone()
                 try:
                     run_seq = apiClient.get_run_count(account_id) + 1
@@ -187,7 +187,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                         "", 0, "", 0, "", 0, "", 0, "", run_sequence=run_seq
                     )
                 except Exception as e:
-                    _print(client_log_line(account, "session", f"Warning — failed to log skipped session: {e}"))
+                    _print(client_log_line(account, "summary", f"Warning — failed to log skipped session: {e}"))
                 threads_active[idx].clear()
                 continue
 
@@ -200,7 +200,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     threads_active[idx].clear()
                     continue
                 if current_run_count >= scheduleMax:
-                    _print(client_log_line(account, "session", f"skip — max runs per day reached ({current_run_count}/{scheduleMax})"))
+                    _print(client_log_line(account, "summary", f"skip — max runs per day reached ({current_run_count}/{scheduleMax})"))
                     threads_active[idx].clear()
                     continue
 
@@ -210,7 +210,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
 
             try:
                 if stop_flag.is_set():
-                    _print(client_log_line(account, "session", "shutdown requested — skipping login and bot script"))
+                    _print(client_log_line(account, "summary", "shutdown requested — skipping login and bot script"))
                     threads_active[idx].clear()
                     break
 
@@ -263,18 +263,18 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     try:
                         main_window = driver.current_window_handle
                         if is_bot_debug_enabled():
-                            _print(client_log_line(account, "session", "ready to execute actions"))
+                            _print(client_log_line(account, "summary", "ready to execute actions"))
                     except Exception:
                         main_window = None
 
                     try:
                         _next_run = apiClient.get_run_count(account_id) + 1
                         if scheduleMax > 0:
-                            _print(client_log_line(account, "session", f"── run {_next_run}/{scheduleMax} ──"))
+                            _print(client_log_line(account, "[account]", f"Starting Session [{_next_run}/{scheduleMax}]"))
                         else:
-                            _print(client_log_line(account, "session", f"── run {_next_run} ──"))
+                            _print(client_log_line(account, "[account]", f"Starting Session [{_next_run}]"))
                     except Exception:
-                        _print(client_log_line(account, "session", "── session start ──"))
+                        _print(client_log_line(account, "[account]", "Starting Session"))
 
                     # Process Actions
                     _action_slots_tuples = [
@@ -292,14 +292,15 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
 
                         if _enabled and _act_type:
                             _total = _fixed + random.randint(0, _variable)
-                            _combo = action_combo_slug(_act_type, _act_target) or f"{(_act_type or '').strip()}-{(_act_target or '').strip()}".strip("-") or "unknown"
-                            _print(client_log_line(account, f"action{_slot_num}", f"{_combo} total={_total}"))
+                            _act_label = action_target_label(_act_type, _act_target)
+                            _act_scope = f"action[{_slot_num}]"
+                            _print(client_log_line(account, _act_scope, f"{_act_label}-Attempting[{_total:02d}]"))
                             status_store.update(account, status="running", last_action=f"{_act_type} · {_act_target}")
 
                             try:
                                 if _act_type == "like" and _act_target in ["home", "homepage posts", "post[homepage]", "posts [homepage]"]:
                                     actions_run += 1
-                                    _count, _errs = do_like_posts_home(driver, account, _total, apiClient, account_id, _print=_print)
+                                    _count, _errs = do_like_posts_home(driver, account, _total, apiClient, account_id, _print=_print, log_scope=_act_scope, action_label=_act_label)
                                     if _errs:
                                         moduleErrorsLog += _errs
 
@@ -307,15 +308,15 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                                     _topics = action_topics
                                     if _topics:
                                         actions_run += 1
-                                        _count, _errs = do_like_posts_topic(driver, account, _total, apiClient, account_id, _topics, _print=_print)
+                                        _count, _errs = do_like_posts_topic(driver, account, _total, apiClient, account_id, _topics, _print=_print, log_scope=_act_scope, action_label=_act_label)
                                         if _errs:
                                             moduleErrorsLog += _errs
                                     else:
-                                        _print(client_log_line(account, f"action{_slot_num}", f"{action_combo_slug(_act_type, _act_target) or 'like-topics'} ERROR: No topics specified"))
+                                        _print(client_log_line(account, _act_scope, f"{_act_label} ERROR: No topics specified"))
 
                                 elif _act_type == "follow" and _act_target in ["suggested", "home", "homepage", "suggested users"]:
                                     actions_run += 1
-                                    _count, _errs = do_follow_suggested(driver, account, _total, apiClient, account_id, _print=_print)
+                                    _count, _errs = do_follow_suggested(driver, account, _total, apiClient, account_id, _print=_print, log_scope=_act_scope, action_label=_act_label)
                                     if _errs:
                                         moduleErrorsLog += _errs
 
@@ -325,26 +326,28 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                                         actions_run += 1
                                         _count, _errs = do_follow_group(
                                             driver, account, _total, apiClient, account_id,
-                                            _act_target, _target_accounts, _print=_print
+                                            _act_target, _target_accounts, _print=_print,
+                                            log_scope=_act_scope, action_label=_act_label,
                                         )
                                         if _errs:
                                             moduleErrorsLog += _errs
                                     else:
-                                        _print(client_log_line(account, f"action{_slot_num}", f"{action_combo_slug(_act_type, _act_target) or 'follow-group'} ERROR: No target accounts specified"))
+                                        _print(client_log_line(account, _act_scope, f"{_act_label} ERROR: No target accounts specified"))
 
                                 elif _act_type == "unfollow" and _act_target in ["database", "previous follows"]:
                                     actions_run += 1
                                     _count, _errs = do_unfollow_database(
                                         driver, account, _total, apiClient, account_id, unfollow_days,
                                         _print=_print,
-                                        log_scope=action_combo_slug("unfollow", _act_target) or "unfollow-database",
+                                        log_scope=_act_scope,
+                                        action_label=_act_label,
                                     )
                                     if _errs:
                                         moduleErrorsLog += _errs
 
                                 else:
                                     if is_bot_debug_enabled():
-                                        _print(client_log_line(account, f"action{_slot_num}", f"placeholder {_act_type}/{_act_target}"))
+                                        _print(client_log_line(account, _act_scope, f"placeholder {_act_type}/{_act_target}"))
                                     actions_run += 1
 
                             except Exception as action_error:
@@ -353,10 +356,11 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                                 _count = 0
 
                         elif _enabled:
-                            _print(client_log_line(account, f"action{_slot_num}", "enabled but no type"))
+                            _print(client_log_line(account, f"action[{_slot_num}]", "enabled but no type"))
                         else:
-                            _display = _act_type if _act_type else "no type"
-                            _print(client_log_line(account, f"action{_slot_num}", f"disabled — {_display}"))
+                            _act_label = action_target_label(_act_type, _act_target) if _act_type else None
+                            _msg = f"{_act_label}-disabled" if _act_label else "disabled"
+                            _print(client_log_line(account, f"action[{_slot_num}]", _msg))
 
                         action_counts[_slot_idx] = _count
 
@@ -364,7 +368,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                         _remaining = _action_slots_tuples[_slot_idx + 1:]
                         if any(_rem_en and _rem_ty for _, _rem_en, _rem_ty, _, _, _ in _remaining):
                             try:
-                                do_random_action(driver, account)
+                                do_random_action(driver, account, _print=_print)
                             except Exception:
                                 pass
 
@@ -422,10 +426,8 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     _mm, _ss = divmod(_secs, 60)
                     _hh, _mm = divmod(_mm, 60)
                     _dur = f"{_hh}h{_mm}m{_ss}s" if _hh else f"{_mm}m{_ss}s"
-                    _print(client_log_line(
-                        account, "session",
-                        f"done run {_run_label} · actions={actions_run} · ~{_dur}",
-                    ))
+                    _print(client_log_line(account, "summary", f"Session[{_run_label}] - {actions_run} action(s) executed"))
+                    _print(client_log_line(account, "summary", f"Session[{_run_label}] - DONE"))
                     status_store.update(account, status="idle", last_action="session complete", last_run=session_end_time.strftime("%H:%M"))
 
                 # Close or keep browser based on config
@@ -442,7 +444,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                             time.sleep(0.5)
                             kill_chrome_processes_for_profile(chrome_user_data_dir, account)
                             if is_bot_debug_enabled():
-                                _print(client_log_line(account, "init", "browser closed after session"))
+                                _print(client_log_line(account, "browser", "browser closed after session"))
                         except Exception:
                             pass
                     drivers.pop(account, None)
@@ -453,7 +455,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
             time.sleep(5)
 
     # Cleanup on exit
-    _print(client_log_line(account, "init", "shutting down…"))
+    _print(client_log_line(account, "browser", "shutting down…"))
 
     close_browser_exit = True
     if CONFIG.has_section('browser-session'):
@@ -474,7 +476,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
 
                         extra_windows = [h for h in window_handles if h != main_window]
                         if extra_windows:
-                            _print(client_log_line(account, "init", f"Closing {len(extra_windows)} extra browser window(s)…"))
+                            _print(client_log_line(account, "browser", f"Closing {len(extra_windows)} extra browser window(s)…"))
                             for handle in extra_windows:
                                 try:
                                     driver.switch_to.window(handle)
@@ -489,7 +491,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                             time.sleep(0.5)
                 except Exception:
                     driver_still_connected = False
-                    _print(client_log_line(account, "init", "Driver connection already lost, will kill Chrome processes directly"))
+                    _print(client_log_line(account, "browser", "Driver connection already lost, will kill Chrome processes directly"))
 
                 if driver_still_connected:
                     try:
@@ -502,12 +504,12 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     chrome_user_data_dir = build_user_data_dir(account)
                     time.sleep(0.5)
                     kill_chrome_processes_for_profile(chrome_user_data_dir, account)
-                    _print(client_log_line(account, "init", "thread exiting, browser closed."))
+                    _print(client_log_line(account, "browser", "thread exiting, browser closed."))
                 except Exception as e:
                     _print(client_log_line(account, "error", f"Error killing Chrome processes: {e}"))
             else:
                 try:
-                    _print(client_log_line(account, "init", "thread exiting, browser ready."))
+                    _print(client_log_line(account, "browser", "thread exiting, browser ready."))
                 except Exception as e:
                     _print(client_log_line(account, "error", f"Error during disconnect: {e}"))
         except Exception as e:

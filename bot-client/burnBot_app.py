@@ -54,6 +54,7 @@ class DefaultBgRichLog(RichLog):
         return [self._strip_default_bg(strip) for strip in super().render_lines(crop)]
 
 import burnBot_status as status_store
+from burnBot_client_log import client_log_line
 
 
 class CmdHint(Static):
@@ -115,6 +116,7 @@ class BurnBotApp(App):
         scrollbar-background: transparent;
         scrollbar-size-vertical: 0;
         background: transparent !important;
+        padding-left: 1;
     }
 
     #settings-overlay {
@@ -398,7 +400,7 @@ class BurnBotApp(App):
             header.append("]", style=_W)
         else:
             header.append("[", style=_W)
-            header.append("RUNNING", style="bold #adcc00")
+            header.append("ACTIVE", style="bold #adcc00")
             header.append("]", style=_W)
 
         filled = status_store.seconds_since_heartbeat() % 15
@@ -682,11 +684,11 @@ class BurnBotApp(App):
             self.exit()
         elif cmd == "/stop":
             status_store.set_bot_paused(True)
-            self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Pausing bot execution")
+            status_store.add_log(client_log_line(None, "terminal-command", "Pausing bot execution"))
             self._refresh_header()
         elif cmd == "/start":
             status_store.set_bot_paused(False)
-            self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Resuming bot execution")
+            status_store.add_log(client_log_line(None, "terminal-command", "Resuming bot execution"))
             self._refresh_header()
         elif cmd == "/settings":
             self._open_settings()
@@ -698,17 +700,17 @@ class BurnBotApp(App):
             try:
                 with open(fname, "w", encoding="utf-8") as f:
                     f.write("\n".join(self._log_lines))
-                self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Log saved → {os.path.abspath(fname)}")
+                status_store.add_log(client_log_line(None, "terminal-command", f"Log saved: {os.path.abspath(fname)}"))
             except Exception as e:
-                self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Save failed: {e}")
+                status_store.add_log(client_log_line(None, "terminal-command", f"Save failed: {e}"))
         elif cmd == "/copy-log":
             try:
                 self.copy_to_clipboard("\n".join(self._log_lines))
-                self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Log copied to clipboard")
+                status_store.add_log(client_log_line(None, "terminal-command", "Log copied to clipboard"))
             except Exception as e:
-                self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Copy failed: {e}")
+                status_store.add_log(client_log_line(None, "terminal-command", f"Copy failed: {e}"))
         else:
-            self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Unknown command '{cmd}' — type /help for list")
+            status_store.add_log(client_log_line(None, "terminal-command", f"Unknown command '{cmd}' — type /help for list"))
 
     @on(Input.Submitted)
     def handle_command(self, event: Input.Submitted) -> None:

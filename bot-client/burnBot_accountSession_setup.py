@@ -10,6 +10,7 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from webdriver_manager.chrome import ChromeDriverManager
 from burnBot_config import CONFIG, resolve_path
+from burnBot_client_log import client_log_line
 
 
 def is_bot_debug_enabled():
@@ -1372,7 +1373,7 @@ def create_driver(account, accountAgent, account_idx=0):
                     else:
                         print(f"- [{account}]: Failed to connect to existing Chrome, will create new instance")
             
-            print(f"- [{account}]: [setup] create chrome driver - attempt[{attempt + 1}/{max_retries}]")
+            print(client_log_line(account, "browser", f"create chrome driver -attempt[{attempt + 1}/{max_retries}]"))
             
             # CRITICAL: Create fresh ChromeOptions for each attempt
             options = setup_chrome_options(account, accountAgent, chrome_user_data_dir, debugging_port)
@@ -1758,7 +1759,9 @@ def create_driver(account, accountAgent, account_idx=0):
             try:
                 windows = driver.window_handles
                 window_text = "window" if len(windows) == 1 else "windows"
-                print(f"- [{account}]: [setup] chrome driver connected - {len(windows)} {window_text}")
+                _ordinals = ["1st", "2nd", "3rd"]
+                _ordinal = _ordinals[attempt] if attempt < len(_ordinals) else f"{attempt + 1}th"
+                print(client_log_line(account, "browser", f"chrome driver connected on {_ordinal} attempt"))
             except Exception as verify_error:
                 print(f"- [{account}]: Driver created but connection verification failed: {verify_error}")
                 print(f"- [{account}]: This may indicate Chrome crashed or failed to start properly")

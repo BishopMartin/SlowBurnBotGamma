@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Optional
 
 ACCOUNT_COL = 18
-SCOPE_COL = 16
+PREFIX_COL = 32
 
 
 def log_sanitize(text: str) -> str:
@@ -41,15 +41,17 @@ def _truncate_account(name: str, width: int) -> str:
 
 
 def client_log_line(account: Optional[str], scope: str, message: str = "") -> str:
-    """One log line: HH:MM:SS  account  scope  message (account column omitted when empty)."""
+    """One log line: HH:MM:SS [account]-scope: <aligned message>"""
     ts = datetime.now().strftime("%H:%M:%S")
-    sc = log_sanitize((scope or "").strip())[:32]
+    sc = log_sanitize((scope or "").strip())
     msg = log_sanitize(str(message))
     acct_raw = (account or "").strip()
     if acct_raw:
         acct = _truncate_account(acct_raw, ACCOUNT_COL)
-        return f"{ts}  {acct:<{ACCOUNT_COL}}  {sc:<{SCOPE_COL}}  {msg}".rstrip()
-    return f"{ts}  {sc:<{SCOPE_COL}}  {msg}".rstrip()
+        prefix = f"[{acct}]-{sc}:"
+    else:
+        prefix = f"[{sc}]:"
+    return f"{ts} {prefix:<{PREFIX_COL}} {msg}".rstrip()
 
 
 def action_combo_slug(act_type: str, act_target: str) -> Optional[str]:
@@ -77,6 +79,32 @@ def action_combo_slug(act_type: str, act_target: str) -> Optional[str]:
         if g == "previous follows":
             return "unfollow-previous"
     return None
+
+
+def action_target_label(act_type: str, act_target: str) -> str:
+    """verb[target] slug for the log taxonomy (e.g. 'like-post[homepage]', 'follow[suggested]')."""
+    t = (act_type or "").strip().lower()
+    g = (act_target or "").strip().lower()
+    if t == "like":
+        if g in ("home", "homepage posts", "post[homepage]", "posts [homepage]"):
+            return "like-post[homepage]"
+        if g in ("post[topics]", "posts [topics]"):
+            return "like-post[topics]"
+    if t == "follow":
+        if g in ("suggested", "home", "homepage", "suggested users"):
+            return "follow[suggested]"
+        if "follower" in g:
+            return "follow[followers]"
+        if "following" in g:
+            return "follow[following]"
+    if t == "unfollow":
+        if g == "database":
+            return "unfollow[database]"
+        if g == "previous follows":
+            return "unfollow[previous]"
+    if t and g:
+        return f"{t}[{g}]"
+    return t or g or "action"
 
 
 def follow_group_variant_label(group_type: str) -> str:

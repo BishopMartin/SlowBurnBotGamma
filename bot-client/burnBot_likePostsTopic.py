@@ -143,7 +143,7 @@ def _open_post_from_results(driver, account, post_url):
         )
     except Exception:
         if is_bot_debug_enabled():
-            _p(client_log_line(account, "like-topics", f"debug could not find result tile for [{post_path}]"))
+            _p(client_log_line(account, _scope, f"debug could not find result tile for [{post_path}]"))
         return False
 
     try:
@@ -172,7 +172,7 @@ def _open_post_from_results(driver, account, post_url):
 
     if not clicked:
         if is_bot_debug_enabled():
-            _p(client_log_line(account, "like-topics", f"debug result tile click failed for [{post_path}]"))
+            _p(client_log_line(account, _scope, f"debug result tile click failed for [{post_path}]"))
         return False
 
     try:
@@ -186,7 +186,7 @@ def _open_post_from_results(driver, account, post_url):
         return True
     except Exception:
         if is_bot_debug_enabled():
-            _p(client_log_line(account, "like-topics", f"debug post did not finish opening for [{post_path}]"))
+            _p(client_log_line(account, _scope, f"debug post did not finish opening for [{post_path}]"))
         return False
 
 
@@ -261,7 +261,7 @@ def _close_open_post(driver, account, results_url):
         pass
 
     if is_bot_debug_enabled():
-        print(f"- [{account}]: [like][topics][debug] - could not return to results grid")
+        _p(client_log_line(account, "like-topics", "debug: could not return to results grid"))
     return False
 
 
@@ -330,9 +330,9 @@ def _open_topic_search_results(driver, account, topic):
                 time.sleep(random.uniform(2, 4))
                 search_clicked = True
                 if is_bot_debug_enabled():
-                    _p(client_log_line(account, "like-topics", f"using direct search page fallback for [{topic}]"))
+                    _p(client_log_line(account, _scope, f"using direct search page fallback for [{topic}]"))
             except Exception:
-                _p(client_log_line(account, "like-topics", f"error could not open search for [{topic}]"))
+                _p(client_log_line(account, _scope, f"error could not open search for [{topic}]"))
                 return False
 
         search_input = None
@@ -400,7 +400,7 @@ def _open_topic_search_results(driver, account, topic):
                 search_input = None
 
         if not search_input:
-            _p(client_log_line(account, "like-topics", f"error search box not found for [{topic}]"))
+            _p(client_log_line(account, _scope, f"error search box not found for [{topic}]"))
             return False
 
         try:
@@ -482,13 +482,16 @@ def _open_topic_search_results(driver, account, topic):
     except Exception as e:
         error_type = type(e).__name__
         error_msg = str(e).split("\n")[0]
-        print(f"- [{account}]: [like][topics] - [error] search failed for [{topic}] - {error_type}: {error_msg[:80]}")
+        _p(client_log_line(account, "like-topics", f"error search failed for [{topic}] - {error_type}: {error_msg[:80]}"))
         return False
 
 
-def do_like_posts_topic(driver, account, target_count, apiClient=None, account_id=None, topics=None, _print=None):
+def do_like_posts_topic(driver, account, target_count, apiClient=None, account_id=None, topics=None, _print=None, log_scope=None, action_label=None):
     global _p
     _p = _print if _print is not None else _builtins.print
+    _scope = log_scope or "like-topics"
+    _lbl = f"{action_label}-" if action_label else ""
+    _done_lbl = (action_label[0].upper() + action_label[1:]) if action_label else "Done"
     """
     Like posts from Instagram topic/hashtag pages.
 
@@ -517,7 +520,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
 
     if not topic_list:
         msg = "[error] no topics configured for post[topics] action"
-        print(f"- [{account}]: [like][topics] - {msg}")
+        _p(client_log_line(account, _scope, f"{_lbl}{msg}"))
         moduleErrorsLog += f"like[topics]: {msg}\n"
         return 0, moduleErrorsLog
 
@@ -531,9 +534,9 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
         try:
             ignore_list = apiClient.get_ignore_handles()
             if ignore_list and is_bot_debug_enabled():
-                _p(client_log_line(account, "like-topics", f"loaded {len(ignore_list)} ignored account(s)"))
+                _p(client_log_line(account, _scope, f"loaded {len(ignore_list)} ignored account(s)"))
         except Exception as e:
-            _p(client_log_line(account, "like-topics", f"Warning: Could not load ignore list: {e}"))
+            _p(client_log_line(account, _scope, f"Warning: Could not load ignore list: {e}"))
 
     target_formatted = f"{target_count:02d}"
     processed_urls = set()  # Track post URLs to avoid double-liking across topics
@@ -545,7 +548,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
             if likes_performed >= target_count:
                 break
 
-            _p(client_log_line(account, "like-topics", f"searching topic [{topic}]"))
+            _p(client_log_line(account, _scope, f"searching topic [{topic}]"))
 
             if not _open_topic_search_results(driver, account, topic):
                 moduleErrorsLog += f"like[topics]: [error] could not open search results for [{topic}]\n"
@@ -589,7 +592,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
 
                 if not new_link_urls:
                     if scrolls == 0:
-                        _p(client_log_line(account, "like-topics", f"no posts found for topic [{topic}]"))
+                        _p(client_log_line(account, _scope, f"no posts found for topic [{topic}]"))
                     break
 
                 for post_url in new_link_urls:
@@ -609,7 +612,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                         post_opened = _open_post_from_results(driver, account, post_url)
                         if not post_opened:
                             if is_bot_debug_enabled():
-                                _p(client_log_line(account, "like-topics", f"skip could not open [{post_url}] from results"))
+                                _p(client_log_line(account, _scope, f"skip could not open [{post_url}] from results"))
                             continue
 
                         article = WebDriverWait(driver, 8).until(
@@ -620,7 +623,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                         # Check ignore list
                         if article_account in ignore_list:
                             display_name = article_account[:15] if len(article_account) > 15 else article_account
-                            _p(client_log_line(account, "like-topics", f"skip @{display_name} reason=ignored"))
+                            _p(client_log_line(account, _scope, f"{_lbl}[-skip] - [{display_name}] - [ignored]"))
                             continue
 
                         # Skip sponsored posts if like_sponsored is disabled
@@ -634,7 +637,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                                     ))
                                 if is_ad:
                                     display_name = article_account[:15] if len(article_account) > 15 else article_account
-                                    _p(client_log_line(account, "like-topics", f"skip @{display_name} reason=sponsored"))
+                                    _p(client_log_line(account, _scope, f"{_lbl}[-skip] - [{display_name}] - [sponsored]"))
                                     continue
                             except Exception:
                                 pass
@@ -691,18 +694,18 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                                         )
                                         likes_performed += 1
                                         count_formatted = f"{likes_performed:02d}"
-                                        _p(client_log_line(account, "like-topics", f"{count_formatted}/{target_formatted} @{display_name} topic={topic}"))
+                                        _p(client_log_line(account, _scope, f"{_lbl}[{count_formatted}/{target_formatted}] - [{display_name}]"))
                                         time.sleep(random.randint(6, 8))
                                     except Exception:
                                         if is_bot_debug_enabled():
-                                            _p(client_log_line(account, "like-topics", f"skip @{display_name} reason=like_state_unchanged"))
+                                            _p(client_log_line(account, _scope, f"skip @{display_name} reason=like_state_unchanged"))
                                 elif is_bot_debug_enabled():
-                                    _p(client_log_line(account, "like-topics", f"skip @{display_name} reason=like_click_failed"))
+                                    _p(client_log_line(account, _scope, f"skip @{display_name} reason=like_click_failed"))
                             else:
                                 if is_bot_debug_enabled():
                                     display_name = article_account[:15] if len(article_account) > 15 else article_account
                                     state_label = like_status if like_status else "no like control"
-                                    _p(client_log_line(account, "like-topics", f"already handled @{display_name} topic={topic} state={state_label}"))
+                                    _p(client_log_line(account, _scope, f"already handled @{display_name} topic={topic} state={state_label}"))
 
                         except (NoSuchElementException, TimeoutException):
                             pass
@@ -713,7 +716,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                         error_type = type(e).__name__
                         msg = str(e).split('\n')[0]
                         if is_bot_debug_enabled():
-                            _p(client_log_line(account, "like-topics", f"error {error_type}: {msg[:80]}"))
+                            _p(client_log_line(account, _scope, f"error {error_type}: {msg[:80]}"))
                         moduleErrorsLog += f"like[topics]: {error_type}: {msg}\n"
                         continue
                     finally:
@@ -737,10 +740,10 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                 msg = "[error] no topic posts liked"
             else:
                 msg = "[error] limited topic posts liked"
-            _p(client_log_line(account, "like-topics", f"{msg} ({likes_performed}/{target_count})"))
+            _p(client_log_line(account, _scope, f"{_lbl}Incomplete[{likes_performed}/{target_count}]"))
             moduleErrorsLog += f"like[topics]: {msg} ({likes_performed}/{target_count})\n"
         else:
-            _p(client_log_line(account, "like-topics", f"done {likes_performed:02d}/{target_count:02d} liked={likes_performed}"))
+            _p(client_log_line(account, _scope, f"{_done_lbl}-Completed[{likes_performed}/{target_count}]"))
 
     except Exception as error:
         noteError = f"do_like_posts_topic catch all: {str(error)}"

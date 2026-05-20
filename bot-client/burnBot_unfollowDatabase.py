@@ -106,14 +106,17 @@ def search_for_profile(driver, username, target_username):
         return False, None
 
 
-def do_unfollow_database(driver, account, target_count, apiClient, account_id, unfollow_days=30, _print=None, log_scope="unfollow-database"):
+def do_unfollow_database(driver, account, target_count, apiClient, account_id, unfollow_days=30, _print=None, log_scope="unfollow-database", action_label=None):
     """Unfollow accounts from follow targets database via API.
 
-    log_scope: TUI token, e.g. unfollow-database vs unfollow-previous (same code path).
+    log_scope: TUI scope token, e.g. action[N] from the session layer.
+    action_label: verb[target] label, e.g. unfollow[database].
     """
     global _p
     _p = _print if _print is not None else _builtins.print
     _log_scope = (log_scope or "unfollow-database").strip() or "unfollow-database"
+    _lbl = f"{action_label}-" if action_label else ""
+    _done_lbl = (action_label[0].upper() + action_label[1:]) if action_label else "Done"
     unfollows_performed = 0
     moduleErrorsLog = ""
 
@@ -270,7 +273,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
 
                     _p(client_log_line(
                         account, _log_scope,
-                        f"{count_formatted}/{target_formatted} @{loop_username} follow_back={follow_back_display} done",
+                        f"{_lbl}[{count_formatted}/{target_formatted}] - [{loop_username}]",
                     ))
 
                     # Update follow target via API
@@ -294,7 +297,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
                 # Still mark as done in database to avoid checking again
                 _p(client_log_line(
                     account, _log_scope,
-                    f"{count_formatted}/{target_formatted} @{loop_username} follow_back={follow_back_display} skip",
+                    f"{_lbl}[-skip] - [{loop_username}] - [not in following]",
                 ))
 
                 # Update follow target via API
@@ -312,9 +315,9 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
 
         # Summary message
         if unfollows_performed < target_count:
-            _p(client_log_line(account, _log_scope, f"completed {unfollows_performed} (no more eligible accounts)"))
+            _p(client_log_line(account, _log_scope, f"{_lbl}Incomplete[{unfollows_performed}/{target_count}]"))
         else:
-            _p(client_log_line(account, _log_scope, f"done {unfollows_performed:02d}/{target_count:02d} target reached"))
+            _p(client_log_line(account, _log_scope, f"{_done_lbl}-Completed[{unfollows_performed}/{target_count}]"))
 
         # Close extra tabs and return to main window
         driver.switch_to.window(followers_window)

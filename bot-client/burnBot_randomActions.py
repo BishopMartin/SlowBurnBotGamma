@@ -53,7 +53,7 @@ def do_random_action(driver, account, _print=None):
     except Exception:
         # Never break main bot flow due to random action issues
         try:
-            _p(client_log_line(account, "rand", "warning: dispatcher failed"))
+            _p(client_log_line(account, "random", "warning: dispatcher failed"))
         except Exception:
             pass
 
@@ -72,7 +72,7 @@ def do_random_explore(driver, account, posts_to_click: int | None = None):
         posts_to_click = random.randint(1, 3)
 
     try:
-        _p(client_log_line(account, "rand-explore", f"starting ({posts_to_click} post(s))"))
+        _p(client_log_line(account, "random", f"explore[post]-Attempting[{posts_to_click:02d}]"))
 
         driver.get("https://www.instagram.com/explore/")
         WebDriverWait(driver, 15).until(lambda d: d.execute_script("return document.readyState") == "complete")
@@ -179,11 +179,11 @@ def do_random_explore(driver, account, posts_to_click: int | None = None):
                     pass
                 _human_delay(3, 6)
 
-        _p(client_log_line(account, "rand-explore", f"complete ({opened}/{posts_to_click})"))
+        _p(client_log_line(account, "random", f"explore[post]-Completed[{opened}/{posts_to_click}]"))
 
     except Exception:
         try:
-            _p(client_log_line(account, "rand-explore", "warning: action failed"))
+            _p(client_log_line(account, "random", "explore[post]-warning: action failed"))
         except Exception:
             pass
 
@@ -202,7 +202,8 @@ def do_random_actions(driver, account, reels_to_watch: int = 2):
         reels_to_watch = 2
 
     try:
-        _p(client_log_line(account, "rand-reels", f"starting ({reels_to_watch} reel(s))"))
+        _p(client_log_line(account, "random", f"watch[reels]-Attempting[{reels_to_watch:02d}]"))
+        reels_watched = 0
 
         driver.get("https://www.instagram.com/reels/")
         WebDriverWait(driver, 15).until(lambda d: d.execute_script("return document.readyState") == "complete")
@@ -234,6 +235,8 @@ def do_random_actions(driver, account, reels_to_watch: int = 2):
             except Exception:
                 pass
 
+            reels_watched += 1
+
             # Move to next reel (best-effort)
             if i < reels_to_watch - 1:
                 try:
@@ -251,12 +254,12 @@ def do_random_actions(driver, account, reels_to_watch: int = 2):
 
                 _human_delay(3, 7)
 
-        _p(client_log_line(account, "rand-reels", "complete"))
+        _p(client_log_line(account, "random", f"watch[reels]-Completed[{reels_watched}/{reels_to_watch}]"))
 
     except Exception:
         # Random actions should never crash the main follow flow
         try:
-            _p(client_log_line(account, "rand-reels", "warning: action failed"))
+            _p(client_log_line(account, "random", "watch[reels]-warning: action failed"))
         except Exception:
             pass
 
