@@ -259,23 +259,23 @@ export default function DashboardPage() {
           <table className="w-full">
             <thead>
               <tr className="text-left text-base04 border-b border-base03 bg-base01">
-                <th className="px-[6px] py-2 font-normal">Client</th>
-                <th className="px-[6px] py-2 font-normal">Name</th>
-                <th className="px-[6px] py-2 font-normal">OS</th>
-                <th className="px-[6px] py-2 font-normal">Status</th>
-                <th className="px-[6px] py-2 font-normal">State</th>
-                <th className="px-[6px] py-2 font-normal whitespace-nowrap">Current Action</th>
-                <th className="px-[6px] py-2 font-normal whitespace-nowrap">Last Session</th>
+                <th className="px-2.5 py-2 font-normal">Client</th>
+                <th className="px-2.5 py-2 font-normal">Name</th>
+                <th className="px-2.5 py-2 font-normal">OS</th>
+                <th className="px-2.5 py-2 font-normal">Status</th>
+                <th className="px-2.5 py-2 font-normal">State</th>
+                <th className="px-2.5 py-2 font-normal whitespace-nowrap">Current Action</th>
+                <th className="px-2.5 py-2 font-normal whitespace-nowrap">Last Session</th>
                 <th className="w-full"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-base03">
               {clientStatus.map((cs) => (
                 <tr key={cs.client_id} className="hover:bg-base02 transition-colors">
-                  <td className="px-[6px] py-2 text-base05 whitespace-nowrap">{String(cs.client_id).padStart(2, "0")}</td>
-                  <td className="px-[6px] py-2 text-base04 whitespace-nowrap">{cs.client_name || "----"}</td>
-                  <td className="px-[6px] py-2 text-base04 whitespace-nowrap">{cs.system_type || "----"}</td>
-                  <td className="px-[6px] py-2 whitespace-nowrap">
+                  <td className="px-2.5 py-2 text-base05 whitespace-nowrap">{String(cs.client_id).padStart(2, "0")}</td>
+                  <td className="px-2.5 py-2 text-base04 whitespace-nowrap">{cs.client_name || "----"}</td>
+                  <td className="px-2.5 py-2 text-base04 whitespace-nowrap">{cs.system_type || "----"}</td>
+                  <td className="px-2.5 py-2 whitespace-nowrap">
                     {cs.connected ? (
                       <span className="text-status-ok">connected</span>
                     ) : (
@@ -284,7 +284,7 @@ export default function DashboardPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-[6px] py-2 whitespace-nowrap">
+                  <td className="px-2.5 py-2 whitespace-nowrap">
                     {!cs.connected
                       ? <span className="text-base04">------</span>
                       : cs.status === "running"
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                       : <span className="text-base04">{cs.status || "----"}</span>
                     }
                   </td>
-                  <td className="px-[6px] py-2 text-base04 whitespace-nowrap">
+                  <td className="px-2.5 py-2 text-base04 whitespace-nowrap">
                     {!cs.connected
                       ? "------"
                       : cs.status === "running" && cs.current_account
@@ -305,7 +305,7 @@ export default function DashboardPage() {
                       ? "session delay"
                       : "------"}
                   </td>
-                  <td className="px-[6px] py-2 text-base04 whitespace-nowrap">
+                  <td className="px-2.5 py-2 text-base04 whitespace-nowrap">
                     {cs.last_session_account || "------"}
                   </td>
                   <td></td>
