@@ -20,25 +20,38 @@ from rich.color import Color as RichColor
 
 
 class DefaultBgRichLog(RichLog):
-    """RichLog that renders with the terminal's default background (\033[49m)."""
+    """RichLog that renders the log pane with the terminal's default background.
+
+    Textual's CSS ``background: transparent`` is not terminal-transparent: it
+    blends with an internal black base color in the widget style pass. Applying
+    ``bgcolor=default`` in ``render_line`` is too early because Textual applies
+    the widget background *after* ``render_line``. Post-process ``render_lines``
+    instead so Rich emits ANSI 49 (reset background) for every cell in the log
+    pane after Textual has finished composing CSS styles.
+    """
 
     DEFAULT_CSS = """
     DefaultBgRichLog {
         background: transparent;
         scrollbar-background: transparent;
+        scrollbar-size-vertical: 0;
         color: $foreground;
         overflow-y: scroll;
     }
     """
 
-    def render_line(self, y: int) -> Strip:
-        strip = super().render_line(y)
-        default_bg = RichStyle(bgcolor=RichColor.default())
+    _DEFAULT_BG = RichStyle(bgcolor=RichColor.default())
+
+    @classmethod
+    def _strip_default_bg(cls, strip: Strip) -> Strip:
         segments = [
-            Segment(seg.text, (seg.style + default_bg) if seg.style else default_bg)
-            for seg in strip
+            Segment(text, style + cls._DEFAULT_BG if style else cls._DEFAULT_BG, control)
+            for text, style, control in strip
         ]
-        return Strip(segments)
+        return Strip(segments, strip.cell_length)
+
+    def render_lines(self, crop):
+        return [self._strip_default_bg(strip) for strip in super().render_lines(crop)]
 
 import burnBot_status as status_store
 
@@ -100,6 +113,7 @@ class BurnBotApp(App):
     #log {
         scrollbar-color: #9A968B;
         scrollbar-background: transparent;
+        scrollbar-size-vertical: 0;
         background: transparent !important;
     }
 
