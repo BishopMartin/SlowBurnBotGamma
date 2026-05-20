@@ -259,7 +259,7 @@ class BurnBotApp(App):
         Binding("escape", "clear_input", "Clear", show=False),
     ]
 
-    _COMMANDS = ["/exit", "/help", "/save-log", "/settings", "/start", "/stop"]
+    _COMMANDS = ["/copy-log", "/exit", "/help", "/save-log", "/settings", "/start", "/stop"]
 
     _HELP_CMDS = [
         ("/stop",     "Stop all sessions (bot stays running)"),
@@ -267,6 +267,7 @@ class BurnBotApp(App):
         ("/exit",     "Fully exit the bot"),
         ("/settings", "Open settings panel"),
         ("/save-log", "Save a plain text copy of the log"),
+        ("/copy-log", "Copy the log to the clipboard"),
         ("/help",     "Show this screen"),
         ("Esc",       "Return to main view"),
     ]
@@ -700,6 +701,12 @@ class BurnBotApp(App):
                 self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Log saved → {os.path.abspath(fname)}")
             except Exception as e:
                 self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Save failed: {e}")
+        elif cmd == "/copy-log":
+            try:
+                self.copy_to_clipboard("\n".join(self._log_lines))
+                self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Log copied to clipboard")
+            except Exception as e:
+                self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Copy failed: {e}")
         else:
             self._write_log(f"[{status_store.DIM}][[bot]][[user command]][/] - Unknown command '{cmd}' — type /help for list")
 
