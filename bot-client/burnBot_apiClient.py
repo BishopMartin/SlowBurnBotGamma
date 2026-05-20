@@ -209,7 +209,7 @@ class ApiClient:
     # Heartbeat
     # ------------------------------------------------------------------
 
-    def send_heartbeat(self, client_id, system_type, ip_address, status, current_account=None):
+    def send_heartbeat(self, client_id, system_type, ip_address, status, current_account=None, bot_version=""):
         """Send a heartbeat to the backend. Non-critical — failures are silently ignored."""
         try:
             self._request("POST", "/bot/heartbeat", json={
@@ -218,6 +218,7 @@ class ApiClient:
                 "ip_address": ip_address or "",
                 "status": status or "idle",
                 "current_account": current_account,
+                "bot_version": bot_version or "",
             })
         except Exception:
             pass

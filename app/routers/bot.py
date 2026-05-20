@@ -7,7 +7,7 @@ import uuid
 from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import current_active_user
@@ -409,6 +409,21 @@ async def post_heartbeat(
         hb.last_session_account = body.current_account
     hb.current_account = body.current_account
     hb.last_heartbeat = datetime.now(timezone.utc)
+    # Keep the desktop build's recorded version in sync with the version the
+    # client is actually running, so the clients page reflects live state rather
+    # than the version captured once at activation. Unique (user_id, client_id)
+    # means this touches exactly one row; is_distinct_from avoids a write every
+    # heartbeat when the version hasn't changed.
+    if body.bot_version:
+        await session.execute(
+            update(DesktopBuild)
+            .where(
+                DesktopBuild.user_id == user.id,
+                DesktopBuild.client_id == body.client_id,
+                DesktopBuild.bot_version.is_distinct_from(body.bot_version),
+            )
+            .values(bot_version=body.bot_version)
+        )
     await session.commit()
     return {"ok": True}
 

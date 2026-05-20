@@ -517,7 +517,7 @@ try:
             with _hb_lock:
                 _hb_state["status"] = status
                 _hb_state["account"] = account
-            apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, status, account)
+            apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, status, account, bot_version=BOT_VERSION)
             status_store.mark_heartbeat()
 
         def _heartbeat_loop():
@@ -527,7 +527,7 @@ try:
                 with _hb_lock:
                     status = _hb_state["status"]
                     account = _hb_state["account"]
-                apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, status, account)
+                apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, status, account, bot_version=BOT_VERSION)
                 status_store.mark_heartbeat()
 
         threading.Thread(target=_heartbeat_loop, daemon=True).start()

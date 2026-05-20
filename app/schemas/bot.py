@@ -112,6 +112,7 @@ class HeartbeatCreate(BaseModel):
     ip_address: str = ""
     status: str = "idle"
     current_account: str | None = None
+    bot_version: str = ""
 
 
 class ClientStatusRead(BaseModel):

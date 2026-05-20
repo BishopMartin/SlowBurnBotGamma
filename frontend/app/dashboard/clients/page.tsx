@@ -361,7 +361,7 @@ export default function ClientPage() {
                         <td className="px-3 py-3 whitespace-nowrap">
                           {buildIsOutdated
                             ? <span className="text-status-bad">out-dated</span>
-                            : <span className={statusColor(build.status)}>{build.status === "pending_activation" ? "pending" : build.status.replace("_", " ")}</span>}
+                            : <span className={statusColor(build.status)}>{build.status === "activated" ? "current" : build.status === "pending_activation" ? "pending" : build.status.replace("_", " ")}</span>}
                         </td>
                         <td className="px-3 py-3 whitespace-nowrap">
                           <span className="text-base04">
