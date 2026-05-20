@@ -1,6 +1,7 @@
 """Exe-facing endpoints — called by the compiled SlowBurnBot client."""
 import hashlib
 import hmac
+import json
 import secrets
 import uuid
 from datetime import date, datetime, timedelta, timezone
@@ -28,10 +29,14 @@ from app.models.session_log import SessionLog
 from app.models.subscription import Subscription
 from app.models.user import User
 from app.models.user_config import UserConfig
+from app.schemas.account import AccountRead
+from app.schemas.account_settings import AccountSettingsRead
 from app.schemas.bot import (
     ActivityLogCreate,
-    BotNotifyRequest,
     BotUserConfigRead,
+    BotNotifyRequest,
+    ClientAccountState,
+    ClientStateRead,
     CredentialsRead,
     EntitlementRead,
     FollowTargetCreate,
@@ -93,6 +98,110 @@ async def get_bot_config(
     await session.commit()
     await session.refresh(config)
     return config
+
+
+@router.get("/client-state", response_model=ClientStateRead)
+async def get_client_state(
+    group_number: int | None = Query(None),
+    known_version: str | None = Query(None),
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+    subscription: Subscription | None = Depends(get_active_subscription),
+):
+    """Consolidated exe poll: entitlement + user config + accounts + settings in one request.
+
+    Returns `changed: false` (with accounts/user_config omitted) when the client's
+    `known_version` matches the current payload hash, so the client can skip work.
+    `entitlement` is always returned fresh regardless of version so mid-run lapses
+    are detected promptly.
+    """
+    # Entitlement — always fresh
+    entitlement = EntitlementRead(
+        active=is_subscription_entitled(subscription),
+        plan_tier=subscription.plan_tier if subscription else "free",
+        current_period_end=subscription.current_period_end if subscription else None,
+    )
+
+    # UserConfig — auto-create with vnc_pin if missing (mirrors get_bot_config)
+    cfg_result = await session.execute(select(UserConfig).where(UserConfig.user_id == user.id))
+    config = cfg_result.scalar_one_or_none()
+    if config is None:
+        config = UserConfig(user_id=user.id, notify_email=user.email)
+        session.add(config)
+    if config.vnc_pin is None:
+        config.vnc_pin = secrets.token_hex(4).upper()
+    await session.commit()
+    await session.refresh(config)
+    user_config = BotUserConfigRead.model_validate(config, from_attributes=True)
+
+    # Accounts filtered by group
+    acct_query = select(Account).where(Account.user_id == user.id)
+    if group_number is not None:
+        acct_query = acct_query.where(Account.group_number == group_number)
+    acct_result = await session.execute(acct_query)
+    accounts = list(acct_result.scalars().all())
+
+    # Settings — one bulk query keyed by account_id
+    settings_by_id: dict[uuid.UUID, AccountSettings] = {}
+    if accounts:
+        ids = [a.id for a in accounts]
+        s_result = await session.execute(
+            select(AccountSettings).where(AccountSettings.account_id.in_(ids))
+        )
+        settings_by_id = {s.account_id: s for s in s_result.scalars().all()}
+
+    # Auto-create default settings for any account that doesn't have a row yet
+    new_settings: list[AccountSettings] = []
+    for account in accounts:
+        if account.id not in settings_by_id:
+            s = AccountSettings(account_id=account.id, user_id=user.id)
+            session.add(s)
+            new_settings.append(s)
+            settings_by_id[account.id] = s
+    if new_settings:
+        await session.commit()
+        for s in new_settings:
+            await session.refresh(s)
+
+    # Build serialisable account list
+    account_states: list[ClientAccountState] = []
+    for account in accounts:
+        acct_read = AccountRead.model_validate(account, from_attributes=True).model_copy(
+            update={"has_password": account.ig_password_enc is not None}
+        )
+        s = settings_by_id.get(account.id)
+        s_read = AccountSettingsRead.model_validate(s, from_attributes=True) if s else None
+        account_states.append(ClientAccountState(**acct_read.model_dump(), settings=s_read))
+
+    # Compute version hash from the serialised payload
+    bundle: dict = {
+        "user_config": user_config.model_dump(mode="json"),
+        "accounts": [
+            {
+                **a.model_dump(mode="json", exclude={"settings"}),
+                "settings": a.settings.model_dump(mode="json") if a.settings else None,
+            }
+            for a in account_states
+        ],
+    }
+    version = hashlib.sha256(
+        json.dumps(bundle, sort_keys=True, default=str).encode()
+    ).hexdigest()
+
+    if known_version and known_version == version:
+        return ClientStateRead(
+            version=version,
+            changed=False,
+            entitlement=entitlement,
+        )
+
+    return ClientStateRead(
+        version=version,
+        changed=True,
+        entitlement=entitlement,
+        user_config=user_config,
+        accounts=account_states,
+    )
 
 
 @router.post("/notify")

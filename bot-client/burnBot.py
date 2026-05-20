@@ -394,47 +394,45 @@ try:
         # Wait for TUI to finish rendering before generating any log output
         time.sleep(1.5)
 
-        # Pre-populate accounts table before any log output appears
-        try:
-            _init_group = int(client_id_norm) if client_id_norm else None
-            _init_accounts = apiClient.get_accounts(group_number=_init_group)
-            if _init_accounts:
-                for _acct in _init_accounts:
-                    _name = _acct.get("name", "")
-                    if _name:
-                        if _acct.get("system_disabled"):
-                            _init_st = "system-disabled"
-                        elif not _acct.get("enabled", False):
-                            _init_st = "disabled"
-                        else:
-                            _init_st = "initializing"
-                        status_store.update(_name, status=_init_st, next_run="—", last_action="—", run_info="—")
-        except Exception:
-            pass
-
         # ------------------------------------------------------------------
-        # Entitlement check (runs post-TUI so the result appears in the log)
+        # Startup fetch: entitlement + user config + account list combined
         # ------------------------------------------------------------------
+        _init_group = int(client_id_norm) if client_id_norm else None
+        _known_version = ""
+        all_accounts = []
         try:
             try:
-                entitlement = apiClient.check_entitlement()
+                _init_state = apiClient.get_client_state(group_number=_init_group)
             except AuthenticationError:
                 if _try_api_relogin_from_config(apiClient):
-                    entitlement = apiClient.check_entitlement()
+                    _init_state = apiClient.get_client_state(group_number=_init_group)
                 else:
                     raise
+            entitlement = _init_state.get("entitlement", {})
             if not entitlement.get("active"):
                 status_store.add_log(client_log_line(None, "api", "Subscription is not active."))
                 status_store.add_log(client_log_line(None, "api", f"Plan: {entitlement.get('plan_tier', 'free')}"))
                 status_store.add_log(client_log_line(None, "api", "Please activate your subscription at the dashboard."))
                 stop_flag.set()
                 return
+            all_accounts = _init_state.get("accounts") or []
+            _known_version = _init_state.get("version", "")
+            for _acct in all_accounts:
+                _name = _acct.get("name", "")
+                if _name:
+                    if _acct.get("system_disabled"):
+                        _init_st = "system-disabled"
+                    elif not _acct.get("enabled", False):
+                        _init_st = "disabled"
+                    else:
+                        _init_st = "initializing"
+                    status_store.update(_name, status=_init_st, next_run="—", last_action="—", run_info="—")
         except AuthenticationError:
             status_store.add_log(client_log_line(None, "api", "Session expired. Add email/password under [api_credentials] in burnBot_config.ini for auto re-login, or restart and sign in when prompted."))
             stop_flag.set()
             return
         except Exception as e:
-            status_store.add_log(client_log_line(None, "api", f"Entitlement check failed: {e}"))
+            status_store.add_log(client_log_line(None, "api", f"Startup fetch failed: {e}"))
             stop_flag.set()
             return
 
@@ -448,7 +446,7 @@ try:
         _dbg = CONFIG.get('bot_settings', 'bot_debug',             fallback='FALSE').strip().upper()
         _idl = str(bot_idle_delay_minutes).zfill(2)
         _st  = CONFIG.get('bot_settings', 'system_type',           fallback='').strip()
-        _notif_cfg = apiClient.get_user_config() or {}
+        _notif_cfg = _init_state.get("user_config") or {}
         _vnc_pin = (_notif_cfg.get('vnc_pin') or '').strip()
         _cur_vnc_url, _ = status_store.get_vnc_info()
         status_store.set_vnc_info(url=_cur_vnc_url, pin=_vnc_pin)
@@ -540,27 +538,36 @@ try:
         while True:
             current_time = datetime.now().astimezone()
 
-            # Refresh account list from API each cycle
+            # Consolidated state fetch (accounts + settings + user config + entitlement)
+            _state = None
             try:
                 group_param = int(client_id_norm) if client_id_norm else None
-                refreshed_accounts = apiClient.get_accounts(group_number=group_param)
-            except AuthenticationError:
-                if _try_api_relogin_from_config(apiClient):
-                    try:
-                        refreshed_accounts = apiClient.get_accounts(group_number=group_param)
-                    except AuthenticationError:
-                        console.print("[system]: Session expired after re-login. Check [api_credentials] or dashboard.")
+                try:
+                    _state = apiClient.get_client_state(group_number=group_param, known_version=_known_version)
+                except AuthenticationError:
+                    if _try_api_relogin_from_config(apiClient):
+                        try:
+                            _state = apiClient.get_client_state(group_number=group_param, known_version=_known_version)
+                        except AuthenticationError:
+                            console.print("[system]: Session expired after re-login. Check [api_credentials] or dashboard.")
+                            break
+                    else:
+                        console.print("[system]: Session expired. Set [api_credentials] in burnBot_config.ini or restart and log in.")
                         break
-                else:
-                    console.print("[system]: Session expired. Set [api_credentials] in burnBot_config.ini or restart and log in.")
-                    break
             except Exception as e:
                 if is_bot_debug_enabled():
-                    console.print(f"[system]: Warning - account refresh failed, using cached values: {e}")
-                refreshed_accounts = None
+                    console.print(f"[system]: Warning - state refresh failed, using cached values: {e}")
 
-            if refreshed_accounts is not None:
-                all_accounts = refreshed_accounts
+            # Mid-run entitlement check and account/settings refresh
+            if _state is not None:
+                _entitlement = _state.get("entitlement", {})
+                if not _entitlement.get("active"):
+                    status_store.add_log(client_log_line(None, "api", "Subscription is no longer active — stopping."))
+                    stop_flag.set()
+                    return
+                if _state.get("changed"):
+                    _known_version = _state.get("version", _known_version)
+                    all_accounts = _state.get("accounts") or all_accounts
 
             # Pre-populate table so all accounts appear immediately on first loop
             for _acct in all_accounts:

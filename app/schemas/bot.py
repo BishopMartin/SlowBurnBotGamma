@@ -4,6 +4,9 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
+from app.schemas.account import AccountRead
+from app.schemas.account_settings import AccountSettingsRead
+
 
 class SessionLogCreate(BaseModel):
     account_id: uuid.UUID
@@ -82,6 +85,18 @@ class BotUserConfigRead(BaseModel):
     notify_email: str | None = None
     notify_phone: str | None = None
     vnc_pin: str | None = None
+
+
+class ClientAccountState(AccountRead):
+    settings: AccountSettingsRead | None = None
+
+
+class ClientStateRead(BaseModel):
+    version: str
+    changed: bool
+    entitlement: EntitlementRead
+    user_config: BotUserConfigRead | None = None
+    accounts: list[ClientAccountState] | None = None
 
 
 class BotNotifyRequest(BaseModel):

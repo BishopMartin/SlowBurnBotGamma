@@ -237,6 +237,45 @@ class ApiClient:
         resp = self._request("GET", "/accounts", params=params)
         return resp.json()
 
+    def get_client_state(self, group_number=None, known_version=None):
+        """
+        Consolidated poll: entitlement + user_config + accounts + per-account settings.
+
+        Returns a dict:
+          {
+            "version": str,
+            "changed": bool,
+            "entitlement": {active, plan_tier, current_period_end},
+            "user_config": {...} | None,   # present only when changed
+            "accounts": [{...account fields..., "settings": {...}}] | None  # present only when changed
+          }
+
+        When changed=True, populates _settings_cache and _config_cache so downstream
+        calls to get_account_settings() and get_user_config() read fresh data without
+        additional API calls.
+        """
+        params = {}
+        if group_number is not None:
+            params["group_number"] = group_number
+        if known_version:
+            params["known_version"] = known_version
+        resp = self._request("GET", "/bot/client-state", params=params)
+        data = resp.json()
+
+        if data.get("changed"):
+            now = time.time()
+            for acct in (data.get("accounts") or []):
+                acct_id = acct.get("id")
+                s = acct.get("settings")
+                if acct_id and s is not None:
+                    self._settings_cache[acct_id] = (s, now)
+            user_config = data.get("user_config")
+            if user_config is not None:
+                self._config_cache = user_config
+                self._config_cache_ts = now
+
+        return data
+
     # ------------------------------------------------------------------
     # Settings
     # ------------------------------------------------------------------
