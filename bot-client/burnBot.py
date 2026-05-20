@@ -22,19 +22,43 @@ import math
 import socket
 
 def _beep(kind):
+    # Tone tables: list of (freq_hz, duration_ms)
+    _tones = {
+        'startup':  [(880, 100), (1047, 100), (523, 320)],   # beep beep boop
+        'shutdown': [(784, 200), (659, 200), (523, 400)],
+        'keypress': [(880, 150), (660, 300)],
+    }
+    tones = _tones.get(kind)
+    if not tones:
+        return
     try:
         import winsound
-        if kind == 'startup':
-            winsound.Beep(523, 200)   # C5
-            winsound.Beep(659, 200)   # E5
-            winsound.Beep(784, 350)   # G5
-        elif kind == 'shutdown':
-            winsound.Beep(784, 200)   # G5
-            winsound.Beep(659, 200)   # E5
-            winsound.Beep(523, 400)   # C5
-        elif kind == 'keypress':
-            winsound.Beep(880, 150)
-            winsound.Beep(660, 300)
+        for freq, dur in tones:
+            winsound.Beep(freq, dur)
+        return
+    except Exception:
+        pass
+    # Linux fallback: generate PCM via stdlib and pipe to aplay
+    try:
+        import math, struct, wave, io, subprocess
+        sample_rate = 44100
+        silence = b'\x00\x00' * int(sample_rate * 0.05)
+        frames = []
+        for freq, dur_ms in tones:
+            n = int(sample_rate * dur_ms / 1000)
+            frames += [struct.pack('<h', int(32767 * math.sin(2 * math.pi * freq * i / sample_rate))) for i in range(n)]
+            frames.append(silence)
+        buf = io.BytesIO()
+        with wave.open(buf, 'wb') as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(sample_rate)
+            w.writeframes(b''.join(frames))
+        proc = subprocess.Popen(
+            ['aplay', '-q', '-'],
+            stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+        proc.communicate(buf.getvalue())
     except Exception:
         pass
 
@@ -252,9 +276,13 @@ def _start_vnc_services(pin=''):
             for raw in proc.stdout:
                 line = raw.decode(errors='replace').rstrip()
                 if line:
-                    status_store.add_log(f"[{status_store.DIM}][[{label}]][/] {line}")
+                    status_store.add_log(f"  [{label}]  {line}")
         except Exception:
             pass
+
+    def _vnc_footer(delay):
+        time.sleep(delay)
+        status_store.add_log(client_log_line(None, "vnc", "services ready"))
 
     x11vnc_args = ['x11vnc', '-display', ':99', '-forever', '-rfbport', '5900', '-quiet']
     if pin:
@@ -262,6 +290,7 @@ def _start_vnc_services(pin=''):
     else:
         x11vnc_args += ['-nopw']
 
+    _vnc_started = False
     try:
         x11vnc = subprocess.Popen(
             x11vnc_args,
@@ -269,6 +298,7 @@ def _start_vnc_services(pin=''):
             env=clean_env
         )
         threading.Thread(target=_drain, args=(x11vnc, 'vnc'), daemon=True).start()
+        _vnc_started = True
     except FileNotFoundError:
         pass
 
@@ -279,8 +309,13 @@ def _start_vnc_services(pin=''):
             env=clean_env
         )
         threading.Thread(target=_drain, args=(wsify, 'novnc'), daemon=True).start()
+        _vnc_started = True
     except FileNotFoundError:
         pass
+
+    if _vnc_started:
+        status_store.add_log(client_log_line(None, "vnc", "services starting"))
+        threading.Thread(target=_vnc_footer, args=(6,), daemon=True).start()
 
 # Load bot_idle_delay for main loop check interval (in minutes, convert to seconds)
 bot_idle_delay_minutes = CONFIG.getfloat('browser-session', 'bot_idle_delay', fallback=0.25)
