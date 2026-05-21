@@ -38,7 +38,7 @@ def _beep(kind):
         return
     except Exception:
         pass
-    # Linux fallback: generate PCM via stdlib and pipe to aplay
+    # Linux fallback: generate WAV via stdlib, try multiple players
     try:
         import math, struct, wave, io, subprocess
         sample_rate = 44100
@@ -54,11 +54,34 @@ def _beep(kind):
             w.setsampwidth(2)
             w.setframerate(sample_rate)
             w.writeframes(b''.join(frames))
-        proc = subprocess.Popen(
+        wav_bytes = buf.getvalue()
+        for cmd in (
             ['aplay', '-q', '-'],
-            stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-        )
-        proc.communicate(buf.getvalue())
+            ['paplay', '-'],
+            ['ffplay', '-nodisp', '-autoexit', '-loglevel', 'quiet', '-'],
+        ):
+            try:
+                proc = subprocess.Popen(
+                    cmd, stdin=subprocess.PIPE,
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                )
+                proc.communicate(wav_bytes, timeout=5)
+                if proc.returncode == 0:
+                    return
+            except Exception:
+                pass
+    except Exception:
+        pass
+    # VNC fallback: ring X11 bell via tkinter (forwarded by x11vnc to noVNC)
+    try:
+        import tkinter as _tk
+        _root = _tk.Tk()
+        _root.withdraw()
+        for _ in tones:
+            _root.bell()
+            _root.after(200)
+            _root.update()
+        _root.destroy()
     except Exception:
         pass
 
@@ -485,7 +508,6 @@ try:
         _vnc_pin = (_notif_cfg.get('vnc_pin') or '').strip()
         _cur_vnc_url, _ = status_store.get_vnc_info()
         status_store.set_vnc_info(url=_cur_vnc_url, pin=_vnc_pin)
-        _start_vnc_services(pin=_vnc_pin)
         _skl = str(_notif_cfg.get('skip_login_check', False)).upper()
         _lgt = str(_notif_cfg.get('login_tries', 3)).zfill(2)
         _lks = str(_notif_cfg.get('like_suggested', False)).upper()
@@ -524,6 +546,7 @@ try:
             _log(client_log_line("config", "user_agent", f"[{_ua_display}]"))
         _log(client_log_line("config", "api", f"Subscription:[active] / plan:[{_plan}]"))
         _beep('startup')
+        _start_vnc_services(pin=_vnc_pin)
 
         # Redirect stdout so plain print() in any module routes to the TUI log
         import sys as _sys
