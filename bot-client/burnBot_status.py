@@ -88,6 +88,16 @@ def update(account_name: str, **kwargs) -> None:
             pass
 
 
+def get_effective_max_runs(account_name: str):
+    """Daily effective max runs (base + random offset) published by the scheduler.
+
+    Returns None if the scheduler has not published one yet, in which case callers
+    should fall back to the base max_runs_per_day from settings.
+    """
+    with _lock:
+        return _store.get(account_name, {}).get("effective_max_runs")
+
+
 def add_log(line: str) -> None:
     from rich.markup import escape
     line = escape(str(line))

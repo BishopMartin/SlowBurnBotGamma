@@ -759,7 +759,7 @@ try:
                     run_info = f"[{next_run}/{schedule_max}]" if schedule_max > 0 else f"[{next_run}]"
                     console.print(f"[bot]: {account_name} - Triggering to ACTIVE state - run {run_info}")
                     console.print("-" * 60)
-                    status_store.update(account_name, status="initializing", next_run="—", run_info=run_info)
+                    status_store.update(account_name, status="initializing", next_run="—", run_info=run_info, effective_max_runs=int(schedule_max))
 
                     # Get or create thread on-demand
                     account_idx = account_thread_index.get(account_name)

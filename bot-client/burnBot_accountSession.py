@@ -170,6 +170,13 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                 if is_bot_debug_enabled():
                     _print(client_log_line(account, "browser", f"Error re-reading settings, using cached: {e}"))
 
+            # Use the scheduler's daily effective max (base max_runs_per_day + random
+            # offset) so the session cap and the "Starting Session [n/max]" display match
+            # the scheduler's "run [n/max]" trigger. Falls back to the base if unset.
+            _eff_max = status_store.get_effective_max_runs(account)
+            if _eff_max and _eff_max > 0:
+                scheduleMax = _eff_max
+
             # Track session start time
             session_start_time = datetime.now().astimezone()
 
