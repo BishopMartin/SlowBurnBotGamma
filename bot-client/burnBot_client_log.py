@@ -105,13 +105,3 @@ def action_target_label(act_type: str, act_target: str) -> str:
     if t and g:
         return f"{t}[{g}]"
     return t or g or "action"
-
-
-def follow_group_variant_label(group_type: str) -> str:
-    """Short suffix for follow-group logs (followers vs following list)."""
-    g = (group_type or "").strip().lower()
-    if "follower" in g:
-        return "followers"
-    if "following" in g:
-        return "following"
-    return g or "group"

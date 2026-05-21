@@ -8,7 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 from burnBot_utils import process_exception
-from burnBot_client_log import client_log_line, follow_group_variant_label
+from burnBot_client_log import client_log_line
 import burnBot_status as status_store
 
 _p = _builtins.print  # set per-call by do_follow_group; safe because sessions run sequentially
@@ -41,13 +41,12 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
     try:
         today = date.today()
         follow_date = today
-        _fg = follow_group_variant_label(group_type)
 
         # Load database of previously followed accounts from API
         try:
             database_names = list(apiClient.get_all_follow_target_handles(account_id))
         except Exception as e:
-            _p(client_log_line(account, _scope, f"({_fg}) Warning: Could not load follow targets: {e}"))
+            _p(client_log_line(account, _scope, f"{_lbl}Warning: Could not load follow targets: {e}"))
             database_names = []
 
         # Add universal ignore list
@@ -55,18 +54,18 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
             ignore_list = apiClient.get_ignore_handles()
             database_names.extend(ignore_list)
         except Exception as e:
-            _p(client_log_line(account, _scope, f"({_fg}) Warning: Could not load ignore list: {e}"))
+            _p(client_log_line(account, _scope, f"{_lbl}Warning: Could not load ignore list: {e}"))
 
-        _p(client_log_line(account, _scope, f"({_fg}) loaded {len(database_names)} existing entries"))
+        _p(client_log_line(account, _scope, f"{_lbl}loaded {len(database_names)} existing entries"))
         
         # Parse target accounts and randomly select one
         target_accounts_list = [t.strip() for t in target_accounts.split(',') if t.strip()]
         if not target_accounts_list:
-            _p(client_log_line(account, _scope, f"({_fg}) ERROR: No target accounts provided"))
+            _p(client_log_line(account, _scope, f"{_lbl}ERROR: No target accounts provided"))
             return 0, "No target accounts provided"
         
         target_account = random.choice(target_accounts_list)
-        _p(client_log_line(account, _scope, f"({_fg}) selected target: {target_account}"))
+        _p(client_log_line(account, _scope, f"{_lbl}selected target: {target_account}"))
         
         # Navigate to target account page
         target_account_page = f"https://www.instagram.com/{target_account}/"
@@ -77,7 +76,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
         # Check if target account exists
         if driver.find_elements(By.XPATH, "//*[contains(text(), \"Sorry, this page isn't available.\")]"):
             error_msg = f"Target account '{target_account}' not found"
-            _p(client_log_line(account, _scope, f"({_fg}) ERROR: {error_msg}"))
+            _p(client_log_line(account, _scope, f"{_lbl}ERROR: {error_msg}"))
             return 0, error_msg
         
         # Determine which link to click (followers or following)
@@ -88,7 +87,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
             link_text = 'following'
             action_type = "following"
         else:
-            _p(client_log_line(account, _scope, f"({_fg}) ERROR: Invalid group type"))
+            _p(client_log_line(account, _scope, f"{_lbl}ERROR: Invalid group type"))
             return 0, f"Invalid group type: {group_type}"
         
         # Find and click the followers/following link
@@ -108,10 +107,10 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
             time.sleep(random.uniform(2, 4))
         except Exception as e:
             error_msg = f"Failed to open {link_text} dialog: {e}"
-            _p(client_log_line(account, _scope, f"({_fg}) ERROR: {error_msg}"))
+            _p(client_log_line(account, _scope, f"{_lbl}ERROR: {error_msg}"))
             return 0, error_msg
         
-        _p(client_log_line(account, _scope, f"({_fg}) dialog opened for {target_account}"))
+        _p(client_log_line(account, _scope, f"{_lbl}dialog opened for {target_account}"))
         
         # Main follow loop
         user_boxes_done = []
@@ -133,7 +132,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                         continue
                     except Exception:
                         # Can't scroll anymore, we've reached the end
-                        _p(client_log_line(account, _scope, f"({_fg}) reached end of list"))
+                        _p(client_log_line(account, _scope, f"{_lbl}reached end of list"))
                         break
             
             except Exception as e:
@@ -169,7 +168,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                     
                     # Check if already following
                     if user_status != "Follow":
-                        _p(client_log_line(account, _scope, f"({_fg}) {user_status.lower()} @{user_name} (from {target_account})"))
+                        _p(client_log_line(account, _scope, f"{_lbl}{user_status.lower()} @{user_name} (from {target_account})"))
                         time.sleep(random.uniform(1, 1))
                         continue
                     

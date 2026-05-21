@@ -124,7 +124,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
         today = date.today()
         unfollow_date = today
 
-        _p(client_log_line(account, _log_scope, "loading account data…"))
+        _p(client_log_line(account, _log_scope, f"{_lbl}loading account data…"))
 
         # Get eligible follow targets from API (status=following, older than unfollow_days)
         try:
@@ -133,17 +133,17 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
                 page_size=target_count
             )
         except Exception as e:
-            _p(client_log_line(account, _log_scope, f"ERROR: Could not load follow targets: {e}"))
+            _p(client_log_line(account, _log_scope, f"{_lbl}ERROR: Could not load follow targets: {e}"))
             return 0, f"Could not load follow targets: {e}"
 
         if not targets:
-            _p(client_log_line(account, _log_scope, "no eligible accounts found (all too recent, done, or private)"))
+            _p(client_log_line(account, _log_scope, f"{_lbl}no eligible accounts found (all too recent, done, or private)"))
             return 0, ""
 
-        _p(client_log_line(account, _log_scope, f"found {len(targets)} eligible account(s)"))
+        _p(client_log_line(account, _log_scope, f"{_lbl}found {len(targets)} eligible account(s)"))
 
         # Navigate to account profile
-        _p(client_log_line(account, _log_scope, "loading profile page…"))
+        _p(client_log_line(account, _log_scope, f"{_lbl}loading profile page…"))
         active_account_page = f"https://www.instagram.com/{account}/"
         driver.get(active_account_page)
         WebDriverWait(driver, 10).until(lambda d: d.execute_script("return document.readyState") == "complete")
@@ -153,7 +153,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
         main_window = driver.current_window_handle
 
         # Open following in new tab
-        _p(client_log_line(account, _log_scope, "opening following tab…"))
+        _p(client_log_line(account, _log_scope, f"{_lbl}opening following tab…"))
         driver.switch_to.new_window('tab')
         driver.get(active_account_page)
         WebDriverWait(driver, 10).until(lambda d: d.execute_script("return document.readyState") == "complete")
@@ -167,13 +167,13 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
             ActionChains(driver).move_to_element(following_link).click().perform()
             time.sleep(random.randint(2, 4))
         except Exception as e:
-            _p(client_log_line(account, _log_scope, "ERROR: Could not open following dialog"))
+            _p(client_log_line(account, _log_scope, f"{_lbl}ERROR: Could not open following dialog"))
             driver.close()
             driver.switch_to.window(main_window)
             return 0, f"Could not open following dialog: {e}"
 
         # Open followers in new tab
-        _p(client_log_line(account, _log_scope, "opening followers tab…"))
+        _p(client_log_line(account, _log_scope, f"{_lbl}opening followers tab…"))
         driver.switch_to.new_window('tab')
         driver.get(active_account_page)
         WebDriverWait(driver, 10).until(lambda d: d.execute_script("return document.readyState") == "complete")
@@ -187,7 +187,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
             ActionChains(driver).move_to_element(followers_link).click().perform()
             time.sleep(random.randint(2, 4))
         except Exception as e:
-            _p(client_log_line(account, _log_scope, "ERROR: Could not open followers dialog"))
+            _p(client_log_line(account, _log_scope, f"{_lbl}ERROR: Could not open followers dialog"))
             driver.close()
             driver.switch_to.window(following_window)
             driver.close()
@@ -290,7 +290,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
                     time.sleep(random.randint(4, 6))
 
                 except Exception as e:
-                    _p(client_log_line(account, _log_scope, f"{count_formatted}/{target_formatted} @{loop_username} error"))
+                    _p(client_log_line(account, _log_scope, f"{_lbl}{count_formatted}/{target_formatted} @{loop_username} error"))
                     moduleErrorsLog += f"Error unfollowing {loop_username}: {e}\n"
             else:
                 # Account not found in following list (already unfollowed manually or by another process)
