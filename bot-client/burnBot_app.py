@@ -2,6 +2,7 @@
 
 import os
 import re
+import sys
 import threading
 from datetime import datetime
 
@@ -288,6 +289,8 @@ class BurnBotApp(App):
         self._completion_idx: int = 0
         self._exact_match: str | None = None
         self._prompt_mode: bool = False
+        self._cmd_history: list[str] = []
+        self._history_pos: int = -1
 
     # ------------------------------------------------------------------
     # Layout
@@ -349,6 +352,11 @@ class BurnBotApp(App):
         self.call_after_refresh(self._update_ghost)
         status_store.flush_log_buffer(self)
         threading.Thread(target=self._bot_loop_fn, daemon=True).start()
+        try:
+            sys.__stdout__.write("\x1b[?1003l")
+            sys.__stdout__.flush()
+        except Exception:
+            pass
 
     def _deselect_input(self) -> None:
         inp = self.query_one("#cmd-input", Input)
@@ -645,28 +653,47 @@ class BurnBotApp(App):
         except Exception:
             pass
 
-        # Autocomplete in command input
+        # Command input: autocomplete cycling, then history; always stop ↑↓ to prevent focus-jump
         inp = self.query_one("#cmd-input", Input)
-        if not inp.has_focus or not self._completions:
+        if not inp.has_focus:
             return
-        if event.key == "tab":
-            inp.value = self._completions[self._completion_idx]
-            inp.cursor_position = len(inp.value)
-            self._exact_match = inp.value
-            self._completions = []
-            self._update_ghost()
-            event.prevent_default()
+        if self._completions:
+            if event.key == "tab":
+                inp.value = self._completions[self._completion_idx]
+                inp.cursor_position = len(inp.value)
+                self._exact_match = inp.value
+                self._completions = []
+                self._update_ghost()
+                event.prevent_default()
+                event.stop()
+            elif event.key == "up":
+                self._completion_idx = (self._completion_idx - 1) % len(self._completions)
+                self._update_ghost()
+                event.prevent_default()
+                event.stop()
+            elif event.key == "down":
+                self._completion_idx = (self._completion_idx + 1) % len(self._completions)
+                self._update_ghost()
+                event.prevent_default()
+                event.stop()
+            return
+        if event.key in ("up", "down"):
             event.stop()
-        elif event.key == "up":
-            self._completion_idx = (self._completion_idx - 1) % len(self._completions)
-            self._update_ghost()
-            event.prevent_default()
-            event.stop()
-        elif event.key == "down":
-            self._completion_idx = (self._completion_idx + 1) % len(self._completions)
-            self._update_ghost()
-            event.prevent_default()
-            event.stop()
+            if self._prompt_mode or not self._cmd_history:
+                return
+            if event.key == "up":
+                self._history_pos = min(self._history_pos + 1, len(self._cmd_history) - 1)
+                inp.value = self._cmd_history[-(self._history_pos + 1)]
+                inp.cursor_position = len(inp.value)
+            else:
+                if self._history_pos <= 0:
+                    self._history_pos = -1
+                    inp.value = "/"
+                    inp.cursor_position = 1
+                else:
+                    self._history_pos -= 1
+                    inp.value = self._cmd_history[-(self._history_pos + 1)]
+                    inp.cursor_position = len(inp.value)
 
     # ------------------------------------------------------------------
     # Command input
@@ -724,7 +751,10 @@ class BurnBotApp(App):
         event.input.value = ""
         self._completions = []
         self._exact_match = None
+        self._history_pos = -1
         self._update_ghost()
+        if cmd and (not self._cmd_history or self._cmd_history[-1] != cmd):
+            self._cmd_history.append(cmd)
         self._dispatch_cmd(cmd)
 
     def action_clear_input(self) -> None:
