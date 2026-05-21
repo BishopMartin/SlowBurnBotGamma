@@ -322,13 +322,6 @@ class BurnBotApp(App):
                 yield CmdHint("/settings", id="hint-settings")
                 yield CmdHint("/help", id="hint-help")
 
-    def _disable_mouse_motion(self) -> None:
-        try:
-            self._driver.write("\x1b[?1003l")
-            self._driver.flush()
-        except Exception:
-            pass
-
     def on_mount(self) -> None:
         accounts = self.query_one("#accounts", DataTable)
         accounts.add_column("Account",        key="account")
@@ -358,7 +351,6 @@ class BurnBotApp(App):
         self.call_after_refresh(self._update_ghost)
         status_store.flush_log_buffer(self)
         threading.Thread(target=self._bot_loop_fn, daemon=True).start()
-        self.call_after_refresh(self._disable_mouse_motion)
 
     def _deselect_input(self) -> None:
         inp = self.query_one("#cmd-input", Input)
@@ -608,6 +600,15 @@ class BurnBotApp(App):
     @on(Input.Changed, "#cmd-input")
     def on_input_changed(self, event: Input.Changed) -> None:
         if self._prompt_mode:
+            return
+        _raw = event.value
+        _clean = re.sub(r'[^\x20-\x7e]', '', _raw)
+        _clean = re.sub(r'[\d;]+[Mm]', '', _clean)
+        _clean = re.sub(r'\[[?<]?[\d;]*[A-Za-z]', '', _clean)
+        if _clean != _raw:
+            inp = self.query_one("#cmd-input", Input)
+            inp.value = _clean
+            inp.cursor_position = len(_clean)
             return
         typed = event.value
         if not typed:
