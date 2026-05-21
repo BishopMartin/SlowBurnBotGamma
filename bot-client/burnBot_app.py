@@ -2,7 +2,6 @@
 
 import os
 import re
-import sys
 import threading
 from datetime import datetime
 
@@ -323,6 +322,13 @@ class BurnBotApp(App):
                 yield CmdHint("/settings", id="hint-settings")
                 yield CmdHint("/help", id="hint-help")
 
+    def _disable_mouse_motion(self) -> None:
+        try:
+            self._driver.write("\x1b[?1003l")
+            self._driver.flush()
+        except Exception:
+            pass
+
     def on_mount(self) -> None:
         accounts = self.query_one("#accounts", DataTable)
         accounts.add_column("Account",        key="account")
@@ -352,11 +358,7 @@ class BurnBotApp(App):
         self.call_after_refresh(self._update_ghost)
         status_store.flush_log_buffer(self)
         threading.Thread(target=self._bot_loop_fn, daemon=True).start()
-        try:
-            sys.__stdout__.write("\x1b[?1003l")
-            sys.__stdout__.flush()
-        except Exception:
-            pass
+        self.call_after_refresh(self._disable_mouse_motion)
 
     def _deselect_input(self) -> None:
         inp = self.query_one("#cmd-input", Input)
