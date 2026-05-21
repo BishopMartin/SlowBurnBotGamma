@@ -38,46 +38,14 @@ def _beep(kind):
         return
     except Exception:
         pass
-    # X11 bell via libX11 ctypes — rings on display :99, forwarded by x11vnc to noVNC/browser
-    # XChangeKeyboardControl lets us set pitch+duration per tone before each ring.
+    # Non-Windows (docker/Linux): ring the user's TERMINAL bell (not the VNC display).
+    # BEL travels container -> docker -> tmux -> Windows Terminal. Single-pitch only;
+    # no melody is possible via a terminal bell.
     try:
-        import ctypes
-        _x11 = ctypes.CDLL("libX11.so.6")
-        _x11.XOpenDisplay.restype  = ctypes.c_void_p
-        _x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
-
-        class _XKC(ctypes.Structure):
-            _fields_ = [
-                ("key_click_percent", ctypes.c_int),
-                ("bell_percent",      ctypes.c_int),
-                ("bell_pitch",        ctypes.c_int),
-                ("bell_duration",     ctypes.c_int),
-                ("led",               ctypes.c_int),
-                ("led_mode",          ctypes.c_int),
-                ("key",               ctypes.c_int),
-                ("auto_repeat_mode",  ctypes.c_int),
-            ]
-
-        _KBBellPercent  = 2   # 1 << 1
-        _KBBellPitch    = 4   # 1 << 2
-        _KBBellDuration = 8   # 1 << 3
-
-        _dpy = _x11.XOpenDisplay(b":99")
-        if _dpy:
-            for freq, dur_ms in tones:
-                kc = _XKC()
-                kc.bell_percent  = 100
-                kc.bell_pitch    = freq
-                kc.bell_duration = dur_ms
-                _x11.XChangeKeyboardControl(
-                    ctypes.c_void_p(_dpy),
-                    _KBBellPercent | _KBBellPitch | _KBBellDuration,
-                    ctypes.byref(kc),
-                )
-                _x11.XBell(_dpy, 0)
-                _x11.XFlush(_dpy)
-                time.sleep(dur_ms / 1000 + 0.05)
-            _x11.XCloseDisplay(_dpy)
+        for _ in tones:
+            sys.__stdout__.write('\a')
+            sys.__stdout__.flush()
+            time.sleep(0.15)
     except Exception:
         pass
 
