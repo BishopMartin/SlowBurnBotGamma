@@ -17,6 +17,7 @@ from rich.text import Text
 from rich.segment import Segment
 from rich.style import Style as RichStyle
 from rich.color import Color as RichColor
+from rich.markup import escape as _escape
 
 
 class DefaultBgRichLog(RichLog):
@@ -684,11 +685,11 @@ class BurnBotApp(App):
             self.exit()
         elif cmd == "/stop":
             status_store.set_bot_paused(True)
-            status_store.add_log(client_log_line(None, "terminal-command", "Pausing bot execution"))
+            self._write_log(_escape(client_log_line(None, "terminal-command", "Pausing bot execution")))
             self._refresh_header()
         elif cmd == "/start":
             status_store.set_bot_paused(False)
-            status_store.add_log(client_log_line(None, "terminal-command", "Resuming bot execution"))
+            self._write_log(_escape(client_log_line(None, "terminal-command", "Resuming bot execution")))
             self._refresh_header()
         elif cmd == "/settings":
             self._open_settings()
@@ -700,17 +701,17 @@ class BurnBotApp(App):
             try:
                 with open(fname, "w", encoding="utf-8") as f:
                     f.write("\n".join(self._log_lines))
-                status_store.add_log(client_log_line(None, "terminal-command", f"Log saved: {os.path.abspath(fname)}"))
+                self._write_log(_escape(client_log_line(None, "terminal-command", f"Log saved: {os.path.abspath(fname)}")))
             except Exception as e:
-                status_store.add_log(client_log_line(None, "terminal-command", f"Save failed: {e}"))
+                self._write_log(_escape(client_log_line(None, "terminal-command", f"Save failed: {e}")))
         elif cmd == "/copy-log":
             try:
                 self.copy_to_clipboard("\n".join(self._log_lines))
-                status_store.add_log(client_log_line(None, "terminal-command", "Log copied to clipboard"))
+                self._write_log(_escape(client_log_line(None, "terminal-command", "Log copied to clipboard")))
             except Exception as e:
-                status_store.add_log(client_log_line(None, "terminal-command", f"Copy failed: {e}"))
+                self._write_log(_escape(client_log_line(None, "terminal-command", f"Copy failed: {e}")))
         else:
-            status_store.add_log(client_log_line(None, "terminal-command", f"Unknown command '{cmd}' — type /help for list"))
+            self._write_log(_escape(client_log_line(None, "terminal-command", f"Unknown command '{cmd}' — type /help for list")))
 
     @on(Input.Submitted)
     def handle_command(self, event: Input.Submitted) -> None:
