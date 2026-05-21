@@ -160,7 +160,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
         try:
             database_names = list(apiClient.get_all_follow_target_handles(account_id))
         except Exception as e:
-            _p(client_log_line(account, _scope, f"Warning: Could not load follow targets: {e}"))
+            _p(client_log_line(account, _scope, f"{_lbl}Warning: Could not load follow targets: {e}"))
             database_names = []
 
         # Add universal ignore list
@@ -168,9 +168,9 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
             ignore_list = apiClient.get_ignore_handles()
             database_names.extend(ignore_list)
         except Exception as e:
-            _p(client_log_line(account, _scope, f"Warning: Could not load ignore list: {e}"))
+            _p(client_log_line(account, _scope, f"{_lbl}Warning: Could not load ignore list: {e}"))
 
-        _p(client_log_line(account, _scope, f"loaded {len(database_names)} existing entries"))
+        _p(client_log_line(account, _scope, f"{_lbl}loaded {len(database_names)} existing entries"))
 
         # ------------------------------------------------------------------
         # Phase A (primary): Explore People
@@ -204,7 +204,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
                 time.sleep(random.uniform(2, 4))
 
         if explore_candidates:
-            _p(client_log_line(account, _scope, f"explore found {len(explore_candidates)} candidate(s)"))
+            _p(client_log_line(account, _scope, f"{_lbl}explore found {len(explore_candidates)} candidate(s)"))
 
             for user_name, follow_button, user_name_anchor in explore_candidates:
                 if followed_count >= target_count:
@@ -239,7 +239,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
                             database_names.append(user_name)
                             _p(client_log_line(account, _scope, f"{_lbl}[-skip] - [{user_name}] - [private]"))
                             continue
-                        _p(client_log_line(account, _scope, f"private @{user_name}"))
+                        _p(client_log_line(account, _scope, f"{_lbl}private @{user_name}"))
 
                     # Click follow
                     click_success = False
@@ -281,12 +281,12 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
                 except Exception as e:
                     error_type = type(e).__name__
                     error_msg = str(e).split("\n")[0]
-                    _p(client_log_line(account, _scope, f"error {error_type}: {error_msg[:80]}"))
+                    _p(client_log_line(account, _scope, f"{_lbl}error {error_type}: {error_msg[:80]}"))
                     module_errors_log += f"{error_type}: {error_msg}\n"
                     continue
         else:
             if followed_count < target_count:
-                _p(client_log_line(account, _scope, "explore returned no users, falling back to home"))
+                _p(client_log_line(account, _scope, f"{_lbl}explore returned no users, falling back to home"))
 
         # ------------------------------------------------------------------
         # Phase B (fallback/top-up): Home page Suggested for you
@@ -313,7 +313,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
             )
 
             if user_boxes and len(user_boxes) > 0:
-                _p(client_log_line(account, _scope, f"found {len(user_boxes)} suggested user(s)"))
+                _p(client_log_line(account, _scope, f"{_lbl}found {len(user_boxes)} suggested user(s)"))
 
                 for box_index, user_box in enumerate(user_boxes):
                     if status_store.is_bot_paused() or followed_count >= target_count:
@@ -408,7 +408,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
                     except Exception as e:
                         error_type = type(e).__name__
                         error_msg = str(e).split("\n")[0]
-                        _p(client_log_line(account, _scope, f"error {error_type}: {error_msg[:80]}"))
+                        _p(client_log_line(account, _scope, f"{_lbl}error {error_type}: {error_msg[:80]}"))
                         module_errors_log += f"{error_type}: {error_msg}\n"
                         continue
 
@@ -420,10 +420,10 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
                 candidates = _find_home_follow_candidates(driver, max_candidates=max(50, remaining * 4))
 
                 if candidates:
-                    _p(client_log_line(account, _scope, f"fallback found {len(candidates)} follow candidate(s)"))
+                    _p(client_log_line(account, _scope, f"{_lbl}fallback found {len(candidates)} follow candidate(s)"))
                 else:
                     msg = "[error] no suggested users found"
-                    _p(client_log_line(account, _scope, msg))
+                    _p(client_log_line(account, _scope, f"{_lbl}{msg}"))
                     module_errors_log += f"follow[suggested]: {msg}\n"
                     return followed_count, module_errors_log
 
@@ -496,7 +496,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
                     except Exception as e:
                         error_type = type(e).__name__
                         error_msg = str(e).split("\n")[0]
-                        _p(client_log_line(account, _scope, f"error {error_type}: {error_msg[:80]}"))
+                        _p(client_log_line(account, _scope, f"{_lbl}error {error_type}: {error_msg[:80]}"))
                         module_errors_log += f"{error_type}: {error_msg}\n"
                         continue
 
@@ -516,7 +516,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
         # Simplified error output
         error_type = type(e).__name__
         error_msg = str(e).split('\n')[0]
-        _p(client_log_line(account, _scope, f"FATAL {error_type}: {error_msg[:100]}"))
+        _p(client_log_line(account, _scope, f"{_lbl}FATAL {error_type}: {error_msg[:100]}"))
         module_errors_log += f"{error_type}: {error_msg}\n"
     
     return followed_count, module_errors_log
