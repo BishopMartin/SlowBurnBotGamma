@@ -865,6 +865,18 @@ try:
 
     app = BurnBotApp(BOT_VERSION, _sg, _client_name, _bot_loop, stop_flag)
     status_store.set_app(app)
+
+    # Set tmux window name + terminal pane title before Textual takes over stdout
+    try:
+        _wname = f"SlowBurnBot/{_client_name}" if _client_name else "SlowBurnBot"
+        _t = sys.__stdout__
+        if _t:
+            _t.write(f'\033]2;{_wname}\007')   # OSC 2: pane title (most terminals + tmux pane-border)
+            _t.write(f'\033k{_wname}\033\\')    # tmux window rename
+            _t.flush()
+    except Exception:
+        pass
+
     app.run()
     os._exit(0)
 
