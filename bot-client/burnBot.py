@@ -38,50 +38,46 @@ def _beep(kind):
         return
     except Exception:
         pass
-    # Linux fallback: generate WAV via stdlib, try multiple players
+    # X11 bell via libX11 ctypes — rings on display :99, forwarded by x11vnc to noVNC/browser
+    # XChangeKeyboardControl lets us set pitch+duration per tone before each ring.
     try:
-        import math, struct, wave, io, subprocess
-        sample_rate = 44100
-        silence = b'\x00\x00' * int(sample_rate * 0.05)
-        frames = []
-        for freq, dur_ms in tones:
-            n = int(sample_rate * dur_ms / 1000)
-            frames += [struct.pack('<h', int(32767 * math.sin(2 * math.pi * freq * i / sample_rate))) for i in range(n)]
-            frames.append(silence)
-        buf = io.BytesIO()
-        with wave.open(buf, 'wb') as w:
-            w.setnchannels(1)
-            w.setsampwidth(2)
-            w.setframerate(sample_rate)
-            w.writeframes(b''.join(frames))
-        wav_bytes = buf.getvalue()
-        for cmd in (
-            ['aplay', '-q', '-'],
-            ['paplay', '-'],
-            ['ffplay', '-nodisp', '-autoexit', '-loglevel', 'quiet', '-'],
-        ):
-            try:
-                proc = subprocess.Popen(
-                    cmd, stdin=subprocess.PIPE,
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        import ctypes
+        _x11 = ctypes.CDLL("libX11.so.6")
+        _x11.XOpenDisplay.restype  = ctypes.c_void_p
+        _x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
+
+        class _XKC(ctypes.Structure):
+            _fields_ = [
+                ("key_click_percent", ctypes.c_int),
+                ("bell_percent",      ctypes.c_int),
+                ("bell_pitch",        ctypes.c_int),
+                ("bell_duration",     ctypes.c_int),
+                ("led",               ctypes.c_int),
+                ("led_mode",          ctypes.c_int),
+                ("key",               ctypes.c_int),
+                ("auto_repeat_mode",  ctypes.c_int),
+            ]
+
+        _KBBellPercent  = 2   # 1 << 1
+        _KBBellPitch    = 4   # 1 << 2
+        _KBBellDuration = 8   # 1 << 3
+
+        _dpy = _x11.XOpenDisplay(b":99")
+        if _dpy:
+            for freq, dur_ms in tones:
+                kc = _XKC()
+                kc.bell_percent  = 100
+                kc.bell_pitch    = freq
+                kc.bell_duration = dur_ms
+                _x11.XChangeKeyboardControl(
+                    ctypes.c_void_p(_dpy),
+                    _KBBellPercent | _KBBellPitch | _KBBellDuration,
+                    ctypes.byref(kc),
                 )
-                proc.communicate(wav_bytes, timeout=5)
-                if proc.returncode == 0:
-                    return
-            except Exception:
-                pass
-    except Exception:
-        pass
-    # VNC fallback: ring X11 bell via tkinter (forwarded by x11vnc to noVNC)
-    try:
-        import tkinter as _tk
-        _root = _tk.Tk()
-        _root.withdraw()
-        for _ in tones:
-            _root.bell()
-            _root.after(200)
-            _root.update()
-        _root.destroy()
+                _x11.XBell(_dpy, 0)
+                _x11.XFlush(_dpy)
+                time.sleep(dur_ms / 1000 + 0.05)
+            _x11.XCloseDisplay(_dpy)
     except Exception:
         pass
 
@@ -570,6 +566,19 @@ try:
                 _hb_state["account"] = account
             apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, status, account, bot_version=BOT_VERSION)
             status_store.mark_heartbeat()
+            try:
+                if status == "running" and account:
+                    _pt = f"running {account}"
+                elif status == "delay":
+                    _pt = "session delay"
+                else:
+                    _pt = "SlowBurnBot"
+                _to = sys.__stdout__
+                if _to:
+                    _to.write(f'\033]2;{_pt}\007')
+                    _to.flush()
+            except Exception:
+                pass
 
         def _heartbeat_loop():
             while not stop_flag.is_set():
@@ -866,13 +875,12 @@ try:
     app = BurnBotApp(BOT_VERSION, _sg, _client_name, _bot_loop, stop_flag)
     status_store.set_app(app)
 
-    # Set tmux window name + terminal pane title before Textual takes over stdout
+    # Set tmux window name + pane title before Textual takes over stdout
     try:
-        _wname = f"SlowBurnBot/{_client_name}" if _client_name else "SlowBurnBot"
         _t = sys.__stdout__
         if _t:
-            _t.write(f'\033]2;{_wname}\007')   # OSC 2: pane title (most terminals + tmux pane-border)
-            _t.write(f'\033k{_wname}\033\\')    # tmux window rename
+            _t.write('\033kSlowBurnBot\033\\')   # tmux window name (static)
+            _t.write('\033]2;SlowBurnBot\007')   # pane title (initial; updated dynamically by _send_hb)
             _t.flush()
     except Exception:
         pass
