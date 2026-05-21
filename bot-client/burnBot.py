@@ -533,15 +533,9 @@ try:
             apiClient.send_heartbeat(client_id_norm, _heartbeat_system_type, _local_ip, status, account, bot_version=BOT_VERSION)
             status_store.mark_heartbeat()
             try:
-                if status == "running" and account:
-                    _pt = f"running {account}"
-                elif status == "delay":
-                    _pt = "session delay"
-                else:
-                    _pt = "SlowBurnBot"
                 _to = sys.__stdout__
                 if _to:
-                    _to.write(f'\033]2;{_pt}\007')
+                    _to.write(f'\033]2;SlowBurnBot v{BOT_VERSION}\007')
                     _to.flush()
             except Exception:
                 pass
@@ -846,7 +840,7 @@ try:
         _t = sys.__stdout__
         if _t:
             _t.write('\033kSlowBurnBot\033\\')   # tmux window name (static)
-            _t.write('\033]2;SlowBurnBot\007')   # pane title (initial; updated dynamically by _send_hb)
+            _t.write(f'\033]2;SlowBurnBot v{BOT_VERSION}\007')   # pane title: app name + version
             _t.flush()
     except Exception:
         pass
