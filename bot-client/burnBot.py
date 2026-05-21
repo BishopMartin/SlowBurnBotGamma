@@ -39,13 +39,11 @@ def _beep(kind):
     except Exception:
         pass
     # Non-Windows (docker/Linux): ring the user's TERMINAL bell (not the VNC display).
-    # BEL travels container -> docker -> tmux -> Windows Terminal. Single-pitch only;
-    # no melody is possible via a terminal bell.
+    # One BEL travels container -> docker -> tmux -> Windows Terminal, which plays its
+    # configured bellSound. The terminal owns the timbre/melody, so emit a single BEL.
     try:
-        for _ in tones:
-            sys.__stdout__.write('\a')
-            sys.__stdout__.flush()
-            time.sleep(0.15)
+        sys.__stdout__.write('\a')
+        sys.__stdout__.flush()
     except Exception:
         pass
 
