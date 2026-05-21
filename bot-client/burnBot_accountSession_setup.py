@@ -1080,6 +1080,11 @@ def setup_chrome_options(account, accountAgent, chrome_user_data_dir, debugging_
         options.add_argument('--disable-gpu')
         options.add_argument('--disable-software-rasterizer')
         options.add_argument('--disable-setuid-sandbox')
+        # Xvfb has no window manager, so driver.maximize_window() is a no-op and
+        # Chrome opens small in the top-left. Size the window to the Xvfb display
+        # (1920x1080, set in entrypoint.sh) so it fills the noVNC view.
+        options.add_argument('--window-size=1920,1080')
+        options.add_argument('--window-position=0,0')
 
     # Add minimal stealth arguments - only the most critical ones
     stealth_args = [
