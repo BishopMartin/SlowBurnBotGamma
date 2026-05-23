@@ -12,8 +12,9 @@ import threading
 
 from burnBot_imports import *
 from burnBot_config import CONFIG
+from burnBot_client_log import client_log_line
 
-INTERNET_HOLD_DELAY_SECONDS = 600
+INTERNET_HOLD_DELAY_SECONDS = 1200
 _internet_state_lock = threading.Lock()
 _internet_restored_event = threading.Event()
 _internet_restored_event.set()
@@ -54,8 +55,8 @@ def wait_for_internet_restore(host="8.8.8.8", port=53, timeout=8, retry_delay_se
             _internet_hold_owner = current_thread
             _internet_recovery_notice = False
             _internet_restored_event.clear()
-            builtins.print("[internet]: Offline hold active - bot will stay running and retry every 10 minutes.")
-            builtins.print("[internet]: No new work will resume until connectivity is restored.")
+            builtins.print(client_log_line(None, "internet", "Offline hold active - bot will stay running and retry every 20 minutes."))
+            builtins.print(client_log_line(None, "internet", "No new work will resume until connectivity is restored."))
         elif _internet_hold_owner != current_thread:
             owner_event = _internet_restored_event
             current_owner = _internet_hold_owner
@@ -69,7 +70,7 @@ def wait_for_internet_restore(host="8.8.8.8", port=53, timeout=8, retry_delay_se
         return True
 
     while True:
-        delay("[internet]: offline hold - next connection check in ", retry_delay_seconds, retry_delay_seconds, "")
+        delay("offline hold - next connection check in ", retry_delay_seconds, retry_delay_seconds, "", scope="internet")
 
         try:
             _probe_internet_connection(host=host, port=port, timeout=timeout)
@@ -79,10 +80,10 @@ def wait_for_internet_restore(host="8.8.8.8", port=53, timeout=8, retry_delay_se
                 _internet_hold_owner = None
                 _internet_recovery_notice = True
                 _internet_restored_event.set()
-            builtins.print("[internet]: Connection restored - resuming bot operation.")
+            builtins.print(client_log_line(None, "internet", "Connection restored - resuming bot operation."))
             return True
         except socket.error:
-            builtins.print("[internet]: Still offline - continuing hold state.")
+            builtins.print(client_log_line(None, "internet", "Still offline - continuing hold state."))
 
 def close_windows(driver):
     """
@@ -133,12 +134,12 @@ def has_internet_connection(host="8.8.8.8", port=53, timeout=8, max_fails=3):
             has_internet_connection.fail_count = attempt
 
             if attempt >= max_fails:
-                builtins.print(f"[X] Internet check failed [{attempt}/{max_fails}]")
+                builtins.print(client_log_line(None, "internet", f"check failed [{attempt}/{max_fails}]"))
                 return wait_for_internet_restore(host=host, port=port, timeout=timeout)
 
             # Progressive delay (capped): 10s, 20s, 30s ... up to 60s
             delay_seconds = min(attempt * 10, 60)
-            delay(f"[!] Internet check failed [{attempt}/{max_fails}]- delay:", delay_seconds, delay_seconds, "")
+            delay(f"check failed [{attempt}/{max_fails}] - retry in ", delay_seconds, delay_seconds, "", scope="internet")
             builtins.print("")
 
     return False
@@ -156,15 +157,15 @@ def process_exception(printError, noteError, logError, debugError):
         errorReturn += "[ConnectionError] Internet is offline.\n"
 
     if printError:
-        print(f"\n--[{exc_type.__name__}][<{file_short}>|<{line_number}>][{noteError}]")
+        builtins.print(client_log_line(None, "error", f"[{exc_type.__name__}][<{file_short}>|<{line_number}>] {noteError}"))
     if debugError:
-        print(f"\n{full_error}\n")
+        builtins.print(f"\n{full_error}\n")
     if logError:
         errorReturn += f"--[{exc_type.__name__}][<{file_short}>|<{line_number}>][{noteError}]\n"
 
     return errorReturn
 
-def delay(pre, t1, t2, post):
+def delay(pre, t1, t2, post, account=None, scope=None):
     tx = random.randint(t1, t2)
     width = shutil.get_terminal_size().columns
     og_mins, og_secs = divmod(tx, 60)
@@ -173,7 +174,8 @@ def delay(pre, t1, t2, post):
     for counter in range(tx + 1):
         mins, secs = divmod(counter, 60)
         timer = f"{mins}:{secs:02d}" if tx > 60 else f"{counter:02d}"
-        message = f"{pre}[{timer}/{og_timer}]{post}"
+        body = f"{pre}[{timer}/{og_timer}]{post}"
+        message = client_log_line(account, scope, body) if scope is not None else body
         builtins.print('\r' + message.ljust(width), end='', flush=True)
         time.sleep(1)
 
@@ -198,11 +200,11 @@ def retry_on_connection_error(func, max_retries=3, *args, **kwargs):
             if attempt < max_retries - 1:
                 # Check internet and wait before retry
                 if not has_internet_connection():
-                    builtins.print(f"[!] Operation failed, checking internet... (attempt {attempt + 1}/{max_retries})")
+                    builtins.print(client_log_line(None, "internet", f"operation failed, checking internet... (attempt {attempt + 1}/{max_retries})"))
                     # has_internet_connection already waits and retries
                 else:
                     # Internet is fine, but operation failed for another reason
-                    builtins.print(f"[!] Operation failed: {e} (attempt {attempt + 1}/{max_retries})")
+                    builtins.print(client_log_line(None, "internet", f"operation failed: {e} (attempt {attempt + 1}/{max_retries})"))
                     time.sleep(3)  # Brief wait before retry
             else:
                 # Final attempt failed

@@ -569,14 +569,14 @@ try:
                         try:
                             _state = apiClient.get_client_state(group_number=group_param, known_version=_known_version)
                         except AuthenticationError:
-                            console.print("[system]: Session expired after re-login. Check [api_credentials] or dashboard.")
+                            console.print(client_log_line(None, "system", "Session expired after re-login. Check [api_credentials] or dashboard."))
                             break
                     else:
-                        console.print("[system]: Session expired. Set [api_credentials] in burnBot_config.ini or restart and log in.")
+                        console.print(client_log_line(None, "system", "Session expired. Set [api_credentials] in burnBot_config.ini or restart and log in."))
                         break
             except Exception as e:
                 if is_bot_debug_enabled():
-                    console.print(f"[system]: Warning - state refresh failed, using cached values: {e}")
+                    console.print(client_log_line(None, "system", f"Warning - state refresh failed, using cached values: {e}"))
 
             # Mid-run entitlement check and account/settings refresh
             if _state is not None:
@@ -751,8 +751,7 @@ try:
                     run_count = run_counter.get_run_count(account_name)
                     next_run = run_count + 1
                     run_info = f"[{next_run}/{schedule_max}]" if schedule_max > 0 else f"[{next_run}]"
-                    console.print(f"[bot]: {account_name} - Triggering to ACTIVE state - run {run_info}")
-                    console.print("-" * 60)
+                    console.print(client_log_line(None, "bot", f"{account_name} - Triggering to ACTIVE state - run {run_info}"))
                     status_store.update(account_name, status="initializing", next_run="—", run_info=run_info, effective_max_runs=int(schedule_max))
 
                     # Get or create thread on-demand
@@ -805,8 +804,7 @@ try:
                     schedule_max = schedule.get('max', 0)
 
                     run_info_done = f"[{new_run_count}/{schedule_max}]" if schedule_max > 0 else f"[{new_run_count}]"
-                    console.print(f"- [{account_name}]: [summary] run {run_info_done} - DONE")
-                    console.print("-" * 60)
+                    console.print(client_log_line(account_name, "summary", f"run {run_info_done} - DONE"))
                     next_run_str = account_next_run[account_name].strftime("%I:%M %p")
                     status_store.update(account_name, status="idle", next_run=next_run_str, last_action="session complete", run_info=run_info_done)
                 elif max_runs_reached:

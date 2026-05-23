@@ -361,6 +361,8 @@ def do_like_posts_home(driver, account, target_count, apiClient=None, account_id
                         if article_account in ignore_list:
                             display_name = article_account[:15] if len(article_account) > 15 else article_account
                             _p(client_log_line(account, _scope, f"{_lbl}[-skip] - [{display_name}] - [ignored]"))
+                            if article not in processed_articles:
+                                processed_articles.append(article)
                             continue
                         
                         like_box = WebDriverWait(article, 10).until(
