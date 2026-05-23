@@ -37,6 +37,7 @@ class DefaultBgRichLog(RichLog):
         scrollbar-background: transparent;
         scrollbar-size-vertical: 0;
         color: $foreground;
+        overflow-x: hidden;
         overflow-y: scroll;
     }
     """
