@@ -19,6 +19,8 @@ from rich.style import Style as RichStyle
 from rich.color import Color as RichColor
 from rich.markup import escape as _escape
 
+import burnBot_theme as _theme
+
 
 class DefaultBgRichLog(RichLog):
     """RichLog that renders the log pane with the terminal's default background.
@@ -36,7 +38,7 @@ class DefaultBgRichLog(RichLog):
         background: transparent;
         scrollbar-background: transparent;
         scrollbar-size-vertical: 0;
-        color: $foreground;
+        color: $bb-dim;
         overflow-x: hidden;
         overflow-y: scroll;
     }
@@ -65,13 +67,13 @@ class CmdHint(Static):
     DEFAULT_CSS = """
     CmdHint {
         width: auto;
-        background: #1a1a1a;
-        color: #9A968B;
+        background: $bb-surface;
+        color: $bb-dim;
         content-align: right middle;
         padding: 0 1;
     }
     CmdHint:hover {
-        color: #adcc00;
+        color: $bb-accent;
     }
     """
 
@@ -95,26 +97,26 @@ class BurnBotApp(App):
     CSS = """
     Screen {
         layers: base overlay;
-        color: #c9c7c0;
+        color: $bb-text;
         background: transparent;
     }
 
     #header-bar {
         height: 3;
-        background: #1a1a1a;
-        color: #f4f3ee;
+        background: $bb-surface;
+        color: $bb-heading;
         padding: 1 1 0 1;
-        border: solid #9A968B;
+        border: solid $bb-dim;
         border-top: none;
     }
 
     RichLog {
         border: none;
-        color: #9A968B;
+        color: $bb-dim;
         padding: 0;
     }
     #log {
-        scrollbar-color: #9A968B;
+        scrollbar-color: $bb-dim;
         scrollbar-background: transparent;
         scrollbar-size-vertical: 0;
         background: transparent !important;
@@ -123,47 +125,77 @@ class BurnBotApp(App):
 
     #settings-overlay {
         display: none;
-        background: #1a1a1a;
+        background: $bb-surface;
         align: left top;
         padding: 1 0 0 1;
     }
     #settings-section-header {
         width: 50;
-        background: #1a1a1a;
-        color: #f4f3ee;
+        background: $bb-surface;
+        color: $bb-heading;
         padding: 0 0 0 1;
     }
     #settings-table {
         width: 50;
         height: auto;
         max-height: 10;
-        border: solid #9A968B;
+        border: solid $bb-dim;
     }
     #settings-hint {
         width: auto;
-        background: #1a1a1a;
-        color: #9A968B;
+        background: $bb-surface;
+        color: $bb-dim;
+        margin-top: 0;
+        padding: 0 0 0 1;
+    }
+
+    #tint-overlay {
+        display: none;
+        background: $bb-surface;
+        align: left top;
+        padding: 1 0 0 1;
+    }
+    #tint-section-header {
+        width: 50;
+        background: $bb-surface;
+        color: $bb-heading;
+        padding: 0 0 0 1;
+    }
+    #tint-table {
+        width: 50;
+        height: auto;
+        max-height: 8;
+        border: solid $bb-dim;
+    }
+    #tint-table > .datatable--cursor {
+        background: $bb-surface-high;
+        color: $bb-accent;
+    }
+    #tint-hint {
+        width: auto;
+        background: $bb-surface;
+        color: $bb-dim;
         margin-top: 0;
         padding: 0 0 0 1;
     }
 
     #help-overlay {
         display: none;
-        background: #1a1a1a;
+        background: $bb-surface;
         align: left top;
         padding: 1 0 0 1;
     }
     #help-box {
         width: 62;
         height: auto;
-        background: #1a1a1a;
-        border: solid #9A968B;
+        background: $bb-surface;
+        border: solid $bb-dim;
         padding: 0 1;
     }
     #help-hint-inline {
         width: auto;
-        background: #1a1a1a;
-        color: #9A968B;
+        background: $bb-surface;
+        color: $bb-dim;
         margin-top: 0;
         padding: 0 0 0 1;
     }
@@ -171,89 +203,89 @@ class BurnBotApp(App):
     DataTable {
         height: auto;
         max-height: 16;
-        background: #1a1a1a;
-        color: #c9c7c0;
-        border: solid #9A968B;
+        background: $bb-surface;
+        color: $bb-text;
+        border: solid $bb-dim;
         border-bottom: none;
     }
     DataTable > .datatable--header {
-        background: #1a1a1a;
-        color: #f4f3ee;
+        background: $bb-surface;
+        color: $bb-heading;
         text-style: bold;
     }
     DataTable > .datatable--cursor {
-        background: #2a2a2a;
+        background: $bb-surface-high;
     }
     #settings-table > .datatable--cursor {
-        background: #2a2a2a;
-        color: #adcc00;
+        background: $bb-surface-high;
+        color: $bb-accent;
     }
 
     #vnc-bar {
         height: 2;
-        background: #1a1a1a;
-        color: #9A968B;
+        background: $bb-surface;
+        color: $bb-dim;
         padding: 0 1;
-        border: solid #9A968B;
+        border: solid $bb-dim;
         border-bottom: none;
         display: none;
     }
 
     #input-row {
         height: 3;
-        background: #1a1a1a;
-        border: solid #9A968B;
+        background: $bb-surface;
+        border: solid $bb-dim;
     }
     #input-row:focus-within {
-        border: solid #adcc00;
+        border: solid $bb-accent;
     }
     #input-prompt {
         width: 4;
-        color: #adcc00;
-        background: #1a1a1a;
+        color: $bb-accent;
+        background: $bb-surface;
         content-align: center middle;
     }
     #cmd-inner {
         width: 1fr;
         height: 1fr;
-        background: #1a1a1a;
+        background: $bb-surface;
     }
     Input {
         width: auto;
         min-width: 20;
-        background: #1a1a1a;
-        color: #f4f3ee;
+        background: $bb-surface;
+        color: $bb-heading;
         border: none;
         padding: 0 0 0 1;
     }
     Input:focus {
         border: none;
-        background: #1a1a1a;
+        background: $bb-surface;
         background-tint: transparent 0%;
     }
     Input > .input--cursor {
-        background: #adcc00;
-        color: #141413;
+        background: $bb-accent;
+        color: $bb-on-accent;
     }
     Input > .input--selection {
-        background: #adcc00 30%;
+        background: $bb-accent 30%;
     }
     #cmd-ghost {
         width: 1fr;
-        color: #4a4a45;
-        background: #1a1a1a;
+        color: $bb-ghost;
+        background: $bb-surface;
         content-align: left middle;
         padding: 0 0 0 1;
     }
     #input-hints {
         width: auto;
-        background: #1a1a1a;
+        background: $bb-surface;
         align: right middle;
     }
     #hint-exit {
         width: auto;
-        background: #1a1a1a;
-        color: #9A968B;
+        background: $bb-surface;
+        color: $bb-dim;
         content-align: right middle;
         padding: 0 1;
     }
@@ -263,13 +295,14 @@ class BurnBotApp(App):
         Binding("escape", "clear_input", "Clear", show=False),
     ]
 
-    _COMMANDS = ["/copy-log", "/exit", "/help", "/save-log", "/settings", "/start", "/stop"]
+    _COMMANDS = ["/copy-log", "/exit", "/help", "/save-log", "/settings", "/start", "/stop", "/tint"]
 
     _HELP_CMDS = [
         ("/stop",     "Stop all sessions (bot stays running)"),
         ("/start",    "Resume sessions after /stop"),
         ("/exit",     "Fully exit the bot"),
         ("/settings", "Open settings panel"),
+        ("/tint",     "Select color theme (tinty / terminal / default)"),
         ("/save-log", "Save a plain text copy of the log"),
         ("/copy-log", "Copy the log to the clipboard"),
         ("/help",     "Show this screen"),
@@ -291,26 +324,44 @@ class BurnBotApp(App):
         self._prompt_mode: bool = False
         self._cmd_history: list[str] = []
         self._history_pos: int = -1
+        # Theme state — start with defaults; register() updates from config in on_mount
+        self._tint_mode:   str  = "default"
+        self._palette:     dict = _theme.DEFAULT_PALETTE
+        self._css_palette: dict = _theme.DEFAULT_PALETTE
+
+    # ------------------------------------------------------------------
+    # CSS variables — called by Textual during CSS processing
+    # ------------------------------------------------------------------
+
+    def get_css_variables(self) -> dict[str, str]:
+        base = super().get_css_variables()
+        base.update(_theme.get_css_vars(self._css_palette))
+        return base
 
     # ------------------------------------------------------------------
     # Layout
     # ------------------------------------------------------------------
 
     def compose(self) -> ComposeResult:
+        p = self._palette
         yield Static("", id="header-bar")
         yield DefaultBgRichLog(highlight=False, markup=True, wrap=True, id="log")
         with Vertical(id="settings-overlay"):
             yield Static("Client Settings", id="settings-section-header")
             yield DataTable(id="settings-table", show_header=False, cursor_type="row")
-            yield Static("[#9A968B]Enter or Tab: [/][#E5C07B]Toggle[/][#9A968B]   Esc: [/][#E5C07B]Back[/]", id="settings-hint")
+            yield Static("", id="settings-hint")
+        with Vertical(id="tint-overlay"):
+            yield Static("Color Theme", id="tint-section-header")
+            yield DataTable(id="tint-table", show_header=False, cursor_type="row")
+            yield Static("", id="tint-hint")
         with Vertical(id="help-overlay"):
             with Vertical(id="help-box"):
                 for cmd, desc in self._HELP_CMDS:
                     row = Text()
-                    row.append(f"{cmd:<12}", style="#adcc00")
-                    row.append(desc, style="#9A968B")
+                    row.append(f"{cmd:<12}", style=p["accent"])
+                    row.append(desc, style=p["dim"])
                     yield Static(row)
-            yield Static("[#9A968B]Esc: [/][#E5C07B]Close[/]", id="help-hint-inline")
+            yield Static("", id="help-hint-inline")
         yield DataTable(id="accounts", show_cursor=False)
         yield Static("", id="vnc-bar")
         with Horizontal(id="input-row"):
@@ -321,9 +372,11 @@ class BurnBotApp(App):
                 yield CmdHint("/stop", id="hint-toggle")
                 yield Static("/exit", id="hint-exit")
                 yield CmdHint("/settings", id="hint-settings")
+                yield CmdHint("/tint", id="hint-tint")
                 yield CmdHint("/help", id="hint-help")
 
     def on_mount(self) -> None:
+        # 1. Add DataTable columns (before register so refresh methods can populate rows)
         accounts = self.query_one("#accounts", DataTable)
         accounts.add_column("Account",        key="account")
         accounts.add_column("Status",         key="status")
@@ -331,15 +384,24 @@ class BurnBotApp(App):
         accounts.add_column("Next Run",       key="next_run")
         accounts.add_column("Last Run",       key="last_run")
         accounts.add_column("Last Action",    key="last_action", width=40)
-        accounts.add_row(
-            Text("no connected accounts", style=status_store.DIM),
-            Text(""), Text(""), Text(""), Text(""), Text(""),
-            key="_no_accounts",
-        )
 
         settings = self.query_one("#settings-table", DataTable)
         settings.add_columns("Setting", "Value")
 
+        tint = self.query_one("#tint-table", DataTable)
+        tint.add_columns("Mark", "Theme")
+
+        # 2. Apply saved theme mode (reads config, updates palette, refreshes CSS + widgets)
+        _theme.register(self)
+
+        # 3. Add initial accounts placeholder row (self._palette now set)
+        accounts.add_row(
+            Text("no connected accounts", style=self._palette["dim"]),
+            Text(""), Text(""), Text(""), Text(""), Text(""),
+            key="_no_accounts",
+        )
+
+        # 4. Remaining setup
         log = self.query_one("#log", DefaultBgRichLog)
         log.styles.background = Color(0, 0, 0, a=0)
         log.styles.scrollbar_background = Color(0, 0, 0, a=0)
@@ -365,8 +427,7 @@ class BurnBotApp(App):
         inp.value = ""
         inp.focus()
         ghost = self.query_one("#cmd-ghost", Static)
-        from rich.text import Text as RichText
-        ghost.update(RichText("↵ submit  Esc cancel", style="#adcc00"))
+        ghost.update(Text("↵ submit  Esc cancel", style=self._palette["accent"]))
 
     def _exit_input_prompt_mode(self) -> None:
         """Restore the input bar to normal command mode."""
@@ -384,34 +445,34 @@ class BurnBotApp(App):
     # ------------------------------------------------------------------
 
     def _refresh_header(self) -> None:
+        p      = self._palette
         paused = status_store.is_bot_paused()
         now    = datetime.now().strftime("%I:%M %p")
         client_id_str = str(self._client_id).zfill(2)
 
-        _W = "#f4f3ee"
         header = Text(no_wrap=True)
-        header.append(f"SlowBurnBot Client v{self._version}", style="bold #d97757")
-        header.append(" | ", style=_W)
-        header.append(f"Client ID: {client_id_str}", style=_W)
+        header.append(f"SlowBurnBot Client v{self._version}", style=f"bold {p['brand']}")
+        header.append(" | ", style=p["heading"])
+        header.append(f"Client ID: {client_id_str}", style=p["heading"])
         if self._client_name:
-            header.append(f" ({self._client_name})", style=_W)
-        header.append(" | ", style=_W)
-        header.append(now, style=_W)
-        header.append(" | Current State: ", style=_W)
+            header.append(f" ({self._client_name})", style=p["heading"])
+        header.append(" | ", style=p["heading"])
+        header.append(now, style=p["heading"])
+        header.append(" | Current State: ", style=p["heading"])
         if paused:
-            header.append("[", style=_W)
-            header.append("STOPPED", style="bold #E5C07B")
-            header.append("]", style=_W)
+            header.append("[", style=p["heading"])
+            header.append("STOPPED", style=f"bold {p['warn']}")
+            header.append("]", style=p["heading"])
         else:
-            header.append("[", style=_W)
-            header.append("ACTIVE", style="bold #adcc00")
-            header.append("]", style=_W)
+            header.append("[", style=p["heading"])
+            header.append("ACTIVE", style=f"bold {p['accent']}")
+            header.append("]", style=p["heading"])
 
         filled = status_store.seconds_since_heartbeat() % 15
-        header.append(" |", style=_W)
-        header.append("█" * filled, style=status_store.TEXT)
-        header.append("░" * (15 - filled), style=status_store.DIM)
-        header.append("|", style=_W)
+        header.append(" |", style=p["heading"])
+        header.append("█" * filled, style=p["text"])
+        header.append("░" * (15 - filled), style=p["dim"])
+        header.append("|", style=p["heading"])
 
         self.query_one("#header-bar", Static).update(header)
 
@@ -419,11 +480,11 @@ class BurnBotApp(App):
         vnc_bar = self.query_one("#vnc-bar", Static)
         if vnc_url:
             bar = Text(no_wrap=True)
-            bar.append("Remote View  ", style="#f4f3ee")
-            bar.append(vnc_url, style="#adcc00")
+            bar.append("Remote View  ", style=p["heading"])
+            bar.append(vnc_url, style=p["accent"])
             if vnc_pin:
-                bar.append("   PIN: ", style=status_store.DIM)
-                bar.append(vnc_pin, style="#f4f3ee")
+                bar.append("   PIN: ", style=p["dim"])
+                bar.append(vnc_pin, style=p["heading"])
             vnc_bar.update(bar)
             vnc_bar.display = True
         else:
@@ -438,12 +499,13 @@ class BurnBotApp(App):
             pass
 
     # ------------------------------------------------------------------
-    # Settings panel (inline, replaces log area)
+    # Settings panel
     # ------------------------------------------------------------------
 
     def _open_settings(self) -> None:
-        self.query_one("#help-overlay").display = False
-        self.query_one("#log").display = False
+        self.query_one("#help-overlay").display    = False
+        self.query_one("#tint-overlay").display    = False
+        self.query_one("#log").display             = False
         self.query_one("#settings-overlay").display = True
         self._refresh_settings_rows()
         self.query_one("#settings-table", DataTable).focus()
@@ -451,8 +513,7 @@ class BurnBotApp(App):
     def _close_settings(self) -> None:
         self.query_one("#settings-overlay").display = False
         self.query_one("#log").display = True
-        inp = self.query_one("#cmd-input", Input)
-        inp.focus()
+        self.query_one("#cmd-input", Input).focus()
 
     # (type, label, key)  type: header | separator | toggle | cycle
     _SETTINGS_ROWS = [
@@ -466,25 +527,25 @@ class BurnBotApp(App):
     ]
 
     def _refresh_settings_rows(self) -> None:
+        p = self._palette
         _actionable = {"toggle", "cycle"}
         table = self.query_one("#settings-table", DataTable)
         saved_row = table.cursor_row
         table.clear()
         for row_type, label, key in self._SETTINGS_ROWS:
             if row_type == "header":
-                table.add_row(Text(label, style="bold #f4f3ee"), Text(""))
+                table.add_row(Text(label, style=f"bold {p['heading']}"), Text(""))
             elif row_type == "separator":
                 table.add_row(Text(""), Text(""))
             elif row_type == "toggle":
                 val = status_store.get_setting_value(key)
-                val_text = Text("ON", style="#adcc00") if val else Text("OFF", style="#cf3b0a")
+                val_text = Text("ON", style=p["accent"]) if val else Text("OFF", style=p["error"])
                 table.add_row(Text(f"  {label}"), val_text)
             elif row_type == "cycle":
                 val = status_store.get_notify_value(key)
-                colors = {"none": "#9A968B", "email": "#adcc00", "sms": "#adcc00", "both": "#adcc00"}
-                val_text = Text(val, style=colors.get(val, "#f4f3ee"))
-                table.add_row(Text(f"  {label}"), val_text)
-        # Land on an actionable row; if saved_row is non-actionable, find next one
+                color = p["accent"] if val != "none" else p["dim"]
+                table.add_row(Text(f"  {label}"), Text(val, style=color))
+        # Land on an actionable row
         target = saved_row
         if target >= len(self._SETTINGS_ROWS) or self._SETTINGS_ROWS[target][0] not in _actionable:
             target = next(
@@ -505,25 +566,91 @@ class BurnBotApp(App):
             status_store.cycle_notify(key)
         self._refresh_settings_rows()
 
-    @on(DataTable.RowSelected)
-    def on_settings_row_selected(self, event: DataTable.RowSelected) -> None:
-        if event.data_table.id == "settings-table":
-            self._activate_settings_row(event.cursor_row)
+    # ------------------------------------------------------------------
+    # Tint picker overlay
+    # ------------------------------------------------------------------
+
+    def _open_tint(self) -> None:
+        self.query_one("#help-overlay").display     = False
+        self.query_one("#settings-overlay").display = False
+        self.query_one("#log").display              = False
+        self.query_one("#tint-overlay").display     = True
+        self._refresh_tint_rows()
+        self.query_one("#tint-table", DataTable).focus()
+
+    def _close_tint(self) -> None:
+        self.query_one("#tint-overlay").display = False
+        self.query_one("#log").display = True
+        self.query_one("#cmd-input", Input).focus()
+
+    def _refresh_tint_rows(self) -> None:
+        p = self._palette
+        table = self.query_one("#tint-table", DataTable)
+        saved_row = table.cursor_row
+        table.clear()
+        current_mode = getattr(self, "_tint_mode", "default")
+        for mode in _theme.MODES:
+            label  = _theme.MODE_LABELS[mode]
+            marker = Text("● ", style=p["accent"]) if current_mode == mode else Text("  ")
+            table.add_row(marker, Text(label, style=p["text"]))
+        table.move_cursor(row=min(saved_row, len(_theme.MODES) - 1))
+        # Update the hint line
+        try:
+            self.query_one("#tint-hint", Static).update(
+                f"[{p['dim']}]Enter/Tab: Apply   Esc: Back[/]"
+            )
+        except Exception:
+            pass
+
+    def _activate_tint_row(self, row_idx: int) -> None:
+        modes = _theme.MODES
+        if 0 <= row_idx < len(modes):
+            _theme.apply_mode(self, modes[row_idx])
 
     # ------------------------------------------------------------------
-    # Help panel (inline, replaces log area)
+    # Help panel
     # ------------------------------------------------------------------
 
     def _open_help(self) -> None:
         self.query_one("#settings-overlay").display = False
-        self.query_one("#log").display = False
-        self.query_one("#help-overlay").display = True
+        self.query_one("#tint-overlay").display     = False
+        self.query_one("#log").display              = False
+        self.query_one("#help-overlay").display     = True
 
     def _close_help(self) -> None:
         self.query_one("#help-overlay").display = False
         self.query_one("#log").display = True
-        inp = self.query_one("#cmd-input", Input)
-        inp.focus()
+        self.query_one("#cmd-input", Input).focus()
+
+    def _refresh_help_rows(self) -> None:
+        """Re-render help box rows with current palette colors."""
+        p = self._palette
+        try:
+            widgets = list(self.query("#help-box Static"))
+            for widget, (cmd, desc) in zip(widgets, self._HELP_CMDS):
+                row = Text()
+                row.append(f"{cmd:<12}", style=p["accent"])
+                row.append(desc, style=p["dim"])
+                widget.update(row)
+        except Exception:
+            pass
+
+    def _refresh_hint_widgets(self) -> None:
+        """Re-render the markup hint lines in settings and help overlays."""
+        p = self._palette
+        try:
+            self.query_one("#settings-hint", Static).update(
+                f"[{p['dim']}]Enter or Tab: [/][{p['warn']}]Toggle[/]"
+                f"[{p['dim']}]   Esc: [/][{p['warn']}]Back[/]"
+            )
+        except Exception:
+            pass
+        try:
+            self.query_one("#help-hint-inline", Static).update(
+                f"[{p['dim']}]Esc: [/][{p['warn']}]Close[/]"
+            )
+        except Exception:
+            pass
 
     # ------------------------------------------------------------------
     # Log + accounts table (called from bot threads via call_from_thread)
@@ -544,7 +671,7 @@ class BurnBotApp(App):
         except Exception:
             pass
         status = kwargs.get("status", "—")
-        color  = status_store.COLOR.get(status, status_store.DIM)
+        color  = _theme.status_color(self._palette, status)
 
         status_cell  = Text(status, style=color)
         run_info     = kwargs.get("run_info",    "—")
@@ -567,6 +694,14 @@ class BurnBotApp(App):
             except Exception:
                 pass
 
+    def _refresh_all_account_rows(self) -> None:
+        """Re-render all account rows with the current palette's status colors."""
+        for account_name, state in status_store.get_all_accounts().items():
+            try:
+                self._update_account_row(account_name, state)
+            except Exception:
+                pass
+
     # ------------------------------------------------------------------
     # Autocomplete ghost text
     # ------------------------------------------------------------------
@@ -574,19 +709,20 @@ class BurnBotApp(App):
     def _update_ghost(self) -> None:
         if self._prompt_mode:
             return
+        p = self._palette
         ghost = self.query_one("#cmd-ghost", Static)
         if self._completions:
             current = self._completions[self._completion_idx]
             count   = len(self._completions)
             t = Text()
-            t.append(current, style="#adcc00")
+            t.append(current, style=p["accent"])
             if count > 1:
-                t.append(f" [{self._completion_idx + 1}/{count}]↑↓ - tab to select", style="#4a4a45")
+                t.append(f" [{self._completion_idx + 1}/{count}]↑↓ - tab to select", style=p["ghost"])
             else:
-                t.append(" - tab to select", style="#4a4a45")
+                t.append(" - tab to select", style=p["ghost"])
             ghost.update(t)
         elif self._exact_match:
-            ghost.update(Text(self._exact_match, style="#adcc00"))
+            ghost.update(Text(self._exact_match, style=p["accent"]))
         else:
             ghost.update("")
 
@@ -657,7 +793,19 @@ class BurnBotApp(App):
         except Exception:
             pass
 
-        # Command input: autocomplete cycling, then history; always stop ↑↓ to prevent focus-jump
+        # Tint table navigation — all rows are actionable; Tab applies selection
+        try:
+            tint_table = self.query_one("#tint-table", DataTable)
+            if tint_table.has_focus and self.query_one("#tint-overlay").display:
+                if event.key == "tab":
+                    self._activate_tint_row(tint_table.cursor_row)
+                    event.prevent_default()
+                    event.stop()
+                    return
+        except Exception:
+            pass
+
+        # Command input: autocomplete cycling, then history
         inp = self.query_one("#cmd-input", Input)
         if not inp.has_focus:
             return
@@ -724,6 +872,8 @@ class BurnBotApp(App):
             self._refresh_header()
         elif cmd == "/settings":
             self._open_settings()
+        elif cmd == "/tint":
+            self._open_tint()
         elif cmd == "/help":
             self._open_help()
         elif cmd == "/save-log":
@@ -761,6 +911,13 @@ class BurnBotApp(App):
             self._cmd_history.append(cmd)
         self._dispatch_cmd(cmd)
 
+    @on(DataTable.RowSelected)
+    def on_settings_row_selected(self, event: DataTable.RowSelected) -> None:
+        if event.data_table.id == "settings-table":
+            self._activate_settings_row(event.cursor_row)
+        elif event.data_table.id == "tint-table":
+            self._activate_tint_row(event.cursor_row)
+
     def action_clear_input(self) -> None:
         if self._prompt_mode:
             self._exit_input_prompt_mode()
@@ -772,6 +929,8 @@ class BurnBotApp(App):
             self._completions = []
             self._exact_match = None
             self._update_ghost()
+        elif self.query_one("#tint-overlay").display:
+            self._close_tint()
         elif self.query_one("#help-overlay").display:
             self._close_help()
         elif self.query_one("#settings-overlay").display:

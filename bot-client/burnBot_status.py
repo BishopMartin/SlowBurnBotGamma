@@ -249,6 +249,12 @@ def seconds_since_heartbeat() -> int:
         return int(time.monotonic() - _last_heartbeat_at)
 
 
+def get_all_accounts() -> dict:
+    """Return a snapshot of all tracked account states (for bulk re-render on theme change)."""
+    with _lock:
+        return {k: dict(v) for k, v in _store.items()}
+
+
 def get_setting_value(key: str) -> bool:
     if key == "_bot_paused":
         return _bot_paused
