@@ -335,7 +335,7 @@ class BurnBotApp(App):
 
     def get_css_variables(self) -> dict[str, str]:
         base = super().get_css_variables()
-        base.update(_theme.get_css_vars(self._css_palette))
+        base.update(_theme.get_css_vars(getattr(self, "_css_palette", _theme.DEFAULT_PALETTE)))
         return base
 
     # ------------------------------------------------------------------
