@@ -51,6 +51,10 @@ else
   echo "==> Created tag ${TAG}."
 fi
 
+# Push main branch first so sync endpoint reads current BOT_VERSION from HEAD
+git push origin main
+echo "==> Pushed main branch."
+
 # Push tag (triggers GitHub Actions build)
 git push origin "$TAG"
 echo "==> Pushed ${TAG} — GitHub Actions build triggered (~3-4 min)."

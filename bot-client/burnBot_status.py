@@ -1,3 +1,4 @@
+import sys
 import threading
 import time
 from collections import deque
@@ -253,6 +254,24 @@ def get_all_accounts() -> dict:
     """Return a snapshot of all tracked account states (for bulk re-render on theme change)."""
     with _lock:
         return {k: dict(v) for k, v in _store.items()}
+
+
+# ---------------------------------------------------------------------------
+# VNC-ready gate (Linux only)
+# ---------------------------------------------------------------------------
+
+_vnc_ready_event: threading.Event = threading.Event()
+
+
+def set_vnc_ready() -> None:
+    _vnc_ready_event.set()
+
+
+def wait_vnc_ready(timeout: float = 30.0) -> None:
+    """Block until VNC services are ready. No-op on non-Linux."""
+    if sys.platform != "linux":
+        return
+    _vnc_ready_event.wait(timeout=timeout)
 
 
 def get_setting_value(key: str) -> bool:

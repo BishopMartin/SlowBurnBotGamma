@@ -30,7 +30,7 @@ Default model: `opusplan` (Opus in /plan mode, Sonnet for execution)
 | Architecture, migrations, risky changes | `architect-planner` | Opus |
 
 Cost controls:
-- Do not spawn more than 2 subagents without asking
+- Do not spawn more than 4 subagents without asking
 - Prefer Haiku agents for read-only search and lookups
 - Do not use Opus unless the task is architectural, high-risk, or explicitly `/plan`
 - Avoid broad whole-repo scans unless necessary

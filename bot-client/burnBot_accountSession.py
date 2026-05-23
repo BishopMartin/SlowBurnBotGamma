@@ -132,6 +132,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     driver = None
 
             if driver is None:
+                status_store.wait_vnc_ready()
                 try:
                     driver = create_driver(account, accountAgent, account_idx=account_idx_for_port)
                     drivers[account] = driver

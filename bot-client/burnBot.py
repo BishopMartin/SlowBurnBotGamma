@@ -267,6 +267,7 @@ def _start_vnc_services(pin=''):
 
     def _vnc_footer(delay):
         time.sleep(delay)
+        status_store.set_vnc_ready()
         status_store.add_log(client_log_line(None, "vnc", "services ready"))
 
     x11vnc_args = ['x11vnc', '-display', ':99', '-forever', '-rfbport', '5900', '-quiet']
@@ -301,6 +302,8 @@ def _start_vnc_services(pin=''):
     if _vnc_started:
         status_store.add_log(client_log_line(None, "vnc", "services starting"))
         threading.Thread(target=_vnc_footer, args=(6,), daemon=True).start()
+    else:
+        status_store.set_vnc_ready()
 
 # Load bot_idle_delay for main loop check interval (in minutes, convert to seconds)
 bot_idle_delay_minutes = CONFIG.getfloat('browser-session', 'bot_idle_delay', fallback=0.25)
@@ -343,7 +346,7 @@ if not apiClient.has_token():
         try:
             store_api_credentials(email, password)
         except Exception as e:
-            print(f"[api]: Could not store credentials in keyring: {e}")
+            status_store.add_log(client_log_line(None, "api", f"Could not store credentials in keyring: {e}"))
 
     status_store.add_log(client_log_line(None, "api", "Login successful."))
 
