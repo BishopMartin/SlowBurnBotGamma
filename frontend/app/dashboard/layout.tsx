@@ -42,24 +42,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen flex flex-col font-mono">
       <div className="flex-1 max-w-5xl mx-auto w-full sm:border-x border-base03">
-        <header className="px-3 sm:px-6 pt-5 pb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="font-semibold text-base0e">SlowBurnBot <span className="text-base03 font-normal">--</span></span>
-          <nav className="flex flex-wrap gap-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`transition-colors ${
-                  isNavActive(item.href)
-                    ? "text-base0e"
-                    : "text-base04 hover:text-white"
-                }`}
-              >
-                <span className="text-base05">[</span>{item.label}<span className="text-base05">]</span>
-              </Link>
-            ))}
-          </nav>
-          <div className="flex items-center gap-3 sm:gap-4 ml-auto">
+        <header className="px-3 sm:px-6 pt-5 pb-3 flex flex-col gap-y-1">
+          <div className="flex items-center justify-end gap-3 sm:gap-4">
             <button onClick={() => window.location.reload()} className="text-base03 hover:text-base04 cursor-pointer transition-colors" title="Click to reload">v{APP_VERSION}</button>
             <span className="text-base0b truncate max-w-[12rem] sm:max-w-none">{user.email}</span>
             <div className="flex gap-1">
@@ -70,6 +54,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Bracket className="text-base04 group-hover:text-base0e">log out</Bracket>
               </button>
             </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="font-semibold text-base0e">SlowBurnBot <span className="text-base03 font-normal">--</span></span>
+            <nav className="flex flex-wrap gap-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`transition-colors ${
+                    isNavActive(item.href)
+                      ? "text-base0e"
+                      : "text-base04 hover:text-white"
+                  }`}
+                >
+                  <span className="text-base05">[</span>{item.label}<span className="text-base05">]</span>
+                </Link>
+              ))}
+            </nav>
           </div>
         </header>
         <main className="px-3 sm:px-6 py-6">{children}</main>
