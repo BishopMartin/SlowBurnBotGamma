@@ -89,29 +89,41 @@ class RunCounter:
         except Exception:
             return None
 
-    def set_last_run_time(self, account, run_time=None):
+    def get_last_action(self, account):
+        """Return the persisted last_action string for account today, or None."""
+        today = datetime.now().strftime('%Y-%m-%d')
+        account_data = self.data.get(account, {})
+        if account_data.get('date') != today:
+            return None
+        return account_data.get('last_action') or None
+
+    def set_last_run_time(self, account, run_time=None, last_action=None):
         """
-        Persist the last run timestamp for an account today.
-        
+        Persist the last run timestamp (and optionally last_action) for an account today.
+
         Args:
             account: Account username
             run_time: datetime (defaults to now)
+            last_action: action label string to persist alongside the timestamp
         """
         today = datetime.now().strftime('%Y-%m-%d')
         if run_time is None:
             run_time = datetime.now().astimezone()
         elif run_time.tzinfo is None:
             run_time = run_time.astimezone()
-        
+
         # Ensure account exists and is on today's date (preserve count if already tracked today)
         existing_count = 0
+        existing_action = None
         if account in self.data and self.data.get(account, {}).get('date') == today:
             existing_count = int(self.data.get(account, {}).get('count', 0) or 0)
-        
+            existing_action = self.data.get(account, {}).get('last_action')
+
         self.data[account] = {
             'date': today,
             'count': existing_count,
-            'last_run_iso': run_time.isoformat(timespec='seconds')
+            'last_run_iso': run_time.isoformat(timespec='seconds'),
+            'last_action': last_action if last_action is not None else existing_action,
         }
         self._save_data()
     

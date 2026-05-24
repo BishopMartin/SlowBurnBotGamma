@@ -38,24 +38,6 @@ _NOTIFY_OPTIONS = ["none", "email", "sms", "both"]
 _session_notify: str = "none"
 _login_notify: str = "none"
 
-# Status colour palette (used by burnBot_app.py)
-COLOR = {
-    "running":         "#adcc00",
-    "initializing":    "#e5c07b",
-    "waiting":         "#E5C07B",
-    "paused":          "#E5C07B",
-    "disabled":        "#cf3b0a",
-    "system-disabled": "#cf3b0a",
-    "no schedule":     "#cf3b0a",
-    "max runs":        "#E5C07B",
-    "idle":            "#9A968B",
-    "off-schedule":    "#9A968B",
-}
-FG   = "#f4f3ee"   # titles / headers
-TEXT = "#c9c7c0"   # regular body text
-DIM  = "#9A968B"   # secondary / meta
-
-
 # ---------------------------------------------------------------------------
 # App bridge
 # ---------------------------------------------------------------------------

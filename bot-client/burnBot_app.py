@@ -239,6 +239,13 @@ class BurnBotApp(App):
     #input-row:focus-within {
         border: solid $bb-accent;
     }
+    #status-indicator {
+        width: auto;
+        background: $bb-surface;
+        color: $bb-dim;
+        content-align: right middle;
+        padding: 0 1;
+    }
     #input-prompt {
         width: 4;
         color: $bb-accent;
@@ -374,6 +381,7 @@ class BurnBotApp(App):
                 yield CmdHint("/settings", id="hint-settings")
                 yield CmdHint("/tint", id="hint-tint")
                 yield CmdHint("/help", id="hint-help")
+            yield Static("", id="status-indicator")
 
     def on_mount(self) -> None:
         # 1. Add DataTable columns (before register so refresh methods can populate rows)
@@ -458,23 +466,24 @@ class BurnBotApp(App):
             header.append(f" ({self._client_name})", style=p["heading"])
         header.append(" | ", style=p["heading"])
         header.append(now, style=p["heading"])
-        header.append(" | Current State: ", style=p["heading"])
-        if paused:
-            header.append("[", style=p["heading"])
-            header.append("STOPPED", style=f"bold {p['warn']}")
-            header.append("]", style=p["heading"])
-        else:
-            header.append("[", style=p["heading"])
-            header.append("ACTIVE", style=f"bold {p['accent']}")
-            header.append("]", style=p["heading"])
-
-        filled = status_store.seconds_since_heartbeat() % 15
-        header.append(" |", style=p["heading"])
-        header.append("█" * filled, style=p["text"])
-        header.append("░" * (15 - filled), style=p["dim"])
-        header.append("|", style=p["heading"])
 
         self.query_one("#header-bar", Static).update(header)
+
+        filled = status_store.seconds_since_heartbeat() % 15
+        status_text = Text(no_wrap=True)
+        status_text.append("|", style=p["heading"])
+        status_text.append("█" * filled, style=p["text"])
+        status_text.append("░" * (15 - filled), style=p["dim"])
+        status_text.append("| ", style=p["heading"])
+        if paused:
+            status_text.append("[", style=p["heading"])
+            status_text.append("STOPPED", style=f"bold {p['warn']}")
+            status_text.append("]", style=p["heading"])
+        else:
+            status_text.append("[", style=p["heading"])
+            status_text.append("ACTIVE", style=f"bold {p['accent']}")
+            status_text.append("]", style=p["heading"])
+        self.query_one("#status-indicator", Static).update(status_text)
 
         vnc_url, vnc_pin = status_store.get_vnc_info()
         vnc_bar = self.query_one("#vnc-bar", Static)

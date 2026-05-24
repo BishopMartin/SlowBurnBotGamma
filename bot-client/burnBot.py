@@ -651,9 +651,18 @@ try:
                         'last_offset_date': None if max_sig_changed else account_schedules.get(account_name, {}).get('last_offset_date'),
                     }
 
-                # Ensure last run is loaded
+                # Ensure last run is loaded; push persisted display values to status_store on first load
                 if account_name not in account_last_run:
-                    account_last_run[account_name] = run_counter.get_last_run_time(account_name)
+                    lr = run_counter.get_last_run_time(account_name)
+                    account_last_run[account_name] = lr
+                    _restore = {}
+                    if lr is not None:
+                        _restore["last_run"] = lr.strftime("%I:%M %p")
+                    _la = run_counter.get_last_action(account_name)
+                    if _la:
+                        _restore["last_action"] = _la
+                    if _restore:
+                        status_store.update(account_name, **_restore)
 
             # Show status for all accounts, trigger active ones if it's time to run
             _any_account_waiting = False  # Track if any account is in-schedule and waiting
@@ -790,7 +799,7 @@ try:
                     run_finished_time = datetime.now().astimezone()
                     account_last_run[account_name] = run_finished_time
                     new_run_count = run_counter.increment_run_count(account_name)
-                    run_counter.set_last_run_time(account_name, run_finished_time)
+                    run_counter.set_last_run_time(account_name, run_finished_time, last_action="session complete")
 
                     # Set a stable next_run_time
                     delay_config = account_schedules.get(account_name, {}).get('delay', {'base': 60.0, 'random': 0.0})
