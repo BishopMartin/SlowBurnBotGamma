@@ -28,3 +28,13 @@ git add frontend/lib/version.ts
 VERSION=$(grep -o '"[0-9.]*"' frontend/lib/version.ts | tr -d '"')
 BOT_VERSION=$(grep -o '"[0-9.]*"' bot-client/burnBot_version.py | tr -d '"')
 git commit -m "chore: bump website to v${VERSION} / client v${BOT_VERSION}" --no-verify || exit 1
+
+# Ship the bump commit with THIS push. Git already locked in the pre-bump sha for
+# the outer push, so the new commit would otherwise trail by one. Push it ourselves
+# (SKIP_VERSION_BUMP=1 prevents the nested push from re-triggering this hook).
+SKIP_VERSION_BUMP=1 git push "$1" </dev/null || exit 1
+
+# Force the local tracking ref to the bump commit now, before exit. The outer push will
+# find nothing to send ("up to date") and will not re-write the tracking ref, so this sticks.
+BRANCH=$(git symbolic-ref --short HEAD)
+git update-ref "refs/remotes/$1/$BRANCH" "$(git rev-parse HEAD)"

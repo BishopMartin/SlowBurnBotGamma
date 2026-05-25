@@ -19,6 +19,12 @@ bot-client/dist/
 bot-client/build/
 bot-client/*.spec.bak
 
+# Local scratch / planning files
+plan_*.md
+client-output-example.txt
+danger-list.json
+git
+
 # Local bot state / secrets (common in sibling Beta tree; mirror here if copied)
 burnBot_runs.json
 *-slowburnbot-*.json
