@@ -261,7 +261,7 @@ def _start_vnc_services(pin=''):
             for raw in proc.stdout:
                 line = raw.decode(errors='replace').rstrip()
                 if line:
-                    status_store.add_log(f"  [{label}]  {line}")
+                    status_store.add_log(client_log_line(None, label, line))
         except Exception:
             pass
 

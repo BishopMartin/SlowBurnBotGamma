@@ -102,10 +102,10 @@ class BurnBotApp(App):
     }
 
     #header-bar {
-        height: 3;
+        height: 2;
         background: $bb-surface;
         color: $bb-heading;
-        padding: 1 1 0 1;
+        padding: 0 1;
         border: solid $bb-dim;
         border-top: none;
     }
