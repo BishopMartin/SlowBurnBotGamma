@@ -80,6 +80,7 @@ class BotUserConfigRead(BaseModel):
     like_sponsored: bool = False
     skip_login_check: bool = False
     login_tries: int = 3
+    skip_private: bool = False
     notices_type: str
     notices_session: bool
     notify_email: str | None = None

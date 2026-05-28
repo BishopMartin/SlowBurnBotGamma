@@ -283,7 +283,7 @@ def _start_vnc_services(pin=''):
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             env=clean_env
         )
-        threading.Thread(target=_drain, args=(x11vnc, 'vnc'), daemon=True).start()
+        threading.Thread(target=_drain, args=(x11vnc, 'x11/noVNC'), daemon=True).start()
         _vnc_started = True
     except FileNotFoundError:
         pass
@@ -294,7 +294,7 @@ def _start_vnc_services(pin=''):
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             env=clean_env
         )
-        threading.Thread(target=_drain, args=(wsify, 'novnc'), daemon=True).start()
+        threading.Thread(target=_drain, args=(wsify, 'x11/noVNC'), daemon=True).start()
         _vnc_started = True
     except FileNotFoundError:
         pass
@@ -746,13 +746,11 @@ try:
                     time_until_next = None
                 else:
                     if next_run_time is None:
-                        if last_run is None:
-                            next_run_time = current_time
-                        else:
-                            base_delay = delay_config.get('base', 60.0)
-                            random_delay = delay_config.get('random', 0.0)
-                            delay_minutes = base_delay + random.uniform(0, random_delay)
-                            next_run_time = last_run + timedelta(minutes=delay_minutes)
+                        base_delay = delay_config.get('base', 60.0)
+                        random_delay = delay_config.get('random', 0.0)
+                        delay_minutes = base_delay + random.uniform(0, random_delay)
+                        base_time = current_time if last_run is None else last_run
+                        next_run_time = base_time + timedelta(minutes=delay_minutes)
                         account_next_run[account_name] = next_run_time
 
                     should_run = current_time >= next_run_time
