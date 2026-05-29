@@ -10,6 +10,14 @@ import httpx
 from burnBot_client_log import client_log_line
 
 
+def _log_api_err(e, msg: str) -> None:
+    """Log an API error, using a distinct offline prefix for network/DNS failures."""
+    if isinstance(e, (httpx.ConnectError, httpx.TimeoutException, httpx.NetworkError, httpx.ConnectTimeout)):
+        print(client_log_line("api", "connection[offline]", f"{msg} (network unreachable)"))
+    else:
+        print(client_log_line(None, "api", f"{msg}: {e}"))
+
+
 def _as_local_aware(dt):
     """Local wall time as timezone-aware so ISO strings include offset (avoids server treating naive as UTC)."""
     if not isinstance(dt, datetime):
@@ -160,7 +168,7 @@ class ApiClient:
                 print(client_log_line(None, "api", f"Login failed (HTTP {resp.status_code})"))
                 return False
         except Exception as e:
-            print(client_log_line(None, "api", f"Login error: {e}"))
+            _log_api_err(e, "Login error")
             return False
 
     def _relogin(self):
@@ -302,7 +310,7 @@ class ApiClient:
             # Return cached data if available, even if stale
             if cached:
                 return cached[0]
-            print(client_log_line(None, "api", f"Failed to fetch settings for {account_id}: {e}"))
+            _log_api_err(e, f"Failed to fetch settings for {account_id}")
             return None
 
     def invalidate_settings_cache(self, account_id=None):
@@ -322,7 +330,7 @@ class ApiClient:
             resp = self._request("GET", f"/bot/credentials/{account_id}")
             return resp.json().get("ig_password")
         except Exception as e:
-            print(client_log_line(None, "api", f"Failed to fetch credentials for {account_id}: {e}"))
+            _log_api_err(e, f"Failed to fetch credentials for {account_id}")
             return None
 
     # ------------------------------------------------------------------
@@ -363,7 +371,7 @@ class ApiClient:
             resp = self._request("POST", "/bot/session-log", json=payload)
             return resp.json()
         except Exception as e:
-            print(client_log_line(None, "api", f"Failed to log session: {e}"))
+            _log_api_err(e, "Failed to log session")
             return None
 
     def log_activity(self, account_id, action, status, details=""):
@@ -378,7 +386,7 @@ class ApiClient:
         try:
             self._request("POST", "/bot/activity-log", json=payload)
         except Exception as e:
-            print(client_log_line(None, "api", f"Failed to log activity: {e}"))
+            _log_api_err(e, "Failed to log activity")
 
     def log_error(self, account_id, error_message):
         """Post an error log entry."""
@@ -392,7 +400,7 @@ class ApiClient:
         try:
             self._request("POST", "/bot/activity-log", json=payload)
         except Exception as e:
-            print(client_log_line(None, "api", f"Failed to log error: {e}"))
+            _log_api_err(e, "Failed to log error")
 
     # ------------------------------------------------------------------
     # Follow targets
@@ -412,7 +420,7 @@ class ApiClient:
             resp = self._request("GET", f"/bot/follow-targets/{account_id}", params=params)
             return resp.json()
         except Exception as e:
-            print(client_log_line(None, "api", f"Failed to fetch follow targets: {e}"))
+            _log_api_err(e, "Failed to fetch follow targets")
             return []
 
     def get_all_follow_target_handles(self, account_id):
@@ -446,7 +454,7 @@ class ApiClient:
             resp = self._request("POST", "/bot/follow-targets", json=payload)
             return resp.json()
         except Exception as e:
-            print(client_log_line(None, "api", f"Failed to create follow target: {e}"))
+            _log_api_err(e, "Failed to create follow target")
             return None
 
     def update_follow_target(self, target_id, status=None, unfollow_date=None, follow_back=None):
@@ -462,7 +470,7 @@ class ApiClient:
             resp = self._request("PATCH", f"/bot/follow-targets/{target_id}", json=payload)
             return resp.json()
         except Exception as e:
-            print(client_log_line(None, "api", f"Failed to update follow target: {e}"))
+            _log_api_err(e, "Failed to update follow target")
             return None
 
     # ------------------------------------------------------------------
@@ -487,7 +495,7 @@ class ApiClient:
         except Exception as e:
             if self._ignore_cache is not None:
                 return self._ignore_cache
-            print(client_log_line(None, "api", f"Failed to fetch ignore handles: {e}"))
+            _log_api_err(e, "Failed to fetch ignore handles")
             return []
 
     # ------------------------------------------------------------------
@@ -549,7 +557,7 @@ class ApiClient:
         except Exception as e:
             if self._config_cache is not None:
                 return self._config_cache
-            print(client_log_line(None, "api", f"Failed to fetch user config: {e}"))
+            _log_api_err(e, "Failed to fetch user config")
             return None
 
     # ------------------------------------------------------------------
@@ -568,7 +576,7 @@ class ApiClient:
             resp = self._request("GET", f"/bot/run-count/{account_id}", params=params)
             return resp.json().get("count", 0)
         except Exception as e:
-            print(client_log_line(None, "api", f"Failed to fetch run count: {e}"))
+            _log_api_err(e, "Failed to fetch run count")
             return 0
 
 

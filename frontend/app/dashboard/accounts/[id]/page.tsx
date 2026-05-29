@@ -235,6 +235,27 @@ export default function AccountDetailPage() {
 
             <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
               <span className="inline-flex items-center gap-0">
+                <span className="text-base04">{"sessions/day - fixed: "}</span>
+                <span className="text-base05">{"["}</span>
+                <NumberInput
+                  value={settings.max_runs_per_day}
+                  onChange={(n) => setSettings((s) => ({ ...s, max_runs_per_day: n || 1 }))}
+                  placeholder="1"
+                />
+                <span className="text-base05">{"]"}</span>
+                <span className="text-base04 leading-none">{" + random: "}</span>
+                <span className="text-base05">{"["}</span>
+                <NumberInput
+                  value={settings.max_runs_random_per_day}
+                  onChange={(n) => setSettings((s) => ({ ...s, max_runs_random_per_day: n }))}
+                  placeholder="0"
+                />
+                <span className="text-base05">{"]"}</span>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
+              <span className="inline-flex items-center gap-0">
                 <span className="text-base04">{"days: "}</span>
                 <span className="text-base05">{"["}</span>
                 <Dropdown
@@ -284,25 +305,6 @@ export default function AccountDetailPage() {
 
             <div className="flex items-center gap-x-5 gap-y-2 flex-wrap">
               <span className="inline-flex items-center gap-0">
-                <span className="text-base04">{"sessions/day - fixed: "}</span>
-                <span className="text-base05">{"["}</span>
-                <NumberInput
-                  value={settings.max_runs_per_day}
-                  onChange={(n) => setSettings((s) => ({ ...s, max_runs_per_day: n || 1 }))}
-                  placeholder="1"
-                />
-                <span className="text-base05">{"]"}</span>
-                <span className="text-base04 leading-none">{" + random: "}</span>
-                <span className="text-base05">{"["}</span>
-                <NumberInput
-                  value={settings.max_runs_random_per_day}
-                  onChange={(n) => setSettings((s) => ({ ...s, max_runs_random_per_day: n }))}
-                  placeholder="0"
-                />
-                <span className="text-base05">{"]"}</span>
-              </span>
-
-              <span className="inline-flex items-center gap-0">
                 <span className="text-base04">{"delay - fixed: "}</span>
                 <span className="text-base05">{"["}</span>
                 <NumberInput
@@ -319,7 +321,7 @@ export default function AccountDetailPage() {
                   placeholder="0"
                 />
                 <span className="text-base05">{"]"}</span>
-                <span className="text-base04">{" - minutes between each session"}</span>
+                <span className="text-base04">{" - minutes before and between each session"}</span>
               </span>
             </div>
 

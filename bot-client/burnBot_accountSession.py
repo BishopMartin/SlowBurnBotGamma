@@ -104,7 +104,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
     action_topics = settings.get("topics") or ""
 
     # Account group / target accounts for follow[group] action
-    account_list_tab = settings.get("account_list_tab") or ""
+    account_list_tab = settings.get("account_group") or ""
 
     driver = None
 
@@ -163,7 +163,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     action_slots = _parse_actions(settings)
                     unfollow_days = int(settings.get("unfollow_days", 30) or 30)
                     action_topics = settings.get("topics") or ""
-                    account_list_tab = settings.get("account_list_tab") or ""
+                    account_list_tab = settings.get("account_group") or ""
 
                     if is_bot_debug_enabled():
                         _print(client_log_line(account, "browser", "Re-read settings from API"))
@@ -299,7 +299,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                         _count = 0
 
                         if _enabled and _act_type:
-                            _total = _fixed + random.randint(0, _variable)
+                            _total = _fixed + (random.randint(1, _variable) if _variable > 0 else 0)
                             _act_label = action_target_label(_act_type, _act_target)
                             _act_scope = f"action[{_slot_num}]"
                             _print(client_log_line(account, _act_scope, f"{_act_label}-Attempting[{_total:02d}]"))

@@ -708,7 +708,7 @@ try:
 
                     max_base = schedule.get('max_base', schedule.get('max', 0)) or 0
                     max_rng = schedule.get('max_random', 0) or 0
-                    max_offset = random.randint(0, max_rng) if max_rng > 0 else 0
+                    max_offset = random.randint(1, max_rng) if max_rng > 0 else 0
                     schedule['max_random_offset'] = max_offset
                     schedule['max'] = (max_base + max_offset) if max_base > 0 else 0
 
@@ -730,6 +730,7 @@ try:
                     _off_smax = schedule.get('max', 0) or 0
                     _off_run_info = f"[{_off_run_count}/{int(_off_smax)}]" if _off_smax > 0 else f"[{_off_run_count}]"
                     status_store.update(account_name, status="off-schedule", next_run="—", run_info=_off_run_info)
+                    account_next_run.pop(account_name, None)
                     continue
 
                 # Check if max runs reached for today
@@ -748,8 +749,9 @@ try:
                     if next_run_time is None:
                         base_delay = delay_config.get('base', 60.0)
                         random_delay = delay_config.get('random', 0.0)
-                        delay_minutes = base_delay + random.uniform(0, random_delay)
-                        base_time = current_time if last_run is None else last_run
+                        delay_minutes = base_delay + (random.uniform(1, random_delay) if random_delay > 0 else 0)
+                        last_run_today = last_run is not None and last_run.date() == current_time.date()
+                        base_time = last_run if last_run_today else current_time
                         next_run_time = base_time + timedelta(minutes=delay_minutes)
                         account_next_run[account_name] = next_run_time
 
