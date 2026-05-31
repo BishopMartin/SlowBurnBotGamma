@@ -243,7 +243,10 @@ def _start_vnc_services(pin=''):
     """Start x11vnc and websockify on Linux, routing their output to the TUI log.
     Called once after login so the PIN is available to pass to x11vnc."""
     global _vnc_services_started
-    if _vnc_services_started or sys.platform != 'linux':
+    if _vnc_services_started:
+        return
+    if sys.platform != 'linux':
+        status_store.set_vnc_ready()
         return
     _vnc_services_started = True
     import subprocess
@@ -760,6 +763,7 @@ try:
 
                 # Show account status / trigger run
                 if should_run:
+                    status_store.wait_vnc_ready()
                     run_count = run_counter.get_run_count(account_name)
                     next_run = run_count + 1
                     run_info = f"[{next_run}/{schedule_max}]" if schedule_max > 0 else f"[{next_run}]"

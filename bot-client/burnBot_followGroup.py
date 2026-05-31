@@ -80,10 +80,10 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
             return 0, error_msg
         
         # Determine which link to click (followers or following)
-        if group_type == "followers[group]":
+        if group_type in ("followers[group]", "account list [followers]"):
             link_text = 'followers'
             action_type = "followers"
-        elif group_type == "following[group]":
+        elif group_type in ("following[group]", "account list [following]"):
             link_text = 'following'
             action_type = "following"
         else:
