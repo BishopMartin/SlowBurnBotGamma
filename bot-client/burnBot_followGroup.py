@@ -204,7 +204,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                         actions.move_to_element(target_link)
                         actions.perform()
 
-                        _p(client_log_line(account, _scope, f"{_lbl}[-skip] - [{user_name}] - [private]"))
+                        _p(client_log_line(account, _scope, f"{target_account}[{action_type}]-[-skip] - [{user_name}] - [private]"))
 
                     else:
                         # Follow the account
@@ -225,7 +225,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                         except Exception:
                             pass
 
-                        _p(client_log_line(account, _scope, f"{_lbl}[{followed_count:02d}/{target_count:02d}] - [{user_name}]"))
+                        _p(client_log_line(account, _scope, f"{target_account}[{action_type}]-[{followed_count:02d}/{target_count:02d}] - [{user_name}]"))
                         
                         # Delay between follows
                         time.sleep(random.uniform(10, 20))

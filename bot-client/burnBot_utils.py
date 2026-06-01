@@ -14,7 +14,9 @@ from burnBot_imports import *
 from burnBot_config import CONFIG
 from burnBot_client_log import client_log_line
 
-INTERNET_HOLD_DELAY_SECONDS = 1200
+INTERNET_HOLD_INITIAL_DELAY_SECONDS = 30
+INTERNET_HOLD_MAX_DELAY_SECONDS = 300
+INTERNET_RESTORE_GRACE_SECONDS = 12
 _internet_state_lock = threading.Lock()
 _internet_restored_event = threading.Event()
 _internet_restored_event.set()
@@ -42,7 +44,7 @@ def consume_connectivity_recovery_notice():
         return notice
 
 
-def wait_for_internet_restore(host="8.8.8.8", port=53, timeout=8, retry_delay_seconds=INTERNET_HOLD_DELAY_SECONDS):
+def wait_for_internet_restore(host="8.8.8.8", port=53, timeout=8):
     global _internet_hold_owner, _internet_hold_active, _internet_recovery_notice
 
     current_thread = threading.get_ident()
@@ -55,7 +57,7 @@ def wait_for_internet_restore(host="8.8.8.8", port=53, timeout=8, retry_delay_se
             _internet_hold_owner = current_thread
             _internet_recovery_notice = False
             _internet_restored_event.clear()
-            builtins.print(client_log_line(None, "internet", "Offline hold active - bot will stay running and retry every 20 minutes."))
+            builtins.print(client_log_line(None, "internet", "Offline hold active - checking every 30s up to 5 min."))
             builtins.print(client_log_line(None, "internet", "No new work will resume until connectivity is restored."))
         elif _internet_hold_owner != current_thread:
             owner_event = _internet_restored_event
@@ -69,11 +71,14 @@ def wait_for_internet_restore(host="8.8.8.8", port=53, timeout=8, retry_delay_se
             pass
         return True
 
+    retry_delay = INTERNET_HOLD_INITIAL_DELAY_SECONDS
     while True:
-        delay("offline hold - next connection check in ", retry_delay_seconds, retry_delay_seconds, "", scope="internet")
+        delay("offline hold - next connection check in ", retry_delay, retry_delay, "", scope="internet")
 
         try:
             _probe_internet_connection(host=host, port=port, timeout=timeout)
+            builtins.print(client_log_line(None, "internet", f"Connection restored - waiting {INTERNET_RESTORE_GRACE_SECONDS}s for network to settle..."))
+            time.sleep(INTERNET_RESTORE_GRACE_SECONDS)
             with _internet_state_lock:
                 has_internet_connection.fail_count = 0
                 _internet_hold_active = False
@@ -83,7 +88,8 @@ def wait_for_internet_restore(host="8.8.8.8", port=53, timeout=8, retry_delay_se
             builtins.print(client_log_line(None, "internet", "Connection restored - resuming bot operation."))
             return True
         except socket.error:
-            builtins.print(client_log_line(None, "internet", "Still offline - continuing hold state."))
+            retry_delay = min(retry_delay * 2, INTERNET_HOLD_MAX_DELAY_SECONDS)
+            builtins.print(client_log_line(None, "internet", f"Still offline - next check in {retry_delay}s."))
 
 def close_windows(driver):
     """
