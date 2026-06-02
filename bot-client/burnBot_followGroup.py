@@ -168,7 +168,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                     
                     # Check if already following
                     if user_status != "Follow":
-                        _p(client_log_line(account, _scope, f"{_lbl}{user_status.lower()} @{user_name} (from {target_account})"))
+                        _p(client_log_line(account, _scope, f"{target_account}[{action_type}]-[-skip] - [{user_name}] - [{user_status.lower()}]"))
                         time.sleep(random.uniform(1, 1))
                         continue
                     
