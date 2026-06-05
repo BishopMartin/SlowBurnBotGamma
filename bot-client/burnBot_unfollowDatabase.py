@@ -273,7 +273,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
 
                     _p(client_log_line(
                         account, _log_scope,
-                        f"{_lbl}[{count_formatted}/{target_formatted}] - [{loop_username}]",
+                        f"{_lbl}[{count_formatted}/{target_formatted}] - [{loop_username}] - [fb:{follow_back_display}]",
                     ))
 
                     # Update follow target via API
