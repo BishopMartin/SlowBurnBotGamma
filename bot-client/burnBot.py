@@ -258,9 +258,14 @@ def _start_vnc_services(pin=''):
     for _var in ('LD_LIBRARY_PATH', 'LD_PRELOAD'):
         clean_env.pop(_var, None)
 
+    _start_announced = threading.Event()
+
     def _drain(proc, label):
         try:
             time.sleep(3)  # let cfg startup messages finish before VNC output appears
+            if not _start_announced.is_set():
+                _start_announced.set()
+                status_store.add_log(client_log_line(None, "x11/noVNC", "services starting"))
             for raw in proc.stdout:
                 line = raw.decode(errors='replace').rstrip()
                 if line:
@@ -271,7 +276,7 @@ def _start_vnc_services(pin=''):
     def _vnc_footer(delay):
         time.sleep(delay)
         status_store.set_vnc_ready()
-        status_store.add_log(client_log_line(None, "vnc", "services ready"))
+        status_store.add_log(client_log_line(None, "x11/noVNC", "services ready"))
 
     x11vnc_args = ['x11vnc', '-display', ':99', '-forever', '-rfbport', '5900', '-quiet']
     if pin:
@@ -303,7 +308,6 @@ def _start_vnc_services(pin=''):
         pass
 
     if _vnc_started:
-        status_store.add_log(client_log_line(None, "vnc", "services starting"))
         threading.Thread(target=_vnc_footer, args=(6,), daemon=True).start()
     else:
         status_store.set_vnc_ready()
