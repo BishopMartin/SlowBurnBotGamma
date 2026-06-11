@@ -162,7 +162,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                 try:
                     # Check if already in database
                     if user_name in database_names:
-                        _p(client_log_line(account, _scope, f"{_lbl}[-skip] - [{user_name}] - [already followed]"))
+                        _p(client_log_line(account, _scope, f"{target_account}[{action_type}]-[-skip] - [{user_name}] - [already followed]"))
                         time.sleep(random.uniform(1, 1))
                         continue
                     
