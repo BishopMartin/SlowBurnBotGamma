@@ -1358,6 +1358,11 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
                     account, "login",
                     f"verification challenge try={attempt}/{login_tries} — waiting for SMS code",
                 ))
+                try:
+                    from burnBot_notifications import send_sms_challenge_alert
+                    send_sms_challenge_alert(account, apiClient=apiClient, _print=print)
+                except Exception as _sms_notif_err:
+                    print(client_log_line(account, "notify", f"Warning — SMS challenge alert failed: {_sms_notif_err}"))
                 sms_code = status_store.request_operator_input(f"SMS code for @{account}:")
                 if sms_code.strip():
                     print(client_log_line(account, "login", "SMS code received — submitting to Instagram"))
@@ -1392,6 +1397,11 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
                         account, "login",
                         f"verification challenge try={attempt}/{login_tries} — waiting for SMS code",
                     ))
+                    try:
+                        from burnBot_notifications import send_sms_challenge_alert
+                        send_sms_challenge_alert(account, apiClient=apiClient, _print=print)
+                    except Exception as _sms_notif_err:
+                        print(client_log_line(account, "notify", f"Warning — SMS challenge alert failed: {_sms_notif_err}"))
                     sms_code = status_store.request_operator_input(f"SMS code for @{account}:")
                     if sms_code.strip():
                         print(client_log_line(account, "login", "SMS code received — submitting to Instagram"))

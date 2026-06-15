@@ -164,6 +164,36 @@ def send_captcha_challenge_alert(account, novnc_url, run_count=0, max_runs=0, ap
         _print(client_log_line(account, "notify", f"Failed to send CAPTCHA alert: {e}"))
 
 
+def send_sms_challenge_alert(account, run_count=0, max_runs=0, apiClient=None, account_id=None, _print=None):
+    """Send an action-required alert when Instagram requests an SMS verification code during login."""
+    if _print is None:
+        _print = builtins.print
+    try:
+        user_config = apiClient.get_user_config() if apiClient else None
+        if not user_config or not user_config.get('notices_login', True):
+            return
+
+        login_type = (user_config.get('login_notices_type') or user_config.get('notices_type') or 'none').strip().lower()
+        login_email = user_config.get('login_notify_email') or user_config.get('notify_email') or ''
+        login_phone = user_config.get('login_notify_phone') or user_config.get('notify_phone') or ''
+
+        if login_type == 'none':
+            return
+
+        run_info = f"run {run_count}/{max_runs}" if max_runs > 0 else f"run {run_count}"
+        body = (
+            f"SMS Verification Required — Action Required ({run_info})\n\n"
+            f"Account: {account}\n\n"
+            f"Instagram is requesting an SMS verification code. "
+            f"Enter the code in the bot terminal to continue."
+        )
+        sms_summary = f"{account} - SMS CODE REQUIRED\nEnter the code in the bot terminal"
+        subject = f"SlowBurnBot SMS Verification - {account}"
+        _dispatch(account, login_type, login_email, login_phone, subject, body, sms_summary, apiClient, account_id=account_id, _print=_print)
+    except Exception as e:
+        _print(client_log_line(account, "notify", f"Failed to send SMS challenge alert: {e}"))
+
+
 def send_session_complete_notification(account, start_time, end_time,
                                        action1_type, action1_count, action1_target,
                                        action2_type, action2_count, action2_target,
