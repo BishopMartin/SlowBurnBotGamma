@@ -92,7 +92,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
         
         # Find and click the followers/following link
         try:
-            target_link = driver.find_element(By.PARTIAL_LINK_TEXT, link_text)
+            target_link = driver.find_element(By.XPATH, f"//a[contains(@href, '/{link_text}/')]")
             
             # Hover over link
             actions = ActionChains(driver)
