@@ -5,6 +5,7 @@ from datetime import date
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 from burnBot_utils import process_exception
@@ -90,17 +91,39 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
             _p(client_log_line(account, _scope, f"{_lbl}ERROR: Invalid group type"))
             return 0, f"Invalid group type: {group_type}"
         
-        # Find and click the followers/following link
+        # Find and click the followers/following link — try multiple strategies since
+        # Instagram changes whether these are <a href=…>, <button>, or role="link" elements.
+        _strategies = [
+            ("href-slash",   By.XPATH, f"//a[contains(@href, '/{link_text}/')]"),
+            ("href-noslash", By.XPATH, f"//a[contains(@href, '/{link_text}')]"),
+            ("button-text",  By.XPATH, f"//button[.//*[normalize-space()='{link_text}']]"),
+            ("role-link",    By.XPATH, f"//*[@role='link'][.//*[normalize-space()='{link_text}']]"),
+            ("header-text",  By.XPATH, f"//header//*[normalize-space()='{link_text}']"),
+        ]
+        target_link = None
+        matched_strategy = None
+        for _strat_name, _by, _sel in _strategies:
+            try:
+                target_link = WebDriverWait(driver, 5).until(
+                    EC.presence_of_element_located((_by, _sel))
+                )
+                matched_strategy = _strat_name
+                break
+            except Exception:
+                continue
+
+        if target_link is None:
+            error_msg = f"Failed to open {link_text} dialog: element not found with any selector strategy"
+            _p(client_log_line(account, _scope, f"{_lbl}ERROR: {error_msg}"))
+            return 0, error_msg
+
+        _p(client_log_line(account, _scope, f"{_lbl}located {link_text} via [{matched_strategy}]"))
         try:
-            target_link = driver.find_element(By.XPATH, f"//a[contains(@href, '/{link_text}/')]")
-            
-            # Hover over link
             actions = ActionChains(driver)
             actions.move_to_element(target_link)
             actions.perform()
             time.sleep(random.uniform(2, 4))
-            
-            # Click link
+
             actions = ActionChains(driver)
             actions.click(target_link)
             actions.perform()
