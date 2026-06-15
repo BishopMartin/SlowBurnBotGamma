@@ -298,7 +298,7 @@ def _start_vnc_services(pin=''):
 
     try:
         wsify = subprocess.Popen(
-            ['websockify', '--web', '/usr/share/novnc/', '6080', 'localhost:5900'],
+            ['websockify', '--web', '/usr/share/novnc/', '--heartbeat', '30', '6080', 'localhost:5900'],
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             env=clean_env
         )
