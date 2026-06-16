@@ -478,6 +478,7 @@ class BurnBotApp(App):
 
         self.query_one("#header-bar", Static).update(header)
 
+        paused = status_store.is_bot_paused()
         filled = status_store.seconds_since_heartbeat() % 15
         status_text = Text(no_wrap=True)
         status_text.append("|", style=p["heading"])
