@@ -94,11 +94,14 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
         # Find and click the followers/following link — try multiple strategies since
         # Instagram changes whether these are <a href=…>, <button>, or role="link" elements.
         _strategies = [
-            ("href-slash",   By.XPATH, f"//a[contains(@href, '/{link_text}/')]"),
-            ("href-noslash", By.XPATH, f"//a[contains(@href, '/{link_text}')]"),
-            ("button-text",  By.XPATH, f"//button[.//*[normalize-space()='{link_text}']]"),
-            ("role-link",    By.XPATH, f"//*[@role='link'][.//*[normalize-space()='{link_text}']]"),
-            ("header-text",  By.XPATH, f"//header//*[normalize-space()='{link_text}']"),
+            # Instagram now uses <a href="#" role="link"> where text is split across child spans
+            # and a text node " following"/" followers" — match by role + contains on full text.
+            ("role-link-text",  By.XPATH, f"//a[@role='link'][contains(., ' {link_text}')]"),
+            ("href-slash",      By.XPATH, f"//a[contains(@href, '/{link_text}/')]"),
+            ("href-noslash",    By.XPATH, f"//a[contains(@href, '/{link_text}')]"),
+            ("button-text",     By.XPATH, f"//button[.//*[normalize-space()='{link_text}']]"),
+            ("role-link-exact", By.XPATH, f"//*[@role='link'][.//*[normalize-space()='{link_text}']]"),
+            ("header-text",     By.XPATH, f"//header//*[normalize-space()='{link_text}']"),
         ]
         target_link = None
         matched_strategy = None
