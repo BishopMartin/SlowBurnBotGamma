@@ -447,6 +447,7 @@ try:
                 return
             all_accounts = _init_state.get("accounts") or []
             _known_version = _init_state.get("version", "")
+            status_store.set_current_bot_version(_init_state.get("current_bot_version"))
             for _acct in all_accounts:
                 _name = _acct.get("name", "")
                 if _name:
@@ -598,6 +599,7 @@ try:
                 if _state.get("changed"):
                     _known_version = _state.get("version", _known_version)
                     all_accounts = _state.get("accounts") or all_accounts
+                status_store.set_current_bot_version(_state.get("current_bot_version"))
 
             # Pre-populate table so all accounts appear immediately on first loop
             for _acct in all_accounts:

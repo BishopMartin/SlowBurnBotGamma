@@ -34,6 +34,8 @@ _last_heartbeat_at: float = 0.0  # monotonic timestamp of last heartbeat send
 _vnc_url: str = ""
 _vnc_pin: str = ""
 
+_current_bot_version: str | None = None
+
 _NOTIFY_OPTIONS = ["none", "email", "sms", "both"]
 _session_notify: str = "none"
 _login_notify: str = "none"
@@ -217,6 +219,17 @@ def set_vnc_info(url: str = "", pin: str = "") -> None:
 def get_vnc_info() -> tuple[str, str]:
     with _lock:
         return _vnc_url, _vnc_pin
+
+
+def set_current_bot_version(version: str | None) -> None:
+    global _current_bot_version
+    with _lock:
+        _current_bot_version = version
+
+
+def get_current_bot_version() -> str | None:
+    with _lock:
+        return _current_bot_version
 
 
 def mark_heartbeat() -> None:

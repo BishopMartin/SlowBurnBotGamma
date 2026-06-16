@@ -96,6 +96,7 @@ class ClientStateRead(BaseModel):
     version: str
     changed: bool
     entitlement: EntitlementRead
+    current_bot_version: str | None = None
     user_config: BotUserConfigRead | None = None
     accounts: list[ClientAccountState] | None = None
 

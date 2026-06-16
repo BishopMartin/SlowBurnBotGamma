@@ -27,6 +27,7 @@ from app.models.ignore_handle import IgnoreHandle
 from app.models.client_heartbeat import ClientHeartbeat
 from app.models.session_log import SessionLog
 from app.models.subscription import Subscription
+from app.models.system_config import SystemConfig
 from app.models.user import User
 from app.models.user_config import UserConfig
 from app.schemas.account import AccountRead
@@ -173,6 +174,11 @@ async def get_client_state(
         s_read = AccountSettingsRead.model_validate(s, from_attributes=True) if s else None
         account_states.append(ClientAccountState(**acct_read.model_dump(), settings=s_read))
 
+    # Current bot version from SystemConfig (singleton)
+    sc_result = await session.execute(select(SystemConfig))
+    sc = sc_result.scalar_one_or_none()
+    current_bot_version = sc.current_bot_version if sc else None
+
     # Compute version hash from the serialised payload
     bundle: dict = {
         "user_config": user_config.model_dump(mode="json"),
@@ -193,12 +199,14 @@ async def get_client_state(
             version=version,
             changed=False,
             entitlement=entitlement,
+            current_bot_version=current_bot_version,
         )
 
     return ClientStateRead(
         version=version,
         changed=True,
         entitlement=entitlement,
+        current_bot_version=current_bot_version,
         user_config=user_config,
         accounts=account_states,
     )

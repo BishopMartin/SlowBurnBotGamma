@@ -454,16 +454,25 @@ class BurnBotApp(App):
 
     def _refresh_header(self) -> None:
         p      = self._palette
-        paused = status_store.is_bot_paused()
         now    = datetime.now().strftime("%I:%M %p")
         client_id_str = str(self._client_id).zfill(2)
 
+        server_version = status_store.get_current_bot_version()
+        if server_version is None:
+            version_status = "—"
+        elif self._version == server_version:
+            version_status = "current"
+        else:
+            version_status = "behind"
+
         header = Text(no_wrap=True)
-        header.append(f"SlowBurnBot Client v{self._version}", style=f"bold {p['brand']}")
-        header.append(" | ", style=p["heading"])
-        header.append(f"Client ID: {client_id_str}", style=p["heading"])
+        header.append("SlowBurnBot Client: ", style=f"bold {p['brand']}")
+        header.append(client_id_str, style=f"bold {p['brand']}")
         if self._client_name:
-            header.append(f" ({self._client_name})", style=p["heading"])
+            header.append(f"[{self._client_name}]", style=f"bold {p['brand']}")
+        header.append(" / ", style=p["heading"])
+        header.append(f"version {self._version}", style=p["heading"])
+        header.append(f"[{version_status}]", style=p["heading"])
         header.append(" | ", style=p["heading"])
         header.append(now, style=p["heading"])
 
