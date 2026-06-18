@@ -102,7 +102,7 @@ export default function DashboardPage() {
   const [planTier, setPlanTier] = useState<string>("free");
   const [tab, setTab] = useState<Tab>("settings");
   const [activityPeriod, setActivityPeriod] = useState<Period>("week");
-  const [statsPeriod, setStatsPeriod] = useState<Period>("day");
+  const [statsPeriod, setStatsPeriod] = useState<Period>("week");
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
