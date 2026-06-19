@@ -617,7 +617,9 @@ def dismiss_instagram_cookie_consent(driver, context_label="login"):
     """
     Click 'Allow all cookies' on Instagram's GDPR cookie consent overlay.
     This dialog appears on Linux/fresh profiles before the login form renders,
-    blocking all input fields. Safe no-op when not present.
+    blocking all input fields. Searches both the main document and any iframes
+    (Meta/Instagram sometimes hosts the consent manager in a child iframe).
+    Safe no-op when not present.
     """
     accept_labels = [
         "Allow all cookies",
@@ -640,22 +642,48 @@ def dismiss_instagram_cookie_consent(driver, context_label="login"):
             except Exception:
                 return False
 
-    for label in accept_labels:
-        esc = label.replace("'", "\\'")
-        for tag in ("button", "div", "span"):
-            xp = (
-                f"//{tag}[normalize-space(.)='{esc}' or "
-                f"contains(translate(normalize-space(string(.)), {tr}), '{label.lower()}')]"
-            )
+    def _search_and_click():
+        for label in accept_labels:
+            esc = label.replace("'", "\\'")
+            for tag in ("button", "div", "span"):
+                xp = (
+                    f"//{tag}[normalize-space(.)='{esc}' or "
+                    f"contains(translate(normalize-space(string(.)), {tr}), '{label.lower()}')]"
+                )
+                try:
+                    els = driver.find_elements(By.XPATH, xp)
+                    for el in els:
+                        if el.is_displayed() and _click_el(el):
+                            print(client_log_line(None, "login", f"{context_label} cookie consent: clicked '{label}'"))
+                            time.sleep(1.8)
+                            return True
+                except Exception:
+                    continue
+        return False
+
+    # Try the main document context first
+    if _search_and_click():
+        return True
+
+    # Meta/Instagram sometimes serves the consent manager inside an iframe; Selenium's
+    # find_elements won't cross frame boundaries, so we switch into each frame and retry.
+    try:
+        iframes = driver.find_elements(By.TAG_NAME, "iframe")
+        for frame in iframes:
             try:
-                els = driver.find_elements(By.XPATH, xp)
-                for el in els:
-                    if el.is_displayed() and _click_el(el):
-                        print(client_log_line(None, "login", f"{context_label} cookie consent: clicked '{label}'"))
-                        time.sleep(1.8)
-                        return True
+                driver.switch_to.frame(frame)
+                found = _search_and_click()
             except Exception:
-                continue
+                found = False
+            finally:
+                try:
+                    driver.switch_to.default_content()
+                except Exception:
+                    pass
+            if found:
+                return True
+    except Exception:
+        pass
 
     return False
 
@@ -916,6 +944,27 @@ def do_login(driver, username, password, apiClient=None):
             
             dismiss_instagram_account_picker(driver, context_label="do_login_pre_fields")
             dismiss_instagram_cookie_consent(driver, context_label="do_login_pre_fields")
+
+            # If the login form still hasn't appeared after consent dismissal, do one hard reload
+            # and retry — handles the case where the consent wall was in an iframe that prevented
+            # the React login form from mounting in the first place.
+            try:
+                WebDriverWait(driver, 5).until(
+                    EC.presence_of_element_located((By.NAME, "username"))
+                )
+            except Exception:
+                print(client_log_line(None, "login", "username field not visible after consent dismiss — reloading login page"))
+                try:
+                    driver.get(INSTAGRAM_ACCOUNTS_LOGIN)
+                    WebDriverWait(driver, 22).until(
+                        lambda d: d.execute_script("return document.readyState") == "complete"
+                    )
+                    time.sleep(4.0)
+                    dismiss_instagram_account_picker(driver, context_label="do_login_reload")
+                    dismiss_instagram_cookie_consent(driver, context_label="do_login_reload")
+                    time.sleep(1.0)
+                except Exception:
+                    pass
 
             # Check current URL after ESC to see if page changed
             try:
