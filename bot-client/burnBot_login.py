@@ -597,28 +597,68 @@ def dismiss_instagram_account_picker(driver, context_label="login", max_passes=4
 
 def _capture_page_diag(driver):
     """
-    Capture page URL, visible button texts, and a page source snippet for
-    element-not-found diagnostics. Returns (log_str, print_str).
-    log_str is compact (URL + buttons only); print_str also includes page source.
+    Capture page URL, visible button texts, role-button/link texts, iframe count,
+    body text, and a page source snippet for element-not-found diagnostics.
+    Returns (log_str, print_str).
+    log_str is compact (URL + element counts); print_str also includes body/source.
     """
     try:
         page_url = driver.current_url
         buttons = driver.find_elements(By.TAG_NAME, "button")
         btn_texts = [b.text.strip() for b in buttons if b.text.strip()]
-        src_snippet = (driver.page_source or "")[:3000].replace("\n", " ")
-        log_str = f"url={page_url} | buttons={btn_texts}"
-        print_str = f"[login-diag] {log_str} | src={src_snippet}"
+        role_buttons = driver.find_elements(By.XPATH, "//*[@role='button']")
+        role_btn_texts = [b.text.strip() for b in role_buttons if b.text.strip()][:8]
+        iframes = driver.find_elements(By.TAG_NAME, "iframe")
+        iframe_count = len(iframes)
+        body_text = driver.execute_script(
+            "return (document.body && document.body.innerText) "
+            "? document.body.innerText.slice(0, 1500) : '(no body)'"
+        ).replace("\n", " ")
+        src_snippet = (driver.page_source or "")[:2000].replace("\n", " ")
+        log_str = (
+            f"url={page_url} | buttons={btn_texts} | role_buttons={role_btn_texts}"
+            f" | iframes={iframe_count}"
+        )
+        print_str = f"[login-diag] {log_str} | body={body_text} | src={src_snippet}"
         return log_str, print_str
     except Exception:
         return "", ""
+
+
+def _save_login_screenshot(driver, account, label="failure"):
+    """
+    Save a PNG screenshot to the Chrome-profile volume directory for post-mortem
+    diagnostics. Named <account>_<label>_<timestamp>.png. Safe no-op on any error.
+    """
+    try:
+        import datetime as _dt
+        from burnBot_accountSession_setup import build_user_data_dir
+        base = build_user_data_dir(account or "unknown")
+        shots_dir = os.path.join(os.path.dirname(base), "login_screenshots")
+        os.makedirs(shots_dir, exist_ok=True)
+        ts = _dt.datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_acct = (account or "unknown").replace("/", "_")
+        path = os.path.join(shots_dir, f"{safe_acct}_{label}_{ts}.png")
+        driver.save_screenshot(path)
+        print(client_log_line(account, "login", f"diag screenshot: {path}"))
+    except Exception:
+        pass  # diagnostics must never throw
 
 
 def dismiss_instagram_cookie_consent(driver, context_label="login"):
     """
     Click 'Allow all cookies' on Instagram's GDPR cookie consent overlay.
     This dialog appears on Linux/fresh profiles before the login form renders,
-    blocking all input fields. Searches both the main document and any iframes
-    (Meta/Instagram sometimes hosts the consent manager in a child iframe).
+    blocking all input fields.
+
+    Improvements over the original one-shot version:
+    - Waits for the page to actually mount something (React needs a moment) before
+      searching, so we don't search an empty DOM and silently give up.
+    - Searches standard tags (button/div/span) AND [role=button] elements, which
+      Meta uses for some consent dialogs.
+    - Recurses one level into nested iframes (not just top-level frames).
+    - Retries up to 3 passes; after each successful click waits to verify the login
+      form appeared — handles multi-step consent flows.
     Safe no-op when not present.
     """
     accept_labels = [
@@ -643,12 +683,15 @@ def dismiss_instagram_cookie_consent(driver, context_label="login"):
                 return False
 
     def _search_and_click():
+        """Search the current frame context for any consent accept button and click it."""
         for label in accept_labels:
             esc = label.replace("'", "\\'")
+            label_lower = label.lower()
+            # Standard HTML elements
             for tag in ("button", "div", "span"):
                 xp = (
                     f"//{tag}[normalize-space(.)='{esc}' or "
-                    f"contains(translate(normalize-space(string(.)), {tr}), '{label.lower()}')]"
+                    f"contains(translate(normalize-space(string(.)), {tr}), '{label_lower}')]"
                 )
                 try:
                     els = driver.find_elements(By.XPATH, xp)
@@ -659,33 +702,104 @@ def dismiss_instagram_cookie_consent(driver, context_label="login"):
                             return True
                 except Exception:
                     continue
+            # role=button elements (Meta uses div[role=button] for some consent UIs)
+            xp_role = (
+                f"//*[@role='button' and ("
+                f"normalize-space(.)='{esc}' or "
+                f"contains(translate(normalize-space(string(.)), {tr}), '{label_lower}'))]"
+            )
+            try:
+                els = driver.find_elements(By.XPATH, xp_role)
+                for el in els:
+                    if el.is_displayed() and _click_el(el):
+                        print(client_log_line(None, "login", f"{context_label} cookie consent: clicked '{label}' (role=button)"))
+                        time.sleep(1.8)
+                        return True
+            except Exception:
+                pass
         return False
 
-    # Try the main document context first
-    if _search_and_click():
-        return True
+    def _login_form_visible():
+        try:
+            return driver.find_element(By.CSS_SELECTOR, "input[name='username']").is_displayed()
+        except Exception:
+            return False
 
-    # Meta/Instagram sometimes serves the consent manager inside an iframe; Selenium's
-    # find_elements won't cross frame boundaries, so we switch into each frame and retry.
-    try:
-        iframes = driver.find_elements(By.TAG_NAME, "iframe")
-        for frame in iframes:
-            try:
-                driver.switch_to.frame(frame)
-                found = _search_and_click()
-            except Exception:
+    def _search_in_context():
+        """Search main document + all top-level iframes (one level of nesting inside each)."""
+        if _search_and_click():
+            return True
+        try:
+            iframes = driver.find_elements(By.TAG_NAME, "iframe")
+            for frame in iframes:
                 found = False
-            finally:
                 try:
-                    driver.switch_to.default_content()
+                    driver.switch_to.frame(frame)
+                    found = _search_and_click()
+                    if not found:
+                        # Recurse one level into nested frames
+                        try:
+                            nested_frames = driver.find_elements(By.TAG_NAME, "iframe")
+                            for nested_frame in nested_frames:
+                                try:
+                                    driver.switch_to.frame(nested_frame)
+                                    found = _search_and_click()
+                                except Exception:
+                                    found = False
+                                finally:
+                                    try:
+                                        driver.switch_to.parent_frame()
+                                    except Exception:
+                                        pass
+                                if found:
+                                    break
+                        except Exception:
+                            pass
                 except Exception:
-                    pass
-            if found:
-                return True
-    except Exception:
-        pass
+                    found = False
+                finally:
+                    try:
+                        driver.switch_to.default_content()
+                    except Exception:
+                        pass
+                if found:
+                    return True
+        except Exception:
+            pass
+        return False
 
-    return False
+    # Wait for the page to mount something before searching (React takes a moment).
+    # Return immediately if the login form is already visible — no consent to dismiss.
+    try:
+        WebDriverWait(driver, 8).until(lambda d: (
+            _login_form_visible()
+            or bool(d.find_elements(By.TAG_NAME, "button"))
+            or bool(d.find_elements(By.XPATH, "//*[@role='button']"))
+        ))
+    except Exception:
+        pass  # Timed out waiting — proceed anyway
+
+    if _login_form_visible():
+        return True  # Login form already visible; nothing to dismiss
+
+    # Up to 3 passes: click a consent button → verify the login form appeared.
+    # This handles multi-step consent flows or cases where a second consent layer
+    # mounts after the first is dismissed.
+    for _attempt in range(3):
+        if _search_in_context():
+            # Give the page a moment to react to the consent click
+            time.sleep(0.5)
+            try:
+                WebDriverWait(driver, 5).until(
+                    EC.visibility_of_element_located((By.CSS_SELECTOR, "input[name='username']"))
+                )
+                return True  # Login form visible — consent fully dismissed
+            except Exception:
+                pass  # Form not yet visible; try another consent pass
+        else:
+            break  # No consent button found in any context
+
+    return _login_form_visible()
 
 
 def check_phone_verification(driver):
@@ -950,7 +1064,7 @@ def do_login(driver, username, password, apiClient=None):
             # the React login form from mounting in the first place.
             try:
                 WebDriverWait(driver, 5).until(
-                    EC.presence_of_element_located((By.NAME, "username"))
+                    EC.visibility_of_element_located((By.NAME, "username"))
                 )
             except Exception:
                 print(client_log_line(None, "login", "username field not visible after consent dismiss — reloading login page"))
@@ -974,7 +1088,10 @@ def do_login(driver, username, password, apiClient=None):
             except Exception as e:
                 print(client_log_line(None, "login", f"Could not get URL: {e}"))
             
-            # Prefer name=username (avoids matching phone / other text fields)
+            # Prefer name=username (avoids matching phone / other text fields).
+            # Use element_to_be_clickable (visible + enabled) so a field hidden behind
+            # a consent overlay doesn't pass the wait and then fail on .click().
+            # 8s per selector (was 18s): worst-case ~32s, still covers slow page loads.
             loginUsername = None
             username_selectors = [
                 (By.CSS_SELECTOR, "input[name='username']"),
@@ -982,22 +1099,37 @@ def do_login(driver, username, password, apiClient=None):
                 (By.CSS_SELECTOR, "input[type='text']"),
                 (By.XPATH, "//input[@type='text']"),
             ]
-            
+
             for selector_type, selector_value in username_selectors:
                 try:
-                    loginUsername = WebDriverWait(driver, 18).until(
-                        EC.presence_of_element_located((selector_type, selector_value))
+                    loginUsername = WebDriverWait(driver, 8).until(
+                        EC.element_to_be_clickable((selector_type, selector_value))
                     )
                     break
                 except Exception:
                     continue
-            
+
+            if not loginUsername:
+                # One last consent-dismissal attempt before giving up — handles the case
+                # where the reload brought up a fresh consent wall.
+                dismiss_instagram_cookie_consent(driver, context_label="do_login_last_chance")
+                time.sleep(1.0)
+                for selector_type, selector_value in username_selectors:
+                    try:
+                        loginUsername = WebDriverWait(driver, 6).until(
+                            EC.element_to_be_clickable((selector_type, selector_value))
+                        )
+                        break
+                    except Exception:
+                        continue
+
             if not loginUsername:
                 _log_diag, _print_diag = _capture_page_diag(driver)
                 if _print_diag:
                     print(client_log_line(None, "login", _print_diag))
                 if _log_diag:
                     moduleErrorsLog += f" | login-diag: {_log_diag}"
+                _save_login_screenshot(driver, username, label="username_not_found")
                 raise Exception("Could not find username input field")
             
             # Clear and enter username
@@ -1018,29 +1150,31 @@ def do_login(driver, username, password, apiClient=None):
             if is_bot_debug_enabled():
                 print(f"-- DEBUG: Username entered successfully")
             
-            # Find password field
+            # Find password field — use element_to_be_clickable so an overlay-obscured
+            # field doesn't pass the wait. 8s per selector matches the username timeout.
             loginPassword = None
             password_selectors = [
                 (By.CSS_SELECTOR, "input[type='password']"),
                 (By.CSS_SELECTOR, "input[name='password']"),
                 (By.XPATH, "//input[@type='password']")
             ]
-            
+
             for selector_type, selector_value in password_selectors:
                 try:
-                    loginPassword = WebDriverWait(driver, 18).until(
-                        EC.presence_of_element_located((selector_type, selector_value))
+                    loginPassword = WebDriverWait(driver, 8).until(
+                        EC.element_to_be_clickable((selector_type, selector_value))
                     )
                     break
                 except Exception:
                     continue
-            
+
             if not loginPassword:
                 _log_diag, _print_diag = _capture_page_diag(driver)
                 if _print_diag:
                     print(client_log_line(None, "login", _print_diag))
                 if _log_diag:
                     moduleErrorsLog += f" | login-diag: {_log_diag}"
+                _save_login_screenshot(driver, username, label="password_not_found")
                 raise Exception("Could not find password input field")
             
             # Clear and enter password
@@ -1230,6 +1364,7 @@ def do_login(driver, username, password, apiClient=None):
                 _log_diag, _print_diag = _capture_page_diag(driver)
                 if _print_diag:
                     print(client_log_line(username, "login", _print_diag))
+                _save_login_screenshot(driver, username, label="still_on_login_page")
                 err = "Still on login page after login attempt - login likely failed"
                 if _log_diag:
                     err += f" | login-diag: {_log_diag}"
@@ -1247,6 +1382,7 @@ def do_login(driver, username, password, apiClient=None):
         _log_diag, _print_diag = _capture_page_diag(driver)
         if _print_diag:
             print(client_log_line(username, "login", _print_diag))
+        _save_login_screenshot(driver, username, label="unrecognised_result")
         if _log_diag:
             moduleErrorsLog += f"login result unrecognised | login-diag: {_log_diag}"
         return False, None, moduleErrorsLog

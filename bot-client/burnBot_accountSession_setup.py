@@ -1110,15 +1110,17 @@ def setup_chrome_options(account, accountAgent, chrome_user_data_dir, debugging_
         "autofill.profile_enabled": False,  # Disable autofill
         "autofill.credit_card_enabled": False,  # Disable credit card autofill
         "profile.default_content_settings.popups": 0,  # Allow popups (prevents some dialogs)
+        "intl.accept_languages": "en-US,en",  # Force English locale so Meta consent wall renders in English
     }
     options.add_experimental_option("prefs", prefs)
-    
+
     # Add arguments to prevent sign-in prompts and password manager dialogs
     additional_args = [
         '--disable-features=PasswordManager,AutofillPasswordManager',  # Disable password manager completely
         '--disable-save-password-bubble',  # No save password prompts
         '--no-restore-last-session',        # Suppress "Restore pages?" dialog after crash
         '--disable-session-crashed-bubble', # Suppress crash recovery infobar
+        '--lang=en-US',                     # Force Chrome UI and page locale to English (US)
     ]
     for arg in additional_args:
         if arg not in [a for a in options.arguments]:
@@ -1949,7 +1951,23 @@ def create_driver(account, accountAgent, account_idx=0):
                     print(f"- [{account}]: Applied comprehensive stealth measures")
             except Exception as cdp_error:
                 print(f"- [{account}]: Warning - Could not apply CDP stealth measures: {cdp_error}")
-            
+
+            # Force en-US locale and Accept-Language header via CDP so Meta's consent wall
+            # is rendered in English (matching our button-text selectors) and is less likely
+            # to appear for sessions that look like US-English browsers.
+            try:
+                driver.execute_cdp_cmd('Network.setExtraHTTPHeaders', {
+                    'headers': {'Accept-Language': 'en-US,en;q=0.9'}
+                })
+                driver.execute_cdp_cmd('Emulation.setLocaleOverride', {
+                    'locale': 'en-US'
+                })
+                if is_bot_debug_enabled():
+                    print(f"- [{account}]: Applied locale/language override (en-US)")
+            except Exception as locale_error:
+                if is_bot_debug_enabled():
+                    print(f"- [{account}]: Warning - Could not apply locale override: {locale_error}")
+
             if is_bot_debug_enabled():
                 print(f"- [{account}]: driver/browser created and verified")
             
