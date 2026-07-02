@@ -147,9 +147,10 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
         account_id: Account UUID
 
     Returns:
-        tuple: (followed_count, error_log_string)
+        tuple: (followed_count, error_log_string, warning_log_string)
     """
     module_errors_log = ""
+    module_warnings_log = ""
     followed_count = 0
 
     try:
@@ -296,7 +297,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
 
         while followed_count < target_count and home_cycles < max_home_cycles:
             if status_store.is_bot_paused():
-                return followed_count, moduleErrorsLog
+                return followed_count, module_errors_log, module_warnings_log
             home_cycles += 1
             start_count = followed_count
 
@@ -425,7 +426,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
                     msg = "[error] no suggested users found"
                     _p(client_log_line(account, _scope, f"{_lbl}{msg}"))
                     module_errors_log += f"follow[suggested]: {msg}\n"
-                    return followed_count, module_errors_log
+                    return followed_count, module_errors_log, module_warnings_log
 
                 for user_name, follow_button, user_name_anchor in candidates:
                     if followed_count >= target_count:
@@ -505,10 +506,12 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
         if followed_count < target_count:
             if followed_count == 0:
                 msg = "[error] no suggested users found"
+                _p(client_log_line(account, _scope, f"{_lbl}Incomplete[{followed_count}/{target_count}]"))
+                module_errors_log += f"follow[suggested]: {msg} ({followed_count}/{target_count})\n"
             else:
-                msg = "[error] limited suggested users found"
-            _p(client_log_line(account, _scope, f"{_lbl}Incomplete[{followed_count}/{target_count}]"))
-            module_errors_log += f"follow[suggested]: {msg} ({followed_count}/{target_count})\n"
+                msg = "[warning] limited suggested users found"
+                _p(client_log_line(account, _scope, f"{_lbl}Incomplete[{followed_count}/{target_count}]"))
+                module_warnings_log += f"follow[suggested]: {msg} ({followed_count}/{target_count})\n"
         else:
             _p(client_log_line(account, _scope, f"{_done_lbl}-Completed[{followed_count}/{target_count}]"))
 
@@ -518,7 +521,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
         error_msg = str(e).split('\n')[0]
         _p(client_log_line(account, _scope, f"{_lbl}FATAL {error_type}: {error_msg[:100]}"))
         module_errors_log += f"{error_type}: {error_msg}\n"
-    
-    return followed_count, module_errors_log
+
+    return followed_count, module_errors_log, module_warnings_log
 
 

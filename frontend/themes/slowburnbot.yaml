@@ -18,7 +18,7 @@ palette:
   # Accents
   base08: "e87755"  # Red                       — bad-control hover
   base09: "b58fbf"  # Orange                    — (reserved)
-  base0A: "e5c07b"  # Yellow                    — counts, warm highlights
+  base0A: "e5c07b"  # Yellow                    — counts, warm highlights, warning status
   base0B: "a0b87c"  # Green                     — success
   base0C: "7aaa96"  # Cyan                      — (reserved)
   base0D: "8aa5c4"  # Blue                      — (reserved)
@@ -29,7 +29,7 @@ palette:
   base11: "2a2927"  # Brighter Background       — dropdown row hover
   # Brights
   base12: "cf3b0a"  # Bright Red                — error / destructive
-  base13: "f1d49a"  # Bright Yellow             — (reserved)
+  base13: "f1d49a"  # Bright Yellow             — warning-control hover
   base14: "bdd498"  # Bright Green              — (reserved)
   base15: "a0ccbc"  # Bright Cyan               — (reserved)
   base16: "aec2dc"  # Bright Blue               — (reserved)

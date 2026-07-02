@@ -229,6 +229,7 @@ export interface SessionLogEntry {
   action_4_type: string | null;
   action_4_count: number;
   error_message: string | null;
+  warning_message: string | null;
 }
 
 export interface AccountStats {

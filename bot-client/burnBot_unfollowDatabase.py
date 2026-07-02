@@ -119,6 +119,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
     _done_lbl = (action_label[0].upper() + action_label[1:]) if action_label else "Done"
     unfollows_performed = 0
     moduleErrorsLog = ""
+    moduleWarningsLog = ""
 
     try:
         today = date.today()
@@ -311,7 +312,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
                 except Exception as update_error:
                     moduleErrorsLog += f"Could not update target for {loop_username}: {update_error}\n"
 
-                moduleErrorsLog += f"Not found in following list (already unfollowed): {loop_username}\n"
+                moduleWarningsLog += f"Not found in following list (already unfollowed): {loop_username}\n"
 
         # Summary message
         if unfollows_performed < target_count:
@@ -333,4 +334,4 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
         debugError = False
         moduleErrorsLog += process_exception(printError, noteError, logError, debugError)
 
-    return unfollows_performed, moduleErrorsLog
+    return unfollows_performed, moduleErrorsLog, moduleWarningsLog

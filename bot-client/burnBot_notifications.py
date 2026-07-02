@@ -202,6 +202,7 @@ def send_session_complete_notification(account, start_time, end_time,
                                        run_count=0,
                                        max_runs=0,
                                        error_log="",
+                                       warning_log="",
                                        apiClient=None,
                                        account_id=None,
                                        _print=None):
@@ -273,6 +274,8 @@ def send_session_complete_notification(account, start_time, end_time,
         )
         if error_log:
             message += f"\n{error_log}"
+        if warning_log:
+            message += f"\nWarnings:\n{warning_log}"
 
         sms_actions = []
         for t, c, tgt in [
@@ -289,6 +292,8 @@ def send_session_complete_notification(account, start_time, end_time,
         sms_summary = f"{account} [{run_info}]\n{sms_actions_str}\n{start_str}-{end_str} [{duration_str}]"
         if error_log:
             sms_summary += f"\n{error_log}"
+        if warning_log:
+            sms_summary += f"\nWarnings:\n{warning_log}"
 
         send_admin_notification(account, message, subject_prefix="Session Complete", sms_summary=sms_summary, subject_override=subject_override, apiClient=apiClient, account_id=account_id, _print=_print)
 

@@ -90,9 +90,19 @@ export default function DashboardPage() {
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null);
   const [recentLog, setRecentLog] = useState<RecentSessionLogEntry[]>([]);
   const [expandedErrors, setExpandedErrors] = useState<Set<string>>(new Set());
+  const [expandedWarnings, setExpandedWarnings] = useState<Set<string>>(new Set());
 
   const toggleError = useCallback((id: string) => {
     setExpandedErrors((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleWarning = useCallback((id: string) => {
+    setExpandedWarnings((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -579,13 +589,25 @@ export default function DashboardPage() {
                       {formatSessionAction(entry.action_4_type, entry.action_4_count)}
                     </td>
                     <td className="px-2 py-1.5 whitespace-nowrap">
-                      {entry.error_message ? (
-                        <button
-                          onClick={() => toggleError(entry.id)}
-                          className="text-status-bad hover:text-status-bad-hover cursor-pointer transition-colors text-xs"
-                        >
-                          {expandedErrors.has(entry.id) ? "▾ error" : "▸ error"}
-                        </button>
+                      {entry.error_message || entry.warning_message ? (
+                        <span className="flex gap-2">
+                          {entry.error_message && (
+                            <button
+                              onClick={() => toggleError(entry.id)}
+                              className="text-status-bad hover:text-status-bad-hover cursor-pointer transition-colors text-xs"
+                            >
+                              {expandedErrors.has(entry.id) ? "▾ error" : "▸ error"}
+                            </button>
+                          )}
+                          {entry.warning_message && (
+                            <button
+                              onClick={() => toggleWarning(entry.id)}
+                              className="text-status-warning hover:text-status-warning-hover cursor-pointer transition-colors text-xs"
+                            >
+                              {expandedWarnings.has(entry.id) ? "▾ warning" : "▸ warning"}
+                            </button>
+                          )}
+                        </span>
                       ) : (
                         <span className="text-base03 text-xs">none</span>
                       )}
@@ -596,6 +618,13 @@ export default function DashboardPage() {
                     <tr key={`${entry.id}-err`} className="bg-base02">
                       <td colSpan={11} className="px-2 py-1 text-base04 text-xs whitespace-pre-wrap">
                         {entry.error_message.split("\n").map((line) => `- ${line}`).join("\n")}
+                      </td>
+                    </tr>
+                  )}
+                  {entry.warning_message && expandedWarnings.has(entry.id) && (
+                    <tr key={`${entry.id}-warn`} className="bg-base02">
+                      <td colSpan={11} className="px-2 py-1 text-base04 text-xs whitespace-pre-wrap">
+                        {entry.warning_message.split("\n").map((line) => `- ${line}`).join("\n")}
                       </td>
                     </tr>
                   )}

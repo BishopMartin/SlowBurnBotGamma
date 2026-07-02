@@ -342,7 +342,7 @@ class ApiClient:
                         action2_type="", action2_count=0,
                         action3_type="", action3_count=0,
                         action4_type="", action4_count=0,
-                        error_message="", run_sequence=1):
+                        error_message="", warning_message="", run_sequence=1):
         """
         Post a session log to the API.
         Returns dict with 'id' on success, None on failure.
@@ -366,6 +366,7 @@ class ApiClient:
             "action_4_type": action4_type or None,
             "action_4_count": action4_count,
             "error_message": error_message or None,
+            "warning_message": warning_message or None,
         }
         try:
             resp = self._request("POST", "/bot/session-log", json=payload)

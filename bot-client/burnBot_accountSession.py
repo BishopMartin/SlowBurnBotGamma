@@ -215,6 +215,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
             session_already_handled = False
             actions_run = 0
             moduleErrorsLog = ""
+            moduleWarningsLog = ""
 
             try:
                 if stop_flag.is_set():
@@ -324,9 +325,11 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
 
                                 elif _act_type == "follow" and _act_target in ["suggested", "home", "homepage", "suggested users"]:
                                     actions_run += 1
-                                    _count, _errs = do_follow_suggested(driver, account, _total, apiClient, account_id, _print=_print, log_scope=_act_scope, action_label=_act_label)
+                                    _count, _errs, _warns = do_follow_suggested(driver, account, _total, apiClient, account_id, _print=_print, log_scope=_act_scope, action_label=_act_label)
                                     if _errs:
                                         moduleErrorsLog += _errs
+                                    if _warns:
+                                        moduleWarningsLog += _warns
 
                                 elif _act_type == "follow" and _act_target in ["followers[group]", "following[group]", "account list [followers]", "account list [following]"]:
                                     _target_accounts = account_list_tab
@@ -344,7 +347,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
 
                                 elif _act_type == "unfollow" and _act_target in ["database", "previous follows"]:
                                     actions_run += 1
-                                    _count, _errs = do_unfollow_database(
+                                    _count, _errs, _warns = do_unfollow_database(
                                         driver, account, _total, apiClient, account_id, unfollow_days,
                                         _print=_print,
                                         log_scope=_act_scope,
@@ -352,6 +355,8 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                                     )
                                     if _errs:
                                         moduleErrorsLog += _errs
+                                    if _warns:
+                                        moduleWarningsLog += _warns
 
                                 else:
                                     if is_bot_debug_enabled():
@@ -399,6 +404,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                             action_slots[2]['type'], action_counts[2],
                             action_slots[3]['type'], action_counts[3],
                             moduleErrorsLog.strip(),
+                            warning_message=moduleWarningsLog.strip(),
                             run_sequence=run_seq
                         )
                         run_count = run_seq
@@ -420,6 +426,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                             run_count,
                             max_runs,
                             moduleErrorsLog.strip(),
+                            warning_log=moduleWarningsLog.strip(),
                             apiClient=apiClient,
                             account_id=account_id,
                             _print=_print,

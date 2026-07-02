@@ -296,6 +296,7 @@ async def get_recent_log_across_accounts(
                 "action_4_type": _clean_session_action_type(lg.action_4_type),
                 "action_4_count": lg.action_4_count,
                 "error_message": lg.error_message,
+                "warning_message": lg.warning_message,
             }
         )
     return {"items": items}
@@ -688,6 +689,7 @@ async def get_account_log(
                 "action_4_type": _clean_session_action_type(lg.action_4_type),
                 "action_4_count": lg.action_4_count,
                 "error_message": lg.error_message,
+                "warning_message": lg.warning_message,
             }
             for lg in logs
         ],

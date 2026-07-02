@@ -15,9 +15,11 @@
      text-status-ok and selectors using var(--background) keep working. */
   --background:       var(--base00);
   --foreground:       var(--base05);
-  --status-ok:        var(--base0b);
-  --status-bad:       var(--base12);
-  --status-bad-hover: var(--base08);
+  --status-ok:            var(--base0b);
+  --status-bad:           var(--base12);
+  --status-bad-hover:     var(--base08);
+  --status-warning:       var(--base0a);
+  --status-warning-hover: var(--base13);
 }
 
 @theme {
@@ -52,9 +54,11 @@
   /* Legacy semantic Tailwind colors preserved as aliases so existing
      text-status-ok / text-status-bad / hover:text-status-bad-hover etc.
      keep compiling unchanged until Phase 2 sweeps them. */
-  --color-status-ok:        var(--status-ok);
-  --color-status-bad:       var(--status-bad);
-  --color-status-bad-hover: var(--status-bad-hover);
+  --color-status-ok:            var(--status-ok);
+  --color-status-bad:           var(--status-bad);
+  --color-status-bad-hover:     var(--status-bad-hover);
+  --color-status-warning:       var(--status-warning);
+  --color-status-warning-hover: var(--status-warning-hover);
 }
 
 html {

@@ -23,6 +23,7 @@ class SessionLogCreate(BaseModel):
     action_4_type: str | None = None
     action_4_count: int = 0
     error_message: str | None = None
+    warning_message: str | None = None
 
 
 class ActivityLogCreate(BaseModel):
