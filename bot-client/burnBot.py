@@ -666,7 +666,7 @@ try:
                     account_last_run[account_name] = lr
                     _restore = {}
                     if lr is not None:
-                        _restore["last_run"] = lr.strftime("%I:%M %p")
+                        _restore["last_run"] = lr.strftime("%m/%d %I:%M %p")
                     _la = run_counter.get_last_action(account_name)
                     if _la:
                         _restore["last_action"] = _la
@@ -827,7 +827,7 @@ try:
 
                     run_info_done = f"[{new_run_count}/{schedule_max}]" if schedule_max > 0 else f"[{new_run_count}]"
                     console.print(client_log_line(account_name, "summary", f"run {run_info_done} - DONE"))
-                    next_run_str = account_next_run[account_name].strftime("%I:%M %p")
+                    next_run_str = account_next_run[account_name].strftime("%m/%d %I:%M %p")
                     status_store.update(account_name, status="idle", next_run=next_run_str, last_action="session complete", run_info=run_info_done)
                 elif max_runs_reached:
                     run_count = run_counter.get_run_count(account_name)
@@ -835,7 +835,7 @@ try:
                     status_store.update(account_name, status="max runs", next_run="—", run_info=_max_run_info)
                     apiClient.invalidate_settings_cache(account_id)
                 else:
-                    next_run_str = account_next_run[account_name].strftime("%I:%M %p") if account_next_run.get(account_name) else "—"
+                    next_run_str = account_next_run[account_name].strftime("%m/%d %I:%M %p") if account_next_run.get(account_name) else "—"
                     run_count = run_counter.get_run_count(account_name)
                     schedule_max = account_schedules.get(account_name, {}).get('max', 0) or 0
                     run_info = f"[{run_count}/{int(schedule_max)}]" if schedule_max > 0 else f"[{run_count}]"

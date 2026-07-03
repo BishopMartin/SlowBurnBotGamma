@@ -443,7 +443,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     _dur = f"{_hh}h{_mm}m{_ss}s" if _hh else f"{_mm}m{_ss}s"
                     _print(client_log_line(account, "summary", f"Session[{_run_label}] - {actions_run} action(s) executed"))
                     _print(client_log_line(account, "summary", f"Session[{_run_label}] - DONE"))
-                    status_store.update(account, status="idle", last_action="session complete", last_run=session_end_time.strftime("%I:%M %p"))
+                    status_store.update(account, status="idle", last_action="session complete", last_run=session_end_time.strftime("%m/%d %I:%M %p"))
 
                 # Close or keep browser based on config
                 close_browser_after_session = CONFIG.getboolean('browser-session', 'close_browser_after_session', fallback=True)
