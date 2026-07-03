@@ -121,7 +121,7 @@ export default function AccountsPage() {
       case "followed": return fbMap[account.id]?.followed ?? -1;
       case "followed_back": return fbMap[account.id]?.followed_back ?? -1;
       case "fb_complete": return fbMap[account.id]?.complete ?? -1;
-      case "fb_daily": { const d = fbMap[account.id]?.days; return d ? (fbMap[account.id]?.followed ?? 0) / d : -1; }
+      case "fb_daily": { const d = fbMap[account.id]?.days; return d ? (fbMap[account.id]?.followed_back ?? 0) / d : -1; }
     }
   }
 
@@ -372,7 +372,7 @@ export default function AccountsPage() {
                       </>
                     )}
                     {tab === "stats" && (() => {
-                      const daily = fb?.days && fb?.followed != null ? (fb.followed / fb.days).toFixed(1) : "----";
+                      const daily = fb?.days && fb?.followed_back != null ? (fb.followed_back / fb.days).toFixed(1) : "----";
                       return (
                         <>
                           <td className="px-[6px] py-2 whitespace-nowrap">{fmtNum(fb?.complete)}</td>

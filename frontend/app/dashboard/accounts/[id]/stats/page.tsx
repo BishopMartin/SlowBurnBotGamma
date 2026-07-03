@@ -55,7 +55,7 @@ export default function AccountStatsPage() {
     );
   }
 
-  const daily = (s: SourceStat) => s.total / days;
+  const daily = (s: SourceStat) => s.followed_back / days;
 
   const sorted = useMemo(() => {
     const list = [...items];
@@ -81,7 +81,7 @@ export default function AccountStatsPage() {
       t.complete += s.complete;
       t.followed_back += s.followed_back;
     }
-    return { ...t, rate: t.complete ? t.followed_back / t.complete : null, daily: t.total / days };
+    return { ...t, rate: t.complete ? t.followed_back / t.complete : null, daily: t.followed_back / days };
   }, [items, days]);
 
   useEffect(() => {

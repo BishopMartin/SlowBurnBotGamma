@@ -147,7 +147,7 @@ export default function DashboardPage() {
       case "fb_complete": return fbMap[account.id]?.complete ?? -1;
       case "followed_back": return fbMap[account.id]?.followed_back ?? -1;
       case "fb_rate": return fbMap[account.id]?.rate ?? -1;
-      case "fb_daily": { const fb = fbMap[account.id]; return fb ? fb.followed / (fb.days || 1) : -1; }
+      case "fb_daily": { const fb = fbMap[account.id]; return fb ? fb.followed_back / (fb.days || 1) : -1; }
     }
   }
 
@@ -472,7 +472,7 @@ export default function DashboardPage() {
                         <td className="px-[6px] py-2 whitespace-nowrap">{fmtNum(fb?.complete)}</td>
                         <td className="px-[6px] py-2 whitespace-nowrap">{fmtNum(fb?.followed_back)}</td>
                         <td className="px-[6px] py-2 whitespace-nowrap">{fmtPct(fb?.rate ?? null)}</td>
-                        <td className="px-[6px] py-2 whitespace-nowrap">{fb ? (fb.followed / (fb.days || 1)).toFixed(1) : "----"}</td>
+                        <td className="px-[6px] py-2 whitespace-nowrap">{fb ? (fb.followed_back / (fb.days || 1)).toFixed(1) : "----"}</td>
                       </>
                     )}
                     {tab === "database" && (
