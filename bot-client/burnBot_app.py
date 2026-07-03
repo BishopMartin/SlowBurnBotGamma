@@ -389,8 +389,8 @@ class BurnBotApp(App):
         accounts.add_column("Account",        key="account")
         accounts.add_column("Status",         key="status")
         accounts.add_column("Sessions Today", key="sessions_today")
-        accounts.add_column("Next Run",       key="next_run")
-        accounts.add_column("Last Run",       key="last_run")
+        accounts.add_column("Next Run",       key="next_run",    width=14)
+        accounts.add_column("Last Run",       key="last_run",    width=14)
         accounts.add_column("Last Action",    key="last_action", width=40)
 
         settings = self.query_one("#settings-table", DataTable)
