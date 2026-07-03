@@ -151,8 +151,10 @@ async def create_account(
     return _account_read(account)
 
 
-def _period_start(period: str) -> date:
-    today = date.today()
+def _period_start(period: str, today: date | None = None) -> date:
+    """Anchor on the caller's local date when provided — the server's UTC
+    date.today() disagrees with client-stamped run_date for hours each day."""
+    today = today or date.today()
     if period == "week":
         return today - timedelta(days=7)
     if period == "month":
@@ -169,9 +171,9 @@ async def log_summary(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
     period: str = Query("day"),
+    client_date: date | None = Query(None),
 ):
     """Per-account aggregated session counts for a time period."""
-    since = _period_start(period)
     SL = SessionLog
 
     likes = sum(
@@ -189,7 +191,7 @@ async def log_summary(
 
     where_clauses = [SL.user_id == user.id]
     if period != "all":
-        where_clauses.append(SL.run_date >= _period_start(period))
+        where_clauses.append(SL.run_date >= _period_start(period, client_date))
     result = await session.execute(
         select(
             SL.account_id,
@@ -217,12 +219,13 @@ async def followback_summary(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
     period: str = Query("day"),
+    client_date: date | None = Query(None),
 ):
     """Per-account follow-back rates for targets followed within a time period."""
     FT = FollowTarget
 
     if period != "all":
-        period_start = _period_start(period)
+        period_start = _period_start(period, client_date)
         follow_date_cond = FT.follow_date >= period_start
         unfollow_date_cond = FT.unfollow_date >= period_start
     else:
@@ -569,11 +572,12 @@ async def get_account_source_stats(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
     period: str = Query("week"),
+    client_date: date | None = Query(None),
 ):
     await _get_owned_account(account_id, user, session)
 
     if period != "all":
-        period_start = _period_start(period)
+        period_start = _period_start(period, client_date)
         follow_date_cond = FollowTarget.follow_date >= period_start
         unfollow_date_cond = FollowTarget.unfollow_date >= period_start
     else:

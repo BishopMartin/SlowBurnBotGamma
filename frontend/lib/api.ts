@@ -5,6 +5,15 @@ function getToken(): string | null {
   return localStorage.getItem("token");
 }
 
+// The server anchors "day"/"week"/"month" periods on its own UTC date, which
+// disagrees with the browser's (and bot client's) local date for part of each
+// day. Pass the browser's local date so period filters land on the right day.
+function localDateParam(): string {
+  const d = new Date();
+  const tzOffsetMs = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - tzOffsetMs).toISOString().slice(0, 10);
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {
@@ -199,7 +208,9 @@ export interface LogSummaryEntry {
 }
 
 export async function getLogSummary(period: string = "day") {
-  return request<Record<string, LogSummaryEntry>>(`/accounts/log-summary?period=${period}`);
+  return request<Record<string, LogSummaryEntry>>(
+    `/accounts/log-summary?period=${period}&client_date=${localDateParam()}`
+  );
 }
 
 export interface FollowbackSummaryEntry {
@@ -211,7 +222,9 @@ export interface FollowbackSummaryEntry {
 }
 
 export async function getFollowbackSummary(period: string = "day") {
-  return request<Record<string, FollowbackSummaryEntry>>(`/accounts/followback-summary?period=${period}`);
+  return request<Record<string, FollowbackSummaryEntry>>(
+    `/accounts/followback-summary?period=${period}&client_date=${localDateParam()}`
+  );
 }
 
 export interface SessionLogEntry {
@@ -257,7 +270,9 @@ export interface SourceStat {
 }
 
 export async function getAccountSourceStats(id: string, period: string = "week") {
-  return request<{ days: number; items: SourceStat[] }>(`/accounts/${id}/source-stats?period=${period}`);
+  return request<{ days: number; items: SourceStat[] }>(
+    `/accounts/${id}/source-stats?period=${period}&client_date=${localDateParam()}`
+  );
 }
 
 export interface ClientStatus {
