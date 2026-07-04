@@ -375,7 +375,11 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                             _msg = f"{_act_label}-disabled" if _act_label else "disabled"
                             _print(client_log_line(account, f"action[{_slot_num}]", _msg))
 
-                        action_counts[_slot_idx] = _count
+                        # Index by the slot's original position (_slot_num), not the
+                        # loop index — when actions_random_order shuffles the tuples,
+                        # _slot_idx is the shuffled position and would misfile counts
+                        # against the wrong action_slots entry.
+                        action_counts[_slot_num - 1] = _count
 
                         # Random action between slots
                         _remaining = _action_slots_tuples[_slot_idx + 1:]

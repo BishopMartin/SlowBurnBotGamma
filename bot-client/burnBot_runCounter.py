@@ -161,11 +161,16 @@ class RunCounter:
         today = datetime.now().strftime('%Y-%m-%d')
         
         if account not in self.data or self.data[account].get('date') != today:
-            # New day or new account - reset to 1
+            # New day or new account - reset to 1. last_run_iso/last_action
+            # are explicitly None (not omitted) so the schema is consistent
+            # with set_last_run_time's dict shape and get_last_action()'s
+            # "blank until today's first run" behavior is intentional rather
+            # than an accident of a missing key.
             self.data[account] = {
                 'date': today,
                 'count': 1,
-                'last_run_iso': None
+                'last_run_iso': None,
+                'last_action': None,
             }
         else:
             # Increment existing count

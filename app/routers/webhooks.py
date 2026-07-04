@@ -3,6 +3,7 @@ import logging
 
 import stripe
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,13 +36,16 @@ async def stripe_webhook(
     if not settings.stripe_webhook_secret:
         raise HTTPException(status_code=503, detail="Stripe webhook not configured.")
 
+    if not stripe_signature:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing signature.")
+
     payload = await request.body()
 
     try:
         event = stripe.Webhook.construct_event(
             payload, stripe_signature, settings.stripe_webhook_secret
         )
-    except stripe.error.SignatureVerificationError:
+    except (stripe.error.SignatureVerificationError, ValueError):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid signature.")
 
     event_type = event["type"]
@@ -71,13 +75,29 @@ async def stripe_webhook(
             "customer.subscription.updated",
             "customer.subscription.deleted",
         ):
-            await apply_stripe_subscription(session, event["data"]["object"])
+            await apply_stripe_subscription(
+                session,
+                event["data"]["object"],
+                is_deletion=(event_type == "customer.subscription.deleted"),
+            )
 
         elif event_type == "invoice.payment_succeeded":
             stripe_sub_id = event["data"]["object"].get("subscription")
-            if stripe_sub_id and settings.stripe_secret_key:
+            if stripe_sub_id:
+                if not settings.stripe_secret_key:
+                    # Don't silently no-op: the idempotency claim above would
+                    # otherwise mark this event "processed" with no effect,
+                    # permanently losing it. Raise so the transaction rolls
+                    # back (including the claim) and Stripe's retry can pick
+                    # it up once the key is configured.
+                    raise RuntimeError(
+                        "stripe_secret_key not configured; cannot process invoice.payment_succeeded"
+                    )
                 stripe.api_key = settings.stripe_secret_key
-                stripe_sub = stripe.Subscription.retrieve(stripe_sub_id)
+                # stripe.Subscription.retrieve is a blocking network call —
+                # run it off the event loop rather than stalling it (and
+                # every other concurrent request) for the round trip.
+                stripe_sub = await run_in_threadpool(stripe.Subscription.retrieve, stripe_sub_id)
                 await apply_stripe_subscription(session, stripe_sub)
 
         elif event_type == "invoice.payment_failed":

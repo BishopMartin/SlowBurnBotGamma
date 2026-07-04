@@ -8,7 +8,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import current_active_user
-from app.database import get_async_session
+from app.database import commit_tolerating_race, get_async_session
 from app.models.ignore_handle import IgnoreHandle
 from app.models.user import User
 from app.models.user_config import UserConfig
@@ -29,8 +29,13 @@ async def get_config(
     if config is None:
         config = UserConfig(user_id=user.id, notify_email=user.email, login_notify_email=user.email)
         session.add(config)
-        await session.commit()
-        await session.refresh(config)
+        if await commit_tolerating_race(session):
+            await session.refresh(config)
+        else:
+            result = await session.execute(
+                select(UserConfig).where(UserConfig.user_id == user.id)
+            )
+            config = result.scalar_one()
     return config
 
 

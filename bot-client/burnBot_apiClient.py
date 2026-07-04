@@ -511,13 +511,13 @@ class ApiClient:
         body: message text
         subject: email subject (ignored for sms)
 
-        Returns True on success, False otherwise.
+        Returns (ok: bool, error_detail: str) — callers unpack both.
         """
         if channel not in ("email", "sms"):
             print(client_log_line(None, "api", f"notify() called with invalid channel: {channel}"))
-            return False
+            return False, f"invalid channel: {channel}"
         if not to or not body:
-            return False
+            return False, "missing 'to' or 'body'"
         payload = {"channel": channel, "to": to, "body": body}
         if subject:
             payload["subject"] = subject

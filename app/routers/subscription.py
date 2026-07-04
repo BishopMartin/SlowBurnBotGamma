@@ -55,7 +55,7 @@ async def get_subscription_info(
     current_clients = await session.scalar(
         select(func.count()).where(
             DesktopBuild.user_id == user.id,
-            DesktopBuild.status.notin_(["revoked", "failed"]),
+            DesktopBuild.status.notin_(DesktopBuild.NON_OCCUPYING_STATUSES),
         )
     )
 

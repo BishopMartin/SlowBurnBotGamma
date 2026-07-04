@@ -2,7 +2,7 @@
 
 from burnBot_imports import *
 from burnBot_config import load_config, CONFIG, resolve_path, clear_api_credentials_in_ini
-from burnBot_utils import close_windows, has_internet_connection, process_exception, delay, check_schedule, consume_connectivity_recovery_notice
+from burnBot_utils import close_windows, has_internet_connection, process_exception, delay, check_schedule, consume_connectivity_recovery_notice, register_shutdown_flag
 from burnBot_accountSession import accountSession
 from burnBot_accountSession_setup import is_bot_debug_enabled
 from burnBot_apiClient import (
@@ -376,6 +376,7 @@ account_next_run = {}
 threads = []
 threads_active = []
 stop_flag = threading.Event()
+register_shutdown_flag(stop_flag)  # let wait_for_internet_restore() notice shutdown while offline
 
 run_counter = RunCounter(resolve_path("burnBot_runs.json"))
 
@@ -791,7 +792,24 @@ try:
                         account_thread_index[account_name] = account_idx
                         t.start()
                         while threads_active[account_idx].is_set():
+                            if not t.is_alive():
+                                break
                             time.sleep(1)
+
+                    # If the session thread died (e.g. its initial settings fetch
+                    # failed, or an uncaught exception unwound it) it will have
+                    # cleared its event on the way out — indistinguishable from a
+                    # normal idle-and-ready thread by the event alone. Check
+                    # liveness before re-triggering it: setting the event on a dead
+                    # thread has nobody left to clear it, which hung the whole bot
+                    # (all accounts) until /pause. Forget the cached index so the
+                    # next scheduled run spawns a fresh thread instead.
+                    session_thread = threads[account_idx]
+                    if not session_thread.is_alive():
+                        console.print(client_log_line(account_name, "error", "session thread is dead — will respawn next cycle"))
+                        account_thread_index.pop(account_name, None)
+                        status_store.update(account_name, status="error", next_run="—", run_info="—")
+                        continue
 
                     # Send running heartbeat before session starts
                     _send_hb("running", account_name)
@@ -803,7 +821,15 @@ try:
                     while threads_active[account_idx].is_set():
                         if status_store.is_bot_paused():
                             threads_active[account_idx].clear()
+                        if not session_thread.is_alive():
+                            break
                         time.sleep(1)
+
+                    if not session_thread.is_alive():
+                        console.print(client_log_line(account_name, "error", "session thread died mid-run — will respawn next cycle"))
+                        account_thread_index.pop(account_name, None)
+                        status_store.update(account_name, status="error", next_run="—", run_info="—")
+                        continue
 
                     # Update last run time and increment run counter
                     run_finished_time = datetime.now().astimezone()

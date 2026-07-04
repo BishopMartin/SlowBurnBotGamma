@@ -19,6 +19,13 @@ from app.database import Base
 class DesktopBuild(Base):
     """Per-slot activation record — config seeded at activation, then owned by client INI."""
 
+    # Statuses that don't count against a client slot/quota. Single source of
+    # truth so enforcement (desktop_builds.py) and display (subscription.py)
+    # can't drift apart on which statuses are "occupying" — they used to
+    # differ (enforcement excluded only "revoked"), which meant the plan
+    # page's client count didn't match what create_desktop_build enforced.
+    NON_OCCUPYING_STATUSES = ("revoked", "failed")
+
     __tablename__ = "desktop_builds"
     __table_args__ = (
         UniqueConstraint("user_id", "client_id", name="uq_desktop_build_user_client"),

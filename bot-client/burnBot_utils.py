@@ -23,6 +23,23 @@ _internet_restored_event.set()
 _internet_hold_owner = None
 _internet_hold_active = False
 _internet_recovery_notice = False
+_shutdown_flag = None  # set by burnBot.py via register_shutdown_flag()
+
+
+def register_shutdown_flag(event):
+    """Let the offline-hold loop below notice a user-requested shutdown.
+
+    wait_for_internet_restore() used to loop `while True` with no way to
+    hear about Ctrl-C/stop — if the network was down when shutdown was
+    requested, it kept retrying (up to 5-minute backoffs) instead of
+    letting the owning thread join promptly.
+    """
+    global _shutdown_flag
+    _shutdown_flag = event
+
+
+def _shutdown_requested():
+    return _shutdown_flag is not None and _shutdown_flag.is_set()
 
 
 def _probe_internet_connection(host="8.8.8.8", port=53, timeout=8):
@@ -68,11 +85,12 @@ def wait_for_internet_restore(host="8.8.8.8", port=53, timeout=8):
 
     if current_owner != current_thread:
         while not owner_event.wait(timeout=1):
-            pass
+            if _shutdown_requested():
+                return False
         return True
 
     retry_delay = INTERNET_HOLD_INITIAL_DELAY_SECONDS
-    while True:
+    while not _shutdown_requested():
         delay("offline hold - next connection check in ", retry_delay, retry_delay, "", scope="internet")
 
         try:
@@ -90,6 +108,16 @@ def wait_for_internet_restore(host="8.8.8.8", port=53, timeout=8):
         except socket.error:
             retry_delay = min(retry_delay * 2, INTERNET_HOLD_MAX_DELAY_SECONDS)
             builtins.print(client_log_line(None, "internet", f"Still offline - next check in {retry_delay}s."))
+
+    # Shutdown requested while still offline — release the hold (so any
+    # other thread parked on owner_event.wait() above unblocks via its own
+    # shutdown check) and let the caller unwind instead of looping forever.
+    with _internet_state_lock:
+        if _internet_hold_owner == current_thread:
+            _internet_hold_active = False
+            _internet_hold_owner = None
+            _internet_restored_event.set()
+    return False
 
 def close_windows(driver):
     """

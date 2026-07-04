@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import current_active_user
 from app.crypto import decrypt
-from app.database import get_async_session
+from app.database import commit_tolerating_race, get_async_session
 from app.deps import (
     get_active_subscription,
     is_subscription_entitled,
@@ -96,8 +96,11 @@ async def get_bot_config(
         session.add(config)
     if config.vnc_pin is None:
         config.vnc_pin = secrets.token_hex(4).upper()
-    await session.commit()
-    await session.refresh(config)
+    if await commit_tolerating_race(session):
+        await session.refresh(config)
+    else:
+        result = await session.execute(select(UserConfig).where(UserConfig.user_id == user.id))
+        config = result.scalar_one()
     return config
 
 
@@ -131,8 +134,11 @@ async def get_client_state(
         session.add(config)
     if config.vnc_pin is None:
         config.vnc_pin = secrets.token_hex(4).upper()
-    await session.commit()
-    await session.refresh(config)
+    if await commit_tolerating_race(session):
+        await session.refresh(config)
+    else:
+        cfg_result = await session.execute(select(UserConfig).where(UserConfig.user_id == user.id))
+        config = cfg_result.scalar_one()
     user_config = BotUserConfigRead.model_validate(config, from_attributes=True)
 
     # Accounts filtered by group
@@ -160,9 +166,27 @@ async def get_client_state(
             new_settings.append(s)
             settings_by_id[account.id] = s
     if new_settings:
-        await session.commit()
-        for s in new_settings:
-            await session.refresh(s)
+        if await commit_tolerating_race(session):
+            for s in new_settings:
+                await session.refresh(s)
+        else:
+            # A concurrent poll won the insert for at least one of these
+            # accounts. Re-select what exists now and retry once for
+            # whichever accounts are still missing a row.
+            s_result = await session.execute(
+                select(AccountSettings).where(AccountSettings.account_id.in_(ids))
+            )
+            settings_by_id = {s.account_id: s for s in s_result.scalars().all()}
+            retry_new = []
+            for account in accounts:
+                if account.id not in settings_by_id:
+                    s = AccountSettings(account_id=account.id, user_id=user.id)
+                    session.add(s)
+                    retry_new.append(s)
+                    settings_by_id[account.id] = s
+            if retry_new and await commit_tolerating_race(session):
+                for s in retry_new:
+                    await session.refresh(s)
 
     # Build serialisable account list
     account_states: list[ClientAccountState] = []
@@ -257,8 +281,13 @@ async def get_bot_settings(
     if settings is None:
         settings = AccountSettings(account_id=account_id, user_id=user.id)
         session.add(settings)
-        await session.commit()
-        await session.refresh(settings)
+        if await commit_tolerating_race(session):
+            await session.refresh(settings)
+        else:
+            result = await session.execute(
+                select(AccountSettings).where(AccountSettings.account_id == account_id)
+            )
+            settings = result.scalar_one()
     return settings
 
 
@@ -432,7 +461,10 @@ async def post_heartbeat(
             )
             .values(bot_version=body.bot_version)
         )
-    await session.commit()
+    # A concurrent heartbeat for the same (user_id, client_id) racing this
+    # insert is harmless to ignore — another call landed equivalent data
+    # within the same ~60s tick, so there's nothing left to apply here.
+    await commit_tolerating_race(session)
     return {"ok": True}
 
 

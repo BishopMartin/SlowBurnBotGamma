@@ -20,6 +20,12 @@ from app.settings import settings
 
 logger = logging.getLogger(__name__)
 
+# Stripe statuses that mean "no longer entitled." A subscription's line items
+# still resolve to a paid tier after cancellation (Stripe doesn't strip
+# `items` from a deleted subscription object), so these are handled
+# separately from the price->tier mapping below rather than relying on it.
+TERMINAL_STATUSES = {"canceled", "unpaid", "incomplete_expired"}
+
 
 def stripe_ts_to_datetime(ts: int | None) -> datetime | None:
     if ts is None:
@@ -49,13 +55,24 @@ def _tier_from_stripe_sub(stripe_sub) -> str | None:
     return None
 
 
-async def apply_stripe_subscription(session: AsyncSession, stripe_sub) -> Subscription | None:
+async def apply_stripe_subscription(
+    session: AsyncSession, stripe_sub, is_deletion: bool = False
+) -> Subscription | None:
     """Upsert a Subscription row from a Stripe subscription object.
 
     Locates the row by stripe_subscription_id, then by stripe_customer_id.
-    Updates status, period dates, and (when the price maps cleanly to a
-    tier) both Subscription.plan_tier and User.plan_tier, then enforces
-    account limits.  Caller is responsible for committing.
+    Updates status and period dates. When the incoming status is terminal
+    (canceled/unpaid/incomplete_expired) the user is forced back to the
+    "free" tier regardless of what the line items still say — a canceled
+    subscription object still carries its old price/tier, so trusting the
+    price mapping here would leave the account fully entitled after
+    cancellation. Otherwise, when the price maps cleanly to a tier, both
+    Subscription.plan_tier and User.plan_tier are updated. Either branch
+    re-enforces account limits. Caller is responsible for committing.
+
+    `is_deletion` should be set for `customer.subscription.deleted` events —
+    it's used only to let that event itself land even though the guard below
+    would otherwise treat "already terminal" as a reason to ignore it.
     """
     result = await session.execute(
         select(Subscription).where(
@@ -76,11 +93,43 @@ async def apply_stripe_subscription(session: AsyncSession, stripe_sub) -> Subscr
         logger.warning("Stripe sync: no subscription row for %s", stripe_sub.id)
         return None
 
+    incoming_status = stripe_sub.status
+
+    # Guard against out-of-order webhook delivery: once this row is recorded
+    # as terminally canceled, ignore a stale non-deletion event (e.g. a
+    # delayed/retried `customer.subscription.updated` with status=active)
+    # that would resurrect entitlement with no active payment. A genuine
+    # resubscribe arrives as a *new* Stripe subscription id (Stripe does not
+    # revive a canceled subscription object), so this only ever suppresses
+    # stale replays for the same id.
+    if (
+        not is_deletion
+        and sub.status in TERMINAL_STATUSES
+        and incoming_status not in TERMINAL_STATUSES
+        and stripe_sub.id == sub.stripe_subscription_id
+    ):
+        logger.info(
+            "Stripe sync: ignoring stale %s event for already-canceled subscription %s",
+            incoming_status, stripe_sub.id,
+        )
+        return sub
+
     sub.stripe_subscription_id = stripe_sub.id
     sub.stripe_customer_id = stripe_sub.customer
-    sub.status = stripe_sub.status
+    sub.status = incoming_status
     sub.current_period_start = stripe_ts_to_datetime(stripe_sub.current_period_start)
     sub.current_period_end = stripe_ts_to_datetime(stripe_sub.current_period_end)
+
+    if incoming_status in TERMINAL_STATUSES:
+        # sub.plan_tier is left untouched (mirrors admin.py's deactivate) so a
+        # future reactivation can fall back to the prior tier; only the
+        # user's *effective* tier is forced to free for enforcement.
+        user_result = await session.execute(select(User).where(User.id == sub.user_id))
+        user = user_result.scalar_one_or_none()
+        if user is not None:
+            user.plan_tier = "free"
+        await enforce_account_limits(sub.user_id, session)
+        return sub
 
     tier = _tier_from_stripe_sub(stripe_sub)
     if tier and is_valid_tier(tier):
@@ -90,5 +139,16 @@ async def apply_stripe_subscription(session: AsyncSession, stripe_sub) -> Subscr
         if user is not None:
             user.plan_tier = tier
         await enforce_account_limits(sub.user_id, session)
+    else:
+        # Price id didn't map to a known tier (env drift / new Stripe price /
+        # misconfigured settings). Leaving plan_tier untouched while status
+        # goes active would strand a paying customer at whatever tier they
+        # had before (often "free" = 0 accounts) with no visibility into why.
+        logger.warning(
+            "Stripe sync: subscription %s is %s but its price(s) did not map "
+            "to a known plan tier — plan_tier left unchanged. Check "
+            "stripe_price_crawl/walk/run settings.",
+            stripe_sub.id, incoming_status,
+        )
 
     return sub

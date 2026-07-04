@@ -1,13 +1,14 @@
 import logging
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
-from app.auth import auth_backend, fastapi_users
+from app.auth import ACCESS_TOKEN_LIFETIME, auth_backend, fastapi_users
 from app.database import async_session_maker
+from app.models.access_token import AccessToken
 from app.models.system_config import SystemConfig
 from app.routers import accounts, admin, auth_refresh, bot, config, desktop_builds, subscription, webhooks
 from app.schemas.user import UserCreate, UserRead, UserUpdate
@@ -15,6 +16,20 @@ from app.services import github_actions, object_storage
 from app.settings import settings
 
 logging.basicConfig(level=logging.INFO)
+
+
+async def _prune_expired_access_tokens() -> None:
+    """DatabaseStrategy (app/auth.py) never deletes a token row once it ages
+    past ACCESS_TOKEN_LIFETIME — read_token just starts filtering it out via
+    max_age. Without this, access_tokens grows without bound. Best-effort:
+    failures here shouldn't block startup."""
+    try:
+        cutoff = datetime.now(timezone.utc) - timedelta(seconds=ACCESS_TOKEN_LIFETIME)
+        async with async_session_maker() as session:
+            await session.execute(delete(AccessToken).where(AccessToken.created_at < cutoff))
+            await session.commit()
+    except Exception as e:
+        logging.warning(f"Startup access-token cleanup failed: {e}")
 
 
 async def _sync_bot_version() -> None:
@@ -56,6 +71,7 @@ async def _sync_bot_version() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await _sync_bot_version()
+    await _prune_expired_access_tokens()
     yield
 
 

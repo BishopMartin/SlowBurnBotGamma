@@ -143,7 +143,7 @@ def _open_post_from_results(driver, account, post_url):
         )
     except Exception:
         if is_bot_debug_enabled():
-            _p(client_log_line(account, _scope, f"debug could not find result tile for [{post_path}]"))
+            _p(client_log_line(account, "like-topics", f"debug could not find result tile for [{post_path}]"))
         return False
 
     try:
@@ -172,7 +172,7 @@ def _open_post_from_results(driver, account, post_url):
 
     if not clicked:
         if is_bot_debug_enabled():
-            _p(client_log_line(account, _scope, f"debug result tile click failed for [{post_path}]"))
+            _p(client_log_line(account, "like-topics", f"debug result tile click failed for [{post_path}]"))
         return False
 
     try:
@@ -186,7 +186,7 @@ def _open_post_from_results(driver, account, post_url):
         return True
     except Exception:
         if is_bot_debug_enabled():
-            _p(client_log_line(account, _scope, f"debug post did not finish opening for [{post_path}]"))
+            _p(client_log_line(account, "like-topics", f"debug post did not finish opening for [{post_path}]"))
         return False
 
 
@@ -330,9 +330,9 @@ def _open_topic_search_results(driver, account, topic):
                 time.sleep(random.uniform(2, 4))
                 search_clicked = True
                 if is_bot_debug_enabled():
-                    _p(client_log_line(account, _scope, f"using direct search page fallback for [{topic}]"))
+                    _p(client_log_line(account, "like-topics", f"using direct search page fallback for [{topic}]"))
             except Exception:
-                _p(client_log_line(account, _scope, f"error could not open search for [{topic}]"))
+                _p(client_log_line(account, "like-topics", f"error could not open search for [{topic}]"))
                 return False
 
         search_input = None
@@ -400,7 +400,7 @@ def _open_topic_search_results(driver, account, topic):
                 search_input = None
 
         if not search_input:
-            _p(client_log_line(account, _scope, f"error search box not found for [{topic}]"))
+            _p(client_log_line(account, "like-topics", f"error search box not found for [{topic}]"))
             return False
 
         try:

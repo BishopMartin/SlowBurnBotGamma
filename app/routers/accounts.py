@@ -11,7 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import current_active_user
 from app.crypto import encrypt
-from app.database import get_async_session
+from app.database import commit_tolerating_race, get_async_session
+from app.deps import require_active_subscription
 from app.plan_tiers import get_max_accounts
 from app.models.account import Account
 from app.models.account_settings import AccountSettings
@@ -19,6 +20,7 @@ from app.models.client_heartbeat import ClientHeartbeat
 from app.models.desktop_build import DesktopBuild
 from app.models.follow_target import FollowTarget
 from app.models.session_log import SessionLog
+from app.models.subscription import Subscription
 from app.models.user import User
 from app.schemas.account import AccountCreate, AccountRead, AccountUpdate
 from app.schemas.account_settings import AccountSettingsRead, AccountSettingsUpdate
@@ -84,7 +86,7 @@ async def get_client_status(
         select(DesktopBuild.client_id)
         .where(
             DesktopBuild.user_id == user.id,
-            DesktopBuild.status.notin_(["revoked", "failed"]),
+            DesktopBuild.status.notin_(DesktopBuild.NON_OCCUPYING_STATUSES),
         )
         .scalar_subquery()
     )
@@ -98,7 +100,7 @@ async def get_client_status(
             DesktopBuild,
             (DesktopBuild.user_id == ClientHeartbeat.user_id)
             & (DesktopBuild.client_id == ClientHeartbeat.client_id)
-            & DesktopBuild.status.notin_(["revoked", "failed"]),
+            & DesktopBuild.status.notin_(DesktopBuild.NON_OCCUPYING_STATUSES),
             isouter=True,
         )
         .where(
@@ -128,6 +130,7 @@ async def create_account(
     body: AccountCreate,
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
+    _: Subscription = Depends(require_active_subscription),
 ):
     # Enforce account limit for the user's plan tier
     max_accounts = get_max_accounts(user.plan_tier)
@@ -221,21 +224,27 @@ async def followback_summary(
     period: str = Query("day"),
     client_date: date | None = Query(None),
 ):
-    """Per-account follow-back rates for targets followed within a time period."""
+    """Per-account follow-back rates for targets followed within a time period.
+
+    All columns anchor on the same cohort — unfollow_date_cond, i.e. targets
+    whose follow-back outcome was resolved (checked at unfollow time) within
+    the period. `followed` previously anchored on follow_date instead, which
+    measured a different set of targets than `complete`/`followed_back` —
+    "Success Rate" ended up describing a cohort that didn't match the
+    "followed" count displayed beside it.
+    """
     FT = FollowTarget
 
     if period != "all":
         period_start = _period_start(period, client_date)
-        follow_date_cond = FT.follow_date >= period_start
         unfollow_date_cond = FT.unfollow_date >= period_start
     else:
-        follow_date_cond = true()
         unfollow_date_cond = true()
 
     result = await session.execute(
         select(
             FT.account_id,
-            func.count().filter(follow_date_cond).label("followed"),
+            func.count().filter(unfollow_date_cond).label("followed"),
             func.count().filter(and_(unfollow_date_cond, FT.follow_back.isnot(None))).label("complete"),
             func.count().filter(and_(unfollow_date_cond, FT.follow_back == True)).label("followed_back"),
             func.min(FT.unfollow_date).filter(unfollow_date_cond).label("first_unfollow"),
@@ -360,7 +369,19 @@ async def get_account_settings(
     )
     settings = result.scalar_one_or_none()
     if settings is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Settings not found.")
+        # create_account never inserts a row (defaults live here, not there);
+        # auto-create on first read (mirrors bot.py's get_bot_settings) so a
+        # brand-new account's dashboard settings page has something to load
+        # and save instead of 404ing until a bot client happens to poll first.
+        settings = AccountSettings(account_id=account_id, user_id=user.id)
+        session.add(settings)
+        if await commit_tolerating_race(session):
+            await session.refresh(settings)
+        else:
+            result = await session.execute(
+                select(AccountSettings).where(AccountSettings.account_id == account_id)
+            )
+            settings = result.scalar_one()
     return settings
 
 
@@ -576,25 +597,27 @@ async def get_account_source_stats(
 ):
     await _get_owned_account(account_id, user, session)
 
+    # All columns anchor on the same cohort — unfollow_date_cond — so "total"
+    # matches the population that "complete"/"followed_back"/"not_followed_back"
+    # are drawn from (previously "total" anchored on follow_date instead,
+    # measuring a different set of targets than the breakdown beside it).
     if period != "all":
         period_start = _period_start(period, client_date)
-        follow_date_cond = FollowTarget.follow_date >= period_start
         unfollow_date_cond = FollowTarget.unfollow_date >= period_start
     else:
-        follow_date_cond = true()
         unfollow_date_cond = true()
 
     result = await session.execute(
         select(
             FollowTarget.source,
-            func.count().filter(follow_date_cond).label("total"),
+            func.count().filter(unfollow_date_cond).label("total"),
             func.count().filter(and_(unfollow_date_cond, FollowTarget.follow_back.isnot(None))).label("complete"),
             func.count().filter(and_(unfollow_date_cond, FollowTarget.follow_back == True)).label("followed_back"),
             func.count().filter(and_(unfollow_date_cond, FollowTarget.follow_back == False)).label("not_followed_back"),
         )
         .where(FollowTarget.account_id == account_id)
         .group_by(FollowTarget.source)
-        .order_by(func.count().filter(follow_date_cond).desc())
+        .order_by(func.count().filter(unfollow_date_cond).desc())
     )
     rows = result.all()
 
@@ -606,7 +629,10 @@ async def get_account_source_stats(
         first_date = earliest.scalar()
         days = max((date.today() - first_date).days, 1) if first_date else 1
     else:
-        days = {"day": 1, "week": 7, "month": 30}[period]
+        # .get() with a safe default instead of direct-indexing an unvalidated
+        # query param — an unrecognized `period` (e.g. ?period=year) used to
+        # raise a KeyError -> 500 here.
+        days = {"day": 1, "week": 7, "month": 30}.get(period, 7)
 
     return {
         "days": days,

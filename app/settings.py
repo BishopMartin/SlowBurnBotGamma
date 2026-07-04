@@ -9,6 +9,16 @@ class Settings(BaseSettings):
     secret_key: str
     environment: str = "production"
 
+    # Dedicated key for encrypting stored IG passwords (app/crypto.py). Kept
+    # separate from secret_key so a leak of one doesn't also compromise the
+    # other — secret_key signs auth JWTs and reset/verification tokens; this
+    # key only ever touches encrypted credentials at rest. Optional and
+    # falls back to secret_key when unset so existing installs keep
+    # decrypting with their current key until an operator deliberately opts
+    # in (see scripts/rotate_credential_encryption_key.py to re-encrypt
+    # existing rows before/after setting this).
+    credential_encryption_key: str = ""
+
     # Stripe (optional until Phase 3)
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""

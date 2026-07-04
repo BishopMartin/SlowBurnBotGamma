@@ -11,6 +11,7 @@ from app.models.system_config import SystemConfig
 from app.models.invite_code import InviteCode
 from app.models.client_heartbeat import ClientHeartbeat
 from app.models.processed_stripe_event import ProcessedStripeEvent
+from app.models.access_token import AccessToken
 
 __all__ = [
     "User",
@@ -26,4 +27,5 @@ __all__ = [
     "InviteCode",
     "ClientHeartbeat",
     "ProcessedStripeEvent",
+    "AccessToken",
 ]

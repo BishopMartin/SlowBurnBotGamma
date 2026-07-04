@@ -195,86 +195,127 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
             driver.switch_to.window(main_window)
             return 0, f"Could not open followers dialog: {e}"
 
-        # Process each target
+        # Process each target. Both tabs are open at this point, so cleanup
+        # for them runs in `finally` below — a per-target exception used to
+        # skip straight past the tab-closing code that used to sit at the end
+        # of this block into the outer except (which does no cleanup at all),
+        # leaking the followers_window/following_window tabs whenever
+        # close_browser_after_session is False.
         target_formatted = f"{target_count:02d}"
 
-        for target in targets:
-            if unfollows_performed >= target_count:
-                break
+        try:
+            for attempt_num, target in enumerate(targets, start=1):
+                if unfollows_performed >= target_count:
+                    break
 
-            loop_username = target.get("target_handle", "")
-            target_id = target.get("id", "")
+                loop_username = target.get("target_handle", "")
+                target_id = target.get("id", "")
 
-            if not loop_username:
-                continue
+                if not loop_username:
+                    continue
 
-            unfollows_performed += 1
-            count_formatted = f"{unfollows_performed:02d}"
+                # count_formatted tracks attempt/loop position for the progress
+                # log line — unfollows_performed (the real success count used
+                # for the cap and the final summary) is only incremented once
+                # an unfollow actually goes through, below. Incrementing it
+                # here unconditionally used to overcount: a target that
+                # errored out or was already gone from the following list
+                # still bumped the counter, so a run could report "[10/10]
+                # Completed" while only a handful of accounts were genuinely
+                # unfollowed.
+                count_formatted = f"{attempt_num:02d}"
 
+                # Create username variations to try (reversed order)
+                loop_username_clean = loop_username.replace(".", "").replace("_", "")
+                loop_username_short = loop_username[:20]
+                loop_username_clean_short = loop_username_clean[:20]
 
-            # Create username variations to try (reversed order)
-            loop_username_clean = loop_username.replace(".", "").replace("_", "")
-            loop_username_short = loop_username[:20]
-            loop_username_clean_short = loop_username_clean[:20]
+                usernames_to_try = []
+                for username in [loop_username_clean_short, loop_username_short, loop_username_clean, loop_username]:
+                    if username not in usernames_to_try:
+                        usernames_to_try.append(username)
 
-            usernames_to_try = []
-            for username in [loop_username_clean_short, loop_username_short, loop_username_clean, loop_username]:
-                if username not in usernames_to_try:
-                    usernames_to_try.append(username)
+                # Check if they follow back (check followers tab first)
+                follow_back = False
 
-            # Check if they follow back (check followers tab first)
-            follow_back = False
+                # Switch to followers tab
+                driver.switch_to.window(followers_window)
+                time.sleep(1)
 
-            # Switch to followers tab
-            driver.switch_to.window(followers_window)
-            time.sleep(1)
+                # Search in followers list
+                found_in_followers = False
+                for username in usernames_to_try:
+                    found_in_followers, _ = search_for_profile(driver, username, loop_username)
+                    if found_in_followers:
+                        break
+                    time.sleep(0.3)
 
-            # Search in followers list
-            found_in_followers = False
-            for username in usernames_to_try:
-                found_in_followers, _ = search_for_profile(driver, username, loop_username)
                 if found_in_followers:
-                    break
-                time.sleep(0.3)
+                    follow_back = True
 
-            if found_in_followers:
-                follow_back = True
+                follow_back_display = "yes" if follow_back else "no"
 
-            follow_back_display = "yes" if follow_back else "no"
+                # Switch to following tab for unfollowing
+                driver.switch_to.window(following_window)
+                time.sleep(1)
 
-            # Switch to following tab for unfollowing
-            driver.switch_to.window(following_window)
-            time.sleep(1)
+                # Search for profile in following list
+                found = False
+                profile_link = None
+                for username in usernames_to_try:
+                    found, profile_link = search_for_profile(driver, username, loop_username)
+                    if found:
+                        break
+                    time.sleep(0.3)
 
-            # Search for profile in following list
-            found = False
-            profile_link = None
-            for username in usernames_to_try:
-                found, profile_link = search_for_profile(driver, username, loop_username)
-                if found:
-                    break
-                time.sleep(0.3)
+                if found and profile_link:
+                    try:
+                        # Find the account box and unfollow button
+                        account_box = profile_link.find_element(By.XPATH,
+                                                               "ancestor::div[contains(@class, 'x1uhb9sk') or contains(@class, 'x1n2onr6')]")
+                        follow_button = account_box.find_element(By.XPATH, ".//button[.//div[contains(text(), 'ollow')]]")
 
-            if found and profile_link:
-                try:
-                    # Find the account box and unfollow button
-                    account_box = profile_link.find_element(By.XPATH,
-                                                           "ancestor::div[contains(@class, 'x1uhb9sk') or contains(@class, 'x1n2onr6')]")
-                    follow_button = account_box.find_element(By.XPATH, ".//button[.//div[contains(text(), 'ollow')]]")
+                        # Click to trigger unfollow modal
+                        ActionChains(driver).move_to_element(follow_button).click().perform()
+                        time.sleep(random.randint(3, 5))
 
-                    # Click to trigger unfollow modal
-                    ActionChains(driver).move_to_element(follow_button).click().perform()
-                    time.sleep(random.randint(3, 5))
+                        # Click unfollow confirmation
+                        unfollow_confirm = WebDriverWait(driver, 6).until(
+                            EC.element_to_be_clickable((By.CLASS_NAME, "_a9-_"))
+                        )
+                        ActionChains(driver).move_to_element(unfollow_confirm).click().perform()
 
-                    # Click unfollow confirmation
-                    unfollow_confirm = WebDriverWait(driver, 6).until(
-                        EC.element_to_be_clickable((By.CLASS_NAME, "_a9-_"))
-                    )
-                    ActionChains(driver).move_to_element(unfollow_confirm).click().perform()
+                        # The confirm click landed — this is a genuine unfollow,
+                        # not just an attempt. Count it here, not per-loop-iteration.
+                        unfollows_performed += 1
 
+                        _p(client_log_line(
+                            account, _log_scope,
+                            f"{_lbl}[{unfollows_performed:02d}/{target_formatted}] - [{loop_username}] - [fb:{follow_back_display}]",
+                        ))
+
+                        # Update follow target via API
+                        try:
+                            apiClient.update_follow_target(
+                                target_id,
+                                status="done",
+                                unfollow_date=unfollow_date,
+                                follow_back=follow_back
+                            )
+                        except Exception as update_error:
+                            moduleErrorsLog += f"Could not update target for {loop_username}: {update_error}\n"
+
+                        time.sleep(random.randint(4, 6))
+
+                    except Exception as e:
+                        _p(client_log_line(account, _log_scope, f"{_lbl}{count_formatted}/{target_formatted} @{loop_username} error"))
+                        moduleErrorsLog += f"Error unfollowing {loop_username}: {e}\n"
+                else:
+                    # Account not found in following list (already unfollowed manually or by another process)
+                    # Still mark as done in database to avoid checking again
                     _p(client_log_line(
                         account, _log_scope,
-                        f"{_lbl}[{count_formatted}/{target_formatted}] - [{loop_username}] - [fb:{follow_back_display}]",
+                        f"{_lbl}[-skip] - [{loop_username}] - [not in following]",
                     ))
 
                     # Update follow target via API
@@ -288,44 +329,28 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
                     except Exception as update_error:
                         moduleErrorsLog += f"Could not update target for {loop_username}: {update_error}\n"
 
-                    time.sleep(random.randint(4, 6))
+                    moduleWarningsLog += f"Not found in following list (already unfollowed): {loop_username}\n"
 
-                except Exception as e:
-                    _p(client_log_line(account, _log_scope, f"{_lbl}{count_formatted}/{target_formatted} @{loop_username} error"))
-                    moduleErrorsLog += f"Error unfollowing {loop_username}: {e}\n"
+            # Summary message
+            if unfollows_performed < target_count:
+                _p(client_log_line(account, _log_scope, f"{_lbl}Incomplete[{unfollows_performed}/{target_count}]"))
             else:
-                # Account not found in following list (already unfollowed manually or by another process)
-                # Still mark as done in database to avoid checking again
-                _p(client_log_line(
-                    account, _log_scope,
-                    f"{_lbl}[-skip] - [{loop_username}] - [not in following]",
-                ))
-
-                # Update follow target via API
+                _p(client_log_line(account, _log_scope, f"{_done_lbl}-Completed[{unfollows_performed}/{target_count}]"))
+        finally:
+            # Close extra tabs and return to main window — always, even if a
+            # per-target exception unwound past the loop above.
+            for window in (followers_window, following_window):
                 try:
-                    apiClient.update_follow_target(
-                        target_id,
-                        status="done",
-                        unfollow_date=unfollow_date,
-                        follow_back=follow_back
-                    )
-                except Exception as update_error:
-                    moduleErrorsLog += f"Could not update target for {loop_username}: {update_error}\n"
-
-                moduleWarningsLog += f"Not found in following list (already unfollowed): {loop_username}\n"
-
-        # Summary message
-        if unfollows_performed < target_count:
-            _p(client_log_line(account, _log_scope, f"{_lbl}Incomplete[{unfollows_performed}/{target_count}]"))
-        else:
-            _p(client_log_line(account, _log_scope, f"{_done_lbl}-Completed[{unfollows_performed}/{target_count}]"))
-
-        # Close extra tabs and return to main window
-        driver.switch_to.window(followers_window)
-        driver.close()
-        driver.switch_to.window(following_window)
-        driver.close()
-        driver.switch_to.window(main_window)
+                    if window in driver.window_handles:
+                        driver.switch_to.window(window)
+                        driver.close()
+                except Exception:
+                    pass
+            try:
+                if main_window in driver.window_handles:
+                    driver.switch_to.window(main_window)
+            except Exception:
+                pass
 
     except Exception as error:
         noteError = "do_unfollow_database catch all"

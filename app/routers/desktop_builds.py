@@ -98,7 +98,7 @@ async def create_desktop_build(
     current_clients = await session.scalar(
         select(func.count()).where(
             DesktopBuild.user_id == user.id,
-            DesktopBuild.status.notin_(["revoked"]),
+            DesktopBuild.status.notin_(DesktopBuild.NON_OCCUPYING_STATUSES),
         )
     )
     if max_clients > 0 and current_clients >= max_clients:
@@ -107,15 +107,21 @@ async def create_desktop_build(
             detail=f"Client limit reached for your plan ({max_clients} clients).",
         )
 
+    occupied = set(await session.scalars(
+        select(DesktopBuild.client_id).where(
+            DesktopBuild.user_id == user.id,
+            DesktopBuild.status.notin_(DesktopBuild.NON_OCCUPYING_STATUSES),
+        )
+    ))
+
     if body.slot_number is not None:
+        if body.slot_number in occupied:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Slot {body.slot_number} is already in use.",
+            )
         next_client_id = body.slot_number
     else:
-        occupied = set(await session.scalars(
-            select(DesktopBuild.client_id).where(
-                DesktopBuild.user_id == user.id,
-                DesktopBuild.status.notin_(["revoked"]),
-            )
-        ))
         next_client_id = 1
         while next_client_id in occupied:
             next_client_id += 1
