@@ -140,16 +140,22 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
         
         # Main follow loop
         user_boxes_done = []
+        stall_scrolls = 0
+        max_stall_scrolls = 5  # consecutive no-new-boxes scrolls before treating as end of list
 
         while followed_count < target_count:
             if status_store.is_bot_paused():
-                return followed_count, moduleErrorsLog
+                return followed_count, module_errors_log
             try:
                 # Find all user boxes in the dialog
                 user_boxes_found = driver.find_elements(By.CLASS_NAME, "xozqiw3")
                 user_boxes_new = [item for item in user_boxes_found if item not in user_boxes_done]
-                
+
                 if not user_boxes_new:
+                    stall_scrolls += 1
+                    if stall_scrolls >= max_stall_scrolls:
+                        _p(client_log_line(account, _scope, f"{_lbl}Warning: reached end of list [{followed_count}/{target_count}]"))
+                        break
                     # No new boxes, try scrolling
                     try:
                         window = driver.find_element(By.CLASS_NAME, 'xz65tgg')
@@ -158,9 +164,11 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                         continue
                     except Exception:
                         # Can't scroll anymore, we've reached the end
-                        _p(client_log_line(account, _scope, f"{_lbl}reached end of list"))
+                        _p(client_log_line(account, _scope, f"{_lbl}Warning: reached end of list [{followed_count}/{target_count}]"))
                         break
-            
+                else:
+                    stall_scrolls = 0
+
             except Exception as e:
                 # Error loading user boxes, try scrolling
                 try:
