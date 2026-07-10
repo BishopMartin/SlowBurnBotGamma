@@ -289,13 +289,6 @@ class BurnBotApp(App):
         background: $bb-surface;
         align: right middle;
     }
-    #hint-exit {
-        width: auto;
-        background: $bb-surface;
-        color: $bb-dim;
-        content-align: right middle;
-        padding: 0 1;
-    }
     """
 
     BINDINGS = [
@@ -377,7 +370,7 @@ class BurnBotApp(App):
                 yield Static("", id="cmd-ghost")
             with Horizontal(id="input-hints"):
                 yield CmdHint("/stop", id="hint-toggle")
-                yield Static("/exit", id="hint-exit")
+                yield CmdHint("/exit", id="hint-exit")
                 yield CmdHint("/settings", id="hint-settings")
                 yield CmdHint("/tint", id="hint-tint")
                 yield CmdHint("/help", id="hint-help")
@@ -488,7 +481,7 @@ class BurnBotApp(App):
         status_text.append("| ", style=p["heading"])
         if paused:
             status_text.append("[", style=p["heading"])
-            status_text.append("STOPPED", style=f"bold {p['warn']}")
+            status_text.append("STOPPED", style=f"bold {p['error']}")
             status_text.append("]", style=p["heading"])
         else:
             status_text.append("[", style=p["heading"])
