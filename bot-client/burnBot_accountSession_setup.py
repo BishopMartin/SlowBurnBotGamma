@@ -58,6 +58,59 @@ def build_user_data_dir(account):
     return chrome_user_data_dir
 
 
+def launch_manual_browser(account):
+    """
+    Launch a plain (non-Selenium) Chrome window into the account's own profile, so an
+    operator connected via noVNC can manually check login state / solve a CAPTCHA.
+
+    Launched as a bare subprocess (not through webdriver.Chrome) so it's not tied to a
+    Selenium session and isn't closed by driver.quit() or the close_browser_after_* flags.
+    Chrome's own profile-directory locking means if the bot's automation browser is
+    already running on this profile, this call simply focuses/reuses that window instead
+    of starting a second process against the same profile.
+
+    Args:
+        account: Account username/identifier
+
+    Returns:
+        bool: True if the process was launched (or handed off to Chrome's existing
+              instance for that profile), False if the Chrome binary could not be started.
+    """
+    import subprocess
+
+    chrome_user_data_dir = build_user_data_dir(account)
+    chrome_path = CONFIG.get('browser-config', 'chrome_path', fallback='/usr/bin/google-chrome')
+
+    args = [
+        chrome_path,
+        f'--user-data-dir={chrome_user_data_dir}',
+        '--no-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-software-rasterizer',
+        '--disable-setuid-sandbox',
+        '--window-size=1920,1080',
+        '--window-position=0,0',
+    ]
+
+    # Nuitka sets LD_LIBRARY_PATH/LD_PRELOAD to its extracted temp dir; subprocesses
+    # inherit these and can pick up the frozen libcrypto/libssl instead of system ones.
+    # Same workaround as _start_vnc_services() in burnBot.py.
+    clean_env = os.environ.copy()
+    for _var in ('LD_LIBRARY_PATH', 'LD_PRELOAD'):
+        clean_env.pop(_var, None)
+
+    try:
+        subprocess.Popen(
+            args,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            env=clean_env,
+        )
+        return True
+    except Exception:
+        return False
+
+
 def update_local_state(account, chrome_user_data_dir):
     """
     Update Chrome's Local State file with account information.

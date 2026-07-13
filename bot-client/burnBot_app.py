@@ -59,6 +59,7 @@ class DefaultBgRichLog(RichLog):
 
 import burnBot_status as status_store
 from burnBot_client_log import client_log_line
+from burnBot_accountSession_setup import launch_manual_browser
 
 
 class CmdHint(Static):
@@ -224,11 +225,20 @@ class BurnBotApp(App):
     #vnc-bar {
         height: 2;
         background: $bb-surface;
-        color: $bb-dim;
-        padding: 0 1;
         border: solid $bb-dim;
         border-bottom: none;
         display: none;
+    }
+    #vnc-info {
+        width: 1fr;
+        color: $bb-dim;
+        content-align: left middle;
+        padding: 0 1;
+    }
+    #vnc-controls {
+        width: auto;
+        background: $bb-surface;
+        align: right middle;
     }
 
     #input-row {
@@ -295,7 +305,7 @@ class BurnBotApp(App):
         Binding("escape", "clear_input", "Clear", show=False),
     ]
 
-    _COMMANDS = ["/copy-log", "/exit", "/help", "/save-log", "/settings", "/start", "/stop", "/tint"]
+    _COMMANDS = ["/browser", "/copy-log", "/exit", "/help", "/keep-browser", "/save-log", "/settings", "/start", "/stop", "/tint"]
 
     _HELP_CMDS = [
         ("/stop",     "Stop all sessions (bot stays running)"),
@@ -305,6 +315,8 @@ class BurnBotApp(App):
         ("/tint",     "Select color theme (tinty / terminal / default)"),
         ("/save-log", "Save a plain text copy of the log"),
         ("/copy-log", "Copy the log to the clipboard"),
+        ("/browser [account]", "Open a browser into the VNC display for manual login checks"),
+        ("/keep-browser", "Toggle whether the session browser stays open after a session"),
         ("/help",     "Show this screen"),
         ("Esc",       "Return to main view"),
     ]
@@ -363,7 +375,11 @@ class BurnBotApp(App):
                     yield Static(row)
             yield Static("", id="help-hint-inline")
         yield DataTable(id="accounts", show_cursor=False)
-        yield Static("", id="vnc-bar")
+        with Horizontal(id="vnc-bar"):
+            yield Static("", id="vnc-info")
+            with Horizontal(id="vnc-controls"):
+                yield CmdHint("/browser", id="vnc-open-browser")
+                yield CmdHint("/keep-browser", id="vnc-keep-open")
         with Horizontal(id="input-row"):
             with Horizontal(id="cmd-inner"):
                 yield Input(placeholder="enter a command", id="cmd-input")
@@ -490,7 +506,7 @@ class BurnBotApp(App):
         self.query_one("#status-indicator", Static).update(status_text)
 
         vnc_url, vnc_pin = status_store.get_vnc_info()
-        vnc_bar = self.query_one("#vnc-bar", Static)
+        vnc_bar = self.query_one("#vnc-bar", Horizontal)
         if vnc_url:
             bar = Text(no_wrap=True)
             bar.append("Remote View  ", style=p["heading"])
@@ -498,7 +514,11 @@ class BurnBotApp(App):
             if vnc_pin:
                 bar.append("   PIN: ", style=p["dim"])
                 bar.append(vnc_pin, style=p["heading"])
-            vnc_bar.update(bar)
+            self.query_one("#vnc-info", Static).update(bar)
+            keep_open = status_store.is_keep_browser_open()
+            keep_hint = self.query_one("#vnc-keep-open", CmdHint)
+            keep_hint.update(f"keep open: {'on' if keep_open else 'off'}")
+            self.query_one("#vnc-open-browser", CmdHint).update("open browser")
             vnc_bar.display = True
         else:
             vnc_bar.display = False
@@ -533,6 +553,7 @@ class BurnBotApp(App):
         ("header",    "Client Settings",            None),
         ("toggle",    "Debug mode",                 "bot_debug"),
         ("toggle",    "Browser only mode",          "_browser_only"),
+        ("toggle",    "Keep browser open",          "keep_browser_open"),
         ("separator", "",                           None),
         ("header",    "Notification Settings",      None),
         ("cycle",     "Session Notifications",      "_session_notify"),
@@ -868,6 +889,28 @@ class BurnBotApp(App):
         """Execute a command string directly (used by clickable hints)."""
         self._dispatch_cmd(cmd.strip().lower())
 
+    def _open_manual_browser(self, account: str | None) -> None:
+        """Handle /browser [account]: launch a Chrome window into the VNC display
+        on the given account's profile, so an operator can manually check login state."""
+        if account is None:
+            tracked = status_store.get_tracked_accounts()
+            if not tracked:
+                self._write_log(_escape(client_log_line(
+                    None, "terminal-command",
+                    "No accounts tracked yet — try /browser <account> once a session has started"
+                )))
+                return
+            account = tracked[0]
+        ok = launch_manual_browser(account)
+        if ok:
+            self._write_log(_escape(client_log_line(
+                account, "browser", "opened browser for manual check — view via noVNC"
+            )))
+        else:
+            self._write_log(_escape(client_log_line(
+                account, "browser", "failed to open browser — check chrome_path in config"
+            )))
+
     def _dispatch_cmd(self, cmd: str) -> None:
         if not cmd or cmd == "/":
             return
@@ -904,6 +947,16 @@ class BurnBotApp(App):
                 self._write_log(_escape(client_log_line(None, "terminal-command", "Log copied to clipboard")))
             except Exception as e:
                 self._write_log(_escape(client_log_line(None, "terminal-command", f"Copy failed: {e}")))
+        elif cmd == "/browser" or cmd.startswith("/browser "):
+            parts = cmd.split(maxsplit=1)
+            account = parts[1].strip() if len(parts) > 1 else None
+            self._open_manual_browser(account)
+        elif cmd == "/keep-browser":
+            new_val = not status_store.is_keep_browser_open()
+            status_store.set_keep_browser_open(new_val)
+            state = "on — browser stays open after sessions" if new_val else "off — browser closes after sessions"
+            self._write_log(_escape(client_log_line(None, "terminal-command", f"Keep browser open: {state}")))
+            self._refresh_header()
         else:
             self._write_log(_escape(client_log_line(None, "terminal-command", f"Unknown command '{cmd}' — type /help for list")))
 

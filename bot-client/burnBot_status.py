@@ -25,6 +25,7 @@ _SETTINGS = [
     ("Notifications",     "_notify_enabled"),
     ("Debug mode",        "bot_debug"),
     ("Browser only mode", "_browser_only"),
+    ("Keep browser open", "keep_browser_open"),
 ]
 
 _browser_only: bool = False
@@ -212,6 +213,31 @@ def _toggle_setting_locked(idx: int) -> None:
         CONFIG.set('bot_settings', 'bot_debug', str(not cur))
     elif key == "_browser_only":
         _browser_only = not _browser_only
+    elif key == "keep_browser_open":
+        set_keep_browser_open(not is_keep_browser_open())
+
+
+def is_keep_browser_open() -> bool:
+    """True if the automation browser should be left open across/after sessions.
+
+    Backed by the existing [browser-session] close_browser_after_session /
+    close_browser_after_exit flags (read live by burnBot_accountSession.py at
+    each session/thread teardown), so flipping this takes effect on the next
+    session end without a restart.
+    """
+    return not CONFIG.getboolean('browser-session', 'close_browser_after_session', fallback=False)
+
+
+def set_keep_browser_open(val: bool) -> None:
+    close_str = str(not val)
+    CONFIG.set('browser-session', 'close_browser_after_session', close_str)
+    CONFIG.set('browser-session', 'close_browser_after_exit', close_str)
+
+
+def get_tracked_accounts() -> list[str]:
+    """Account names the client has started tracking this run (used to target /browser)."""
+    with _lock:
+        return list(_store.keys())
 
 
 def set_vnc_info(url: str = "", pin: str = "") -> None:
@@ -283,4 +309,6 @@ def get_setting_value(key: str) -> bool:
         return CONFIG.getboolean('bot_settings', 'bot_debug', fallback=False)
     if key == "_browser_only":
         return _browser_only
+    if key == "keep_browser_open":
+        return is_keep_browser_open()
     return False
