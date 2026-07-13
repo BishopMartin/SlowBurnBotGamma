@@ -230,15 +230,19 @@ class BurnBotApp(App):
         display: none;
     }
     #vnc-info {
-        width: 1fr;
+        width: auto;
         color: $bb-dim;
         content-align: left middle;
         padding: 0 1;
     }
-    #vnc-controls {
+    #vnc-bracket-l, #vnc-bracket-r {
         width: auto;
         background: $bb-surface;
-        align: right middle;
+        color: $bb-heading;
+        content-align: left middle;
+    }
+    #vnc-open-browser {
+        padding: 0;
     }
 
     #input-row {
@@ -377,9 +381,9 @@ class BurnBotApp(App):
         yield DataTable(id="accounts", show_cursor=False)
         with Horizontal(id="vnc-bar"):
             yield Static("", id="vnc-info")
-            with Horizontal(id="vnc-controls"):
-                yield CmdHint("/browser", id="vnc-open-browser")
-                yield CmdHint("/keep-browser", id="vnc-keep-open")
+            yield Static("[", id="vnc-bracket-l")
+            yield CmdHint("/browser", id="vnc-open-browser")
+            yield Static("]", id="vnc-bracket-r")
         with Horizontal(id="input-row"):
             with Horizontal(id="cmd-inner"):
                 yield Input(placeholder="enter a command", id="cmd-input")
@@ -515,9 +519,6 @@ class BurnBotApp(App):
                 bar.append("   PIN: ", style=p["dim"])
                 bar.append(vnc_pin, style=p["heading"])
             self.query_one("#vnc-info", Static).update(bar)
-            keep_open = status_store.is_keep_browser_open()
-            keep_hint = self.query_one("#vnc-keep-open", CmdHint)
-            keep_hint.update(f"keep open: {'on' if keep_open else 'off'}")
             self.query_one("#vnc-open-browser", CmdHint).update("open browser")
             vnc_bar.display = True
         else:
