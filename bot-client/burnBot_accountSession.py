@@ -20,6 +20,19 @@ import burnBot_status as status_store
 drivers = {}
 
 
+def _summarize_issue_log(log_text, max_len=60):
+    """Collapse a newline-joined error/warning log into a short one-line summary."""
+    lines = [l.strip() for l in log_text.strip().splitlines() if l.strip()]
+    if not lines:
+        return None
+    summary = lines[0]
+    if len(lines) > 1:
+        summary += f" (+{len(lines) - 1} more)"
+    if len(summary) > max_len:
+        summary = summary[:max_len - 1] + "…"
+    return summary
+
+
 def _parse_actions(settings):
     """Parse the actions list from API settings into a flat structure."""
     actions_list = settings.get("actions") or []
@@ -264,7 +277,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     session_already_handled = True
                     run_info = f"[{run_count}/{max_runs}]" if max_runs > 0 else f"[{run_count}]"
                     _print(client_log_line(account, "login", f"returning to IDLE — login failure — run {run_info}"))
-                    status_store.update(account, status="idle", last_action="login failure")
+                    status_store.update(account, status="idle", last_action="session complete - error[login failure]")
                     continue
 
                 if not loginFailureExit:
@@ -447,7 +460,17 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     _dur = f"{_hh}h{_mm}m{_ss}s" if _hh else f"{_mm}m{_ss}s"
                     _print(client_log_line(account, "summary", f"Session[{_run_label}] - {actions_run} action(s) executed"))
                     _print(client_log_line(account, "summary", f"Session[{_run_label}] - DONE"))
-                    status_store.update(account, status="idle", last_action="session complete", last_run=session_end_time.strftime("%m/%d %I:%M %p"))
+
+                    _err_summary = _summarize_issue_log(moduleErrorsLog)
+                    _warn_summary = _summarize_issue_log(moduleWarningsLog)
+                    if _err_summary:
+                        _session_last_action = f"session complete - error[{_err_summary}]"
+                    elif _warn_summary:
+                        _session_last_action = f"session complete - warning[{_warn_summary}]"
+                    else:
+                        _session_last_action = "session complete - no issues"
+
+                    status_store.update(account, status="idle", last_action=_session_last_action, last_run=session_end_time.strftime("%m/%d %I:%M %p"))
 
                 # Close or keep browser based on config
                 close_browser_after_session = CONFIG.getboolean('browser-session', 'close_browser_after_session', fallback=True)

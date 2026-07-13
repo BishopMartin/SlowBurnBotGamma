@@ -835,7 +835,7 @@ try:
                     run_finished_time = datetime.now().astimezone()
                     account_last_run[account_name] = run_finished_time
                     new_run_count = run_counter.increment_run_count(account_name)
-                    run_counter.set_last_run_time(account_name, run_finished_time, last_action="session complete")
+                    run_counter.set_last_run_time(account_name, run_finished_time, last_action=status_store.get_last_action(account_name) or "session complete")
 
                     # Set a stable next_run_time
                     delay_config = account_schedules.get(account_name, {}).get('delay', {'base': 60.0, 'random': 0.0})
@@ -854,7 +854,7 @@ try:
                     run_info_done = f"[{new_run_count}/{schedule_max}]" if schedule_max > 0 else f"[{new_run_count}]"
                     console.print(client_log_line(account_name, "summary", f"run {run_info_done} - DONE"))
                     next_run_str = account_next_run[account_name].strftime("%m/%d %I:%M %p")
-                    status_store.update(account_name, status="idle", next_run=next_run_str, last_action="session complete", run_info=run_info_done)
+                    status_store.update(account_name, status="idle", next_run=next_run_str, run_info=run_info_done)
                 elif max_runs_reached:
                     run_count = run_counter.get_run_count(account_name)
                     _max_run_info = f"[{run_count}/{int(schedule_max)}]" if schedule_max > 0 else f"[{run_count}]"

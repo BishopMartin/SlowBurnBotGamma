@@ -73,6 +73,11 @@ def update(account_name: str, **kwargs) -> None:
             pass
 
 
+def get_last_action(account_name: str) -> str | None:
+    with _lock:
+        return _store.get(account_name, {}).get("last_action")
+
+
 def get_effective_max_runs(account_name: str):
     """Daily effective max runs (base + random offset) published by the scheduler.
 
