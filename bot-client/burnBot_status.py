@@ -196,6 +196,81 @@ def get_notify_value(key: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Notification prefs <-> backend UserConfig sync
+#
+# The backend (and website /config page) store each notification as a bool
+# "enabled" flag plus a delivery type in {"email", "text", "both"}. The TUI
+# /settings screen collapses both into one cycle in {"none", "email", "sms",
+# "both"}. These two helpers are the single canonical mapping used by both the
+# seed (backend -> cycle) and persist (cycle -> backend) directions so the two
+# can never drift out of sync with each other.
+# ---------------------------------------------------------------------------
+
+def _cycle_to_backend(value: str) -> tuple:
+    """Map a TUI cycle value to (enabled, notices_type) for the backend."""
+    if value == "email":
+        return True, "email"
+    if value == "sms":
+        return True, "text"
+    if value == "both":
+        return True, "both"
+    return False, "none"
+
+
+def _backend_to_cycle(enabled: bool, notices_type: str | None) -> str:
+    """Map backend (enabled, notices_type) to a TUI cycle value."""
+    if not enabled:
+        return "none"
+    notices_type = (notices_type or "").strip().lower()
+    if notices_type == "email":
+        return "email"
+    if notices_type == "text":
+        return "sms"
+    if notices_type == "both":
+        return "both"
+    return "none"
+
+
+def seed_notify_from_config(user_config: dict) -> None:
+    """Populate the /settings notification cycles from a fetched backend user_config dict."""
+    global _session_notify, _login_notify
+    if not user_config:
+        return
+    with _lock:
+        _session_notify = _backend_to_cycle(
+            user_config.get("notices_session", True), user_config.get("notices_type")
+        )
+        _login_notify = _backend_to_cycle(
+            user_config.get("notices_login", True), user_config.get("login_notices_type")
+        )
+
+
+def persist_notify_prefs() -> bool:
+    """Push the current cycle values back to the backend via PUT /bot/config.
+
+    Returns True on success, False on failure (caller should re-seed from the
+    cache to revert the displayed value). Imports the shared apiClient lazily
+    to avoid a circular import with burnBot.py, matching the existing
+    lazy-import style used for CONFIG above.
+    """
+    from burnBot import apiClient
+
+    with _lock:
+        session_val, login_val = _session_notify, _login_notify
+
+    session_enabled, session_type = _cycle_to_backend(session_val)
+    login_enabled, login_type = _cycle_to_backend(login_val)
+
+    result = apiClient.update_user_config(
+        notices_session=session_enabled,
+        notices_type=session_type,
+        notices_login=login_enabled,
+        login_notices_type=login_type,
+    )
+    return result is not None
+
+
+# ---------------------------------------------------------------------------
 # Private helpers
 # ---------------------------------------------------------------------------
 

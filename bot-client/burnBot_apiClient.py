@@ -561,6 +561,22 @@ class ApiClient:
             _log_api_err(e, "Failed to fetch user config")
             return None
 
+    def update_user_config(self, **fields):
+        """
+        Persist a partial update to user-wide config (e.g. notices_session, notices_type)
+        via PUT /bot/config. Updates the local cache with the server's response on success.
+        Returns the updated config dict, or None on failure (existing cache is left untouched).
+        """
+        try:
+            resp = self._request("PUT", "/bot/config", json=fields)
+            data = resp.json()
+            self._config_cache = data
+            self._config_cache_ts = time.time()
+            return data
+        except Exception as e:
+            _log_api_err(e, "Failed to update user config")
+            return None
+
     # ------------------------------------------------------------------
     # Run count
     # ------------------------------------------------------------------

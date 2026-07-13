@@ -541,6 +541,13 @@ class BurnBotApp(App):
         self.query_one("#tint-overlay").display    = False
         self.query_one("#log").display             = False
         self.query_one("#settings-overlay").display = True
+        try:
+            from burnBot import apiClient
+            user_config = apiClient.get_user_config()
+            if user_config:
+                status_store.seed_notify_from_config(user_config)
+        except Exception:
+            pass  # offline / not yet available — show last-known cycle values
         self._refresh_settings_rows()
         self.query_one("#settings-table", DataTable).focus()
 
@@ -599,7 +606,27 @@ class BurnBotApp(App):
                 status_store.toggle_setting(global_idx)
         elif row_type == "cycle":
             status_store.cycle_notify(key)
+            threading.Thread(target=self._persist_notify_prefs, daemon=True).start()
         self._refresh_settings_rows()
+
+    def _persist_notify_prefs(self) -> None:
+        """Push the /settings notification cycles to the backend (runs off the UI thread).
+
+        On failure, re-seed the cycle globals from the last-known server config so the
+        overlay reverts to the true value, and refresh the table (via call_from_thread,
+        since Textual widgets aren't safe to touch off the UI thread).
+        """
+        ok = status_store.persist_notify_prefs()
+        if not ok:
+            status_store.add_log(client_log_line(None, "api", "Failed to save notification settings — will retry from server state."))
+            try:
+                from burnBot import apiClient
+                user_config = apiClient.get_user_config()
+                if user_config:
+                    status_store.seed_notify_from_config(user_config)
+            except Exception:
+                pass
+            self.call_from_thread(self._refresh_settings_rows)
 
     # ------------------------------------------------------------------
     # Tint picker overlay

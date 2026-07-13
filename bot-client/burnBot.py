@@ -479,6 +479,7 @@ try:
         _idl = str(bot_idle_delay_minutes).zfill(2)
         _st  = CONFIG.get('bot_settings', 'system_type',           fallback='').strip()
         _notif_cfg = _init_state.get("user_config") or {}
+        status_store.seed_notify_from_config(_notif_cfg)
         _vnc_pin = (_notif_cfg.get('vnc_pin') or '').strip()
         _cur_vnc_url, _ = status_store.get_vnc_info()
         status_store.set_vnc_info(url=_cur_vnc_url, pin=_vnc_pin)

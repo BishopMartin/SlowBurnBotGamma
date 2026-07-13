@@ -86,7 +86,19 @@ class BotUserConfigRead(BaseModel):
     notices_session: bool
     notify_email: str | None = None
     notify_phone: str | None = None
+    notices_login: bool = True
+    login_notices_type: str = "email"
+    login_notify_email: str | None = None
+    login_notify_phone: str | None = None
     vnc_pin: str | None = None
+
+
+class BotUserConfigUpdate(BaseModel):
+    """Partial update for the notification prefs the TUI /settings screen edits."""
+    notices_session: bool | None = None
+    notices_type: str | None = None
+    notices_login: bool | None = None
+    login_notices_type: str | None = None
 
 
 class ClientAccountState(AccountRead):

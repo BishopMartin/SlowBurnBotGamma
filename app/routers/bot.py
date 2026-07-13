@@ -35,6 +35,7 @@ from app.schemas.account_settings import AccountSettingsRead
 from app.schemas.bot import (
     ActivityLogCreate,
     BotUserConfigRead,
+    BotUserConfigUpdate,
     BotNotifyRequest,
     ClientAccountState,
     ClientStateRead,
@@ -101,6 +102,33 @@ async def get_bot_config(
     else:
         result = await session.execute(select(UserConfig).where(UserConfig.user_id == user.id))
         config = result.scalar_one()
+    return config
+
+
+@router.put("/config", response_model=BotUserConfigRead)
+async def update_bot_config(
+    body: BotUserConfigUpdate,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """Persist notification prefs edited from the exe's /settings screen.
+
+    Mirrors the website's PUT /config (app/routers/config.py::update_config) — same
+    underlying UserConfig row, just a narrower field set.
+    """
+    result = await session.execute(
+        select(UserConfig).where(UserConfig.user_id == user.id)
+    )
+    config = result.scalar_one_or_none()
+    if config is None:
+        config = UserConfig(user_id=user.id, notify_email=user.email, login_notify_email=user.email)
+        session.add(config)
+
+    for field, value in body.model_dump(exclude_unset=True).items():
+        setattr(config, field, value)
+
+    await session.commit()
+    await session.refresh(config)
     return config
 
 
