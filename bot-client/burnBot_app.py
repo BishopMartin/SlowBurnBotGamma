@@ -241,6 +241,9 @@ class BurnBotApp(App):
         color: $bb-heading;
         content-align: left middle;
     }
+    #vnc-bracket-r {
+        padding: 0 1 0 0;
+    }
     #vnc-open-browser {
         padding: 0;
     }
