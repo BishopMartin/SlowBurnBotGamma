@@ -249,11 +249,12 @@ def persist_notify_prefs() -> bool:
     """Push the current cycle values back to the backend via PUT /bot/config.
 
     Returns True on success, False on failure (caller should re-seed from the
-    cache to revert the displayed value). Imports the shared apiClient lazily
-    to avoid a circular import with burnBot.py, matching the existing
-    lazy-import style used for CONFIG above.
+    cache to revert the displayed value).
     """
-    from burnBot import apiClient
+    from burnBot_apiClient import get_shared_client
+    apiClient = get_shared_client()
+    if apiClient is None:
+        return False
 
     with _lock:
         session_val, login_val = _session_notify, _login_notify

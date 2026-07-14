@@ -10,6 +10,24 @@ import httpx
 from burnBot_client_log import client_log_line
 
 
+# The process-wide ApiClient instance, registered by burnBot.py at startup.
+# Other modules must use get_shared_client() — NEVER `from burnBot import apiClient`:
+# burnBot.py runs as __main__ with no main guard, so importing it by name
+# re-executes the entire script (second login, second TUI, os._exit) and
+# kills the process with no traceback.
+_shared_client = None
+
+
+def set_shared_client(client) -> None:
+    global _shared_client
+    _shared_client = client
+
+
+def get_shared_client():
+    """Return the ApiClient registered by burnBot.py, or None before startup completes."""
+    return _shared_client
+
+
 def _log_api_err(e, msg: str) -> None:
     """Log an API error, using a distinct offline prefix for network/DNS failures."""
     if isinstance(e, (httpx.ConnectError, httpx.TimeoutException, httpx.NetworkError, httpx.ConnectTimeout)):

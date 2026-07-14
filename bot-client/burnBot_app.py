@@ -558,7 +558,10 @@ class BurnBotApp(App):
         or reopening /settings) will pick up the corrected values.
         """
         try:
-            from burnBot import apiClient
+            from burnBot_apiClient import get_shared_client
+            apiClient = get_shared_client()
+            if apiClient is None:
+                return
             user_config = apiClient.get_user_config()
             if user_config:
                 status_store.seed_notify_from_config(user_config)
@@ -635,10 +638,12 @@ class BurnBotApp(App):
         if not ok:
             status_store.add_log(client_log_line(None, "api", "Failed to save notification settings — will retry from server state."))
             try:
-                from burnBot import apiClient
-                user_config = apiClient.get_user_config()
-                if user_config:
-                    status_store.seed_notify_from_config(user_config)
+                from burnBot_apiClient import get_shared_client
+                apiClient = get_shared_client()
+                if apiClient is not None:
+                    user_config = apiClient.get_user_config()
+                    if user_config:
+                        status_store.seed_notify_from_config(user_config)
             except Exception:
                 pass
 

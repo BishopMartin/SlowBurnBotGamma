@@ -10,6 +10,7 @@ from burnBot_apiClient import (
     AuthenticationError,
     SubscriptionRequiredError,
     get_stored_api_credentials,
+    set_shared_client,
     store_api_credentials,
 )
 from burnBot_runCounter import RunCounter
@@ -187,6 +188,7 @@ if not api_url:
     sys.exit(1)
 
 apiClient = ApiClient(api_url)
+set_shared_client(apiClient)
 
 
 def _api_credentials_from_ini():
