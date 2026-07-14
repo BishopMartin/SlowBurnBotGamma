@@ -230,7 +230,7 @@ class BurnBotApp(App):
         display: none;
     }
     #vnc-info {
-        width: auto;
+        width: 1fr;
         color: $bb-dim;
         content-align: left middle;
         padding: 0 1;
