@@ -548,13 +548,20 @@ class BurnBotApp(App):
         threading.Thread(target=self._refresh_notify_seed, daemon=True).start()
 
     def _refresh_notify_seed(self) -> None:
-        """Fetch the latest user_config and re-seed the notification cycles (background thread)."""
+        """Fetch the latest user_config and re-seed the notification cycles (background thread).
+
+        Only updates the underlying globals — deliberately does NOT touch the settings
+        table here. table.clear()/move_cursor() driven by an arbitrary background-thread
+        callback can land in the middle of the user's own arrow-key cursor navigation
+        (DataTable's built-in key bindings, which never go through our code) and corrupt
+        the table's internal cursor state. The next natural refresh (activating a row,
+        or reopening /settings) will pick up the corrected values.
+        """
         try:
             from burnBot import apiClient
             user_config = apiClient.get_user_config()
             if user_config:
                 status_store.seed_notify_from_config(user_config)
-                self.call_from_thread(self._refresh_settings_rows)
         except Exception:
             pass  # offline / not yet available — keep showing last-known cycle values
 
@@ -620,8 +627,9 @@ class BurnBotApp(App):
         """Push the /settings notification cycles to the backend (runs off the UI thread).
 
         On failure, re-seed the cycle globals from the last-known server config so the
-        overlay reverts to the true value, and refresh the table (via call_from_thread,
-        since Textual widgets aren't safe to touch off the UI thread).
+        overlay shows the true value next time it refreshes. Deliberately does not poke
+        the table from here — see _refresh_notify_seed for why an async table mutation
+        from a background thread is unsafe (can corrupt in-progress arrow-key navigation).
         """
         ok = status_store.persist_notify_prefs()
         if not ok:
@@ -631,7 +639,6 @@ class BurnBotApp(App):
                 user_config = apiClient.get_user_config()
                 if user_config:
                     status_store.seed_notify_from_config(user_config)
-                self.call_from_thread(self._refresh_settings_rows)
             except Exception:
                 pass
 
