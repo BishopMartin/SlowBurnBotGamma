@@ -541,15 +541,22 @@ class BurnBotApp(App):
         self.query_one("#tint-overlay").display    = False
         self.query_one("#log").display             = False
         self.query_one("#settings-overlay").display = True
+        # Render immediately with last-known values — fetching fresh config happens
+        # off the UI thread (below) so opening /settings never blocks on the network.
+        self._refresh_settings_rows()
+        self.query_one("#settings-table", DataTable).focus()
+        threading.Thread(target=self._refresh_notify_seed, daemon=True).start()
+
+    def _refresh_notify_seed(self) -> None:
+        """Fetch the latest user_config and re-seed the notification cycles (background thread)."""
         try:
             from burnBot import apiClient
             user_config = apiClient.get_user_config()
             if user_config:
                 status_store.seed_notify_from_config(user_config)
+                self.call_from_thread(self._refresh_settings_rows)
         except Exception:
-            pass  # offline / not yet available — show last-known cycle values
-        self._refresh_settings_rows()
-        self.query_one("#settings-table", DataTable).focus()
+            pass  # offline / not yet available — keep showing last-known cycle values
 
     def _close_settings(self) -> None:
         self.query_one("#settings-overlay").display = False
@@ -624,9 +631,9 @@ class BurnBotApp(App):
                 user_config = apiClient.get_user_config()
                 if user_config:
                     status_store.seed_notify_from_config(user_config)
+                self.call_from_thread(self._refresh_settings_rows)
             except Exception:
                 pass
-            self.call_from_thread(self._refresh_settings_rows)
 
     # ------------------------------------------------------------------
     # Tint picker overlay
