@@ -11,6 +11,7 @@ _app = None             # BurnBotApp instance; set via set_app() once TUI starts
 _notify_enabled: bool = True
 _bot_paused: bool = False
 _stop_requested: bool = False
+_auth_failed: bool = False  # set when the session died and re-login is impossible
 _pending_command = None     # str | None
 _log_buffer: deque = deque(maxlen=300)
 
@@ -155,6 +156,17 @@ def set_bot_paused(val: bool) -> None:
     global _bot_paused
     with _lock:
         _bot_paused = val
+
+
+def set_auth_failed() -> None:
+    global _auth_failed
+    with _lock:
+        _auth_failed = True
+
+
+def is_auth_failed() -> bool:
+    with _lock:
+        return _auth_failed
 
 
 def is_stop_requested() -> bool:

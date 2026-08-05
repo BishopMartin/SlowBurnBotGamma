@@ -87,6 +87,7 @@ export default function DashboardPage() {
   const [fbMap, setFbMap] = useState<Record<string, FollowbackSummaryEntry>>({});
   const [entitlement, setEntitlement] = useState<Entitlement | null>(null);
   const [clientStatus, setClientStatus] = useState<ClientStatus[]>([]);
+  const [clientStatusError, setClientStatusError] = useState(false);
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null);
   const [recentLog, setRecentLog] = useState<RecentSessionLogEntry[]>([]);
   const [expandedErrors, setExpandedErrors] = useState<Set<string>>(new Set());
@@ -207,11 +208,16 @@ export default function DashboardPage() {
     load();
     getEntitlement().then(setEntitlement).catch(() => {});
     getRecentSessionLog(15).then((r) => setRecentLog(r.items)).catch(() => {});
-    getClientStatus().then(setClientStatus).catch(() => {});
+    const refreshClientStatus = () =>
+      getClientStatus()
+        .then((cs) => {
+          setClientStatus(cs);
+          setClientStatusError(false);
+        })
+        .catch(() => setClientStatusError(true));
+    refreshClientStatus();
     getSubscriptionInfo().then(setSubInfo).catch(() => {});
-    const interval = setInterval(() => {
-      getClientStatus().then(setClientStatus).catch(() => {});
-    }, 60_000);
+    const interval = setInterval(refreshClientStatus, 60_000);
     return () => clearInterval(interval);
   }, []);
 
@@ -263,7 +269,11 @@ export default function DashboardPage() {
 
       <div className="border border-base03">
         {clientStatus.length === 0 ? (
-          <p className="px-4 py-6 text-base04">no clients reporting yet.</p>
+          clientStatusError ? (
+            <p className="px-4 py-6 text-status-bad">client status unavailable — could not reach the server.</p>
+          ) : (
+            <p className="px-4 py-6 text-base04">no clients reporting yet.</p>
+          )
         ) : (
           <div className="overflow-x-auto">
           <table className="w-full">

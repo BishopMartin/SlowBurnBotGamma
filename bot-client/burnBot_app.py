@@ -502,7 +502,11 @@ class BurnBotApp(App):
         status_text.append("█" * filled, style=p["text"])
         status_text.append("░" * (15 - filled), style=p["dim"])
         status_text.append("| ", style=p["heading"])
-        if paused:
+        if status_store.is_auth_failed():
+            status_text.append("[", style=p["heading"])
+            status_text.append("LOGIN REQUIRED", style=f"bold {p['error']}")
+            status_text.append("]", style=p["heading"])
+        elif paused:
             status_text.append("[", style=p["heading"])
             status_text.append("STOPPED", style=f"bold {p['error']}")
             status_text.append("]", style=p["heading"])

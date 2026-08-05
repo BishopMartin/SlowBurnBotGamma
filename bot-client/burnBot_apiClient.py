@@ -189,6 +189,28 @@ class ApiClient:
             _log_api_err(e, "Login error")
             return False
 
+    def refresh_token(self):
+        """
+        Rotate the access token via /auth/jwt/refresh while it is still valid.
+        The backend revokes the old token as soon as the new one is minted, so
+        the swap must happen under the token lock. Returns True if a new token
+        was stored; failures are non-fatal (the current token stays in place).
+        """
+        if not self._access_token:
+            return False
+        try:
+            resp = self.client.post("/auth/jwt/refresh", headers=self._auth_headers())
+            if resp.status_code == 200:
+                new_token = resp.json().get("access_token")
+                if new_token:
+                    with self._token_lock:
+                        self._access_token = new_token
+                        self._save_token()
+                    return True
+        except Exception as e:
+            _log_api_err(e, "Token refresh error")
+        return False
+
     def _relogin(self):
         """Re-authenticate using stored credentials. Returns True on success."""
         with self._token_lock:

@@ -463,6 +463,7 @@ try:
                     status_store.update(_name, status=_init_st, next_run="—", last_action="—", run_info="—")
         except AuthenticationError:
             status_store.add_log(client_log_line(None, "api", "Session expired. Add email/password under [api_credentials] in burnBot_config.ini for auto re-login, or restart and sign in when prompted."))
+            status_store.set_auth_failed()
             stop_flag.set()
             return
         except Exception as e:
@@ -568,10 +569,29 @@ try:
         threading.Thread(target=_heartbeat_loop, daemon=True).start()
 
         # ------------------------------------------------------------------
+        # Proactive token rotation. The persisted token may already be near
+        # the end of its server-side lifetime (14 days), so mint a fresh one
+        # now that we know the current one works, then re-mint daily.
+        # ------------------------------------------------------------------
+        _TOKEN_REFRESH_INTERVAL = 24 * 3600
+        _TOKEN_REFRESH_RETRY = 3600
+        if apiClient.refresh_token():
+            status_store.add_log(client_log_line(None, "api", "Access token refreshed."))
+        _last_token_refresh = time.monotonic()
+
+        # ------------------------------------------------------------------
         # Main loop
         # ------------------------------------------------------------------
         while True:
             current_time = datetime.now().astimezone()
+
+            # Daily token refresh (retry hourly on failure)
+            if time.monotonic() - _last_token_refresh >= _TOKEN_REFRESH_INTERVAL:
+                if apiClient.refresh_token():
+                    status_store.add_log(client_log_line(None, "api", "Access token refreshed."))
+                    _last_token_refresh = time.monotonic()
+                else:
+                    _last_token_refresh = time.monotonic() - _TOKEN_REFRESH_INTERVAL + _TOKEN_REFRESH_RETRY
 
             # Consolidated state fetch (accounts + settings + user config + entitlement)
             _state = None
@@ -585,9 +605,13 @@ try:
                             _state = apiClient.get_client_state(group_number=group_param, known_version=_known_version)
                         except AuthenticationError:
                             console.print(client_log_line(None, "system", "Session expired after re-login. Check [api_credentials] or dashboard."))
+                            status_store.set_auth_failed()
+                            stop_flag.set()
                             break
                     else:
                         console.print(client_log_line(None, "system", "Session expired. Set [api_credentials] in burnBot_config.ini or restart and log in."))
+                        status_store.set_auth_failed()
+                        stop_flag.set()
                         break
             except Exception as e:
                 if is_bot_debug_enabled():
