@@ -61,6 +61,23 @@ async def send_email(
         raise NotificationError(f"Resend request failed: {e}") from e
 
 
+def _to_e164(phone: str) -> str:
+    """Normalize a stored phone number to E.164 before handing it to TextBelt.
+
+    `notify_phone`/`login_notify_phone` are saved as bare US digits by the
+    frontend (see dashboard/config's stripPhone), so TextBelt sees e.g.
+    "5551234567". TextBelt now rejects anything that isn't E.164.
+    """
+    digits = "".join(c for c in phone if c.isdigit())
+    if phone.startswith("+"):
+        return phone
+    if len(digits) == 10:
+        return f"+1{digits}"
+    if len(digits) == 11 and digits.startswith("1"):
+        return f"+{digits}"
+    raise NotificationError(f"Phone number is not in a recognizable format: {phone!r}")
+
+
 async def send_sms(to: str, body: str, session: AsyncSession) -> None:
     config = await _load_system_config(session)
     if config is None or not config.textbelt_key_enc:
@@ -68,6 +85,8 @@ async def send_sms(to: str, body: str, session: AsyncSession) -> None:
     api_key = decrypt(config.textbelt_key_enc)
     if not api_key:
         raise NotificationError("TextBelt key not configured")
+
+    to = _to_e164(to)
 
     # TextBelt caps messages at ~160 chars; trim to avoid silent truncation.
     if len(body) > 160:
