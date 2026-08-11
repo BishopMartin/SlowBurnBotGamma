@@ -669,6 +669,7 @@ try:
                     new_delay_sig = (float(delay_base), float(delay_random))
                     if old_delay is not None and old_delay != new_delay_sig:
                         account_next_run[account_name] = None
+                        run_counter.set_next_run_time(account_name, None)
 
                     old_max_sig = account_schedules.get(account_name, {}).get('max_sig')
                     new_max_sig = (int(schedule_max), int(schedule_max_random))
@@ -693,6 +694,13 @@ try:
                 if account_name not in account_last_run:
                     lr = run_counter.get_last_run_time(account_name)
                     account_last_run[account_name] = lr
+                    # Restore the persisted next-run time so a client reload doesn't
+                    # reset the countdown — critical for accounts that haven't run
+                    # yet today, whose next_run would otherwise re-anchor to process
+                    # start time on every restart.
+                    _persisted_next = run_counter.get_next_run_time(account_name)
+                    if _persisted_next is not None and account_name not in account_next_run:
+                        account_next_run[account_name] = _persisted_next
                     _restore = {}
                     if lr is not None:
                         _restore["last_run"] = lr.strftime("%m/%d %I:%M %p")
@@ -792,6 +800,7 @@ try:
                         base_time = last_run if last_run_today else current_time
                         next_run_time = base_time + timedelta(minutes=delay_minutes)
                         account_next_run[account_name] = next_run_time
+                        run_counter.set_next_run_time(account_name, next_run_time)
 
                     should_run = current_time >= next_run_time
                     time_until_next = next_run_time - current_time
@@ -875,6 +884,7 @@ try:
                         delay_minutes = float(delay_config)
 
                     account_next_run[account_name] = run_finished_time + timedelta(minutes=delay_minutes)
+                    run_counter.set_next_run_time(account_name, account_next_run[account_name])
 
                     schedule = account_schedules.get(account_name, {})
                     schedule_max = schedule.get('max', 0)

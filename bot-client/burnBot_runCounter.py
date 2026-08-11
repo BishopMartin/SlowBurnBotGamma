@@ -89,6 +89,51 @@ class RunCounter:
         except Exception:
             return None
 
+    def get_next_run_time(self, account):
+        """
+        Get the persisted next scheduled run time for an account today.
+
+        Persisting this (not just last_run) is what stops a client reload
+        from resetting the countdown for accounts that haven't run yet today
+        — for those, last_run is None and the scheduler would otherwise
+        re-anchor next_run to process start time on every restart.
+
+        Returns:
+            datetime|None: Next run time (local, tz-aware) if present for today.
+        """
+        today = datetime.now().strftime('%Y-%m-%d')
+        account_data = self.data.get(account, {})
+        if account_data.get('date') != today:
+            return None
+        iso_value = account_data.get('next_run_iso')
+        if not iso_value:
+            return None
+        try:
+            dt = datetime.fromisoformat(str(iso_value))
+            if dt.tzinfo is None:
+                dt = dt.astimezone()
+            return dt
+        except Exception:
+            return None
+
+    def set_next_run_time(self, account, run_time):
+        """
+        Persist (or clear, with run_time=None) the next scheduled run time
+        for an account today. Preserves the entry's other fields.
+        """
+        today = datetime.now().strftime('%Y-%m-%d')
+        existing = self.data.get(account, {})
+        if existing.get('date') != today:
+            existing = {}
+        self.data[account] = {
+            'date': today,
+            'count': int(existing.get('count', 0) or 0),
+            'last_run_iso': existing.get('last_run_iso'),
+            'last_action': existing.get('last_action'),
+            'next_run_iso': run_time.isoformat(timespec='seconds') if run_time else None,
+        }
+        self._save_data()
+
     def get_last_action(self, account):
         """Return the persisted last_action string for account today, or None."""
         today = datetime.now().strftime('%Y-%m-%d')
@@ -115,15 +160,18 @@ class RunCounter:
         # Ensure account exists and is on today's date (preserve count if already tracked today)
         existing_count = 0
         existing_action = None
+        existing_next_run = None
         if account in self.data and self.data.get(account, {}).get('date') == today:
             existing_count = int(self.data.get(account, {}).get('count', 0) or 0)
             existing_action = self.data.get(account, {}).get('last_action')
+            existing_next_run = self.data.get(account, {}).get('next_run_iso')
 
         self.data[account] = {
             'date': today,
             'count': existing_count,
             'last_run_iso': run_time.isoformat(timespec='seconds'),
             'last_action': last_action if last_action is not None else existing_action,
+            'next_run_iso': existing_next_run,
         }
         self._save_data()
     
@@ -171,6 +219,7 @@ class RunCounter:
                 'count': 1,
                 'last_run_iso': None,
                 'last_action': None,
+                'next_run_iso': None,
             }
         else:
             # Increment existing count
