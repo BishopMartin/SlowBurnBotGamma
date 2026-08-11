@@ -13,6 +13,7 @@ Full-stack bot management platform:
 Key conventions:
 - `APP_VERSION` is bumped by `scripts/gpush.sh` — use it in place of `git push` (it bumps, commits, then pushes with the bump skipped on that push); never bump manually. `githooks/pre-push` is a no-op stub that just points to `gpush.sh`.
 - `BOT_VERSION` in `bot-client/burnBot_version.py` must be incremented with every bot-client change
+- The `SlowBurnBotGamma` backend service builds via **Railpack** on Railway, not the root `Dockerfile` — that file's `alembic upgrade head && uvicorn ...` CMD is not what actually runs in production, and is easy to mistake for the deploy path. Migrations run automatically via Railway's **pre-deploy command** (`alembic upgrade head`, set on the service, applies before the new version takes traffic — fails closed, previous version keeps running if it fails). Alembic migrations still need a revision file added to `alembic/versions/`; the pre-deploy command just means you no longer have to run `alembic upgrade head` manually after pushing one.
 - Admin account is system-level only — never link to customer-facing pages
 - Use `----` for empty/unset fields in UI, `****` for set secrets
 
