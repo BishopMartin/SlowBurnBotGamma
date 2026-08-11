@@ -366,11 +366,11 @@ def find_existing_chrome_process(chrome_user_data_dir, account, expected_port):
 
                     if is_bot_debug_enabled() and (user_data_match or profile_match or f'--remote-debugging-port={expected_port}' in cmdline_str):
                         # Only show processes that might be relevant
-                        print(f"- [{account}]: Checking Chrome process PID {proc.info['pid']}:")
-                        print(f"- [{account}]:   Expected user-data-dir: {chrome_user_data_dir.lower()}")
-                        print(f"- [{account}]:   Expected profile: {account.lower()}")
-                        print(f"- [{account}]:   Command line: {' '.join(cmdline)}")
-                        print(f"- [{account}]:   user_data_match={user_data_match}, profile_match={profile_match}")
+                        debug_line(f"- [{account}]: Checking Chrome process PID {proc.info['pid']}:")
+                        debug_line(f"- [{account}]:   Expected user-data-dir: {chrome_user_data_dir.lower()}")
+                        debug_line(f"- [{account}]:   Expected profile: {account.lower()}")
+                        debug_line(f"- [{account}]:   Command line: {' '.join(cmdline)}")
+                        debug_line(f"- [{account}]:   user_data_match={user_data_match}, profile_match={profile_match}")
 
                         # Show which arguments are found
                         found_user_data = None
@@ -383,10 +383,10 @@ def find_existing_chrome_process(chrome_user_data_dir, account, expected_port):
                                 found_profile = arg
                             elif arg.lower().startswith('--remote-debugging-port='):
                                 found_port = arg
-                        print(f"- [{account}]:   Found user-data-dir: {found_user_data}")
-                        print(f"- [{account}]:   Found profile: {found_profile}")
-                        print(f"- [{account}]:   Found port: {found_port}")
-                        print(f"- [{account}]:   ---")
+                        debug_line(f"- [{account}]:   Found user-data-dir: {found_user_data}")
+                        debug_line(f"- [{account}]:   Found profile: {found_profile}")
+                        debug_line(f"- [{account}]:   Found port: {found_port}")
+                        debug_line(f"- [{account}]:   ---")
 
                     if user_data_match and profile_match:
                         # This is definitely our Chrome process

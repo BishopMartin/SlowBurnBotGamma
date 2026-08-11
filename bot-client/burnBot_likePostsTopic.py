@@ -887,7 +887,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                                 if is_bot_debug_enabled():
                                     display_name = article_account[:15] if len(article_account) > 15 else article_account
                                     state_label = like_status if like_status else "no like control"
-                                    _p(client_log_line(account, _scope, f"already handled @{display_name} topic={topic} state={state_label}"))
+                                    debug_line(client_log_line(account, _scope, f"already handled @{display_name} topic={topic} state={state_label}"))
 
                         except (NoSuchElementException, TimeoutException):
                             pass

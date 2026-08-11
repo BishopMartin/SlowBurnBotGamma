@@ -342,10 +342,10 @@ def do_like_posts_home(driver, account, target_count, apiClient=None, account_id
                                     )) > 0
 
                                 if is_bot_debug_enabled():
-                                    _p(client_log_line(account, _scope, f"debug @{article_account} is_ad={is_ad}"))
+                                    debug_line(client_log_line(account, _scope, f"debug @{article_account} is_ad={is_ad}"))
                                     if not is_ad:
                                         article_html = article.get_attribute("outerHTML")
-                                        _p(client_log_line(account, _scope, f"debug article HTML snippet: {article_html[:800]}"))
+                                        debug_line(client_log_line(account, _scope, f"debug article HTML snippet: {article_html[:800]}"))
 
                                 if is_ad:
                                     display_name = article_account[:15] if len(article_account) > 15 else article_account

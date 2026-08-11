@@ -30,7 +30,7 @@ def send_admin_notification(account, message, subject_prefix="Alert", sms_summar
 
         if is_bot_debug_enabled():
             redacted_phone = (phone[:3] + "...") if phone else ""
-            _print(client_log_line(account, "notify", f"Type: {notices_type}, Phone: {redacted_phone}, Email: {email}"))
+            debug_line(client_log_line(account, "notify", f"Type: {notices_type}, Phone: {redacted_phone}, Email: {email}"))
 
         if notices_type == 'none':
             debug_line(client_log_line(account, "notify", "Notifications disabled (type=none)"))
