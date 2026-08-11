@@ -41,6 +41,10 @@ class UserConfig(Base):
 
     vnc_pin: Mapped[str | None] = mapped_column(String(8), nullable=True)
 
+    # Verbose bot-client debug logging, flippable from the dashboard without
+    # a container restart (see bot-client/burnBot_run_log.py + is_bot_debug_enabled()).
+    bot_debug: Mapped[bool] = mapped_column(Boolean, default=False)
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )

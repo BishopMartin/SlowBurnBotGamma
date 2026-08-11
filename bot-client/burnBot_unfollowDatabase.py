@@ -135,11 +135,11 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
             )
         except Exception as e:
             _p(client_log_line(account, _log_scope, f"{_lbl}ERROR: Could not load follow targets: {e}"))
-            return 0, f"Could not load follow targets: {e}"
+            return 0, f"Could not load follow targets: {e}", ""
 
         if not targets:
             _p(client_log_line(account, _log_scope, f"{_lbl}no eligible accounts found (all too recent, done, or private)"))
-            return 0, ""
+            return 0, "", ""
 
         _p(client_log_line(account, _log_scope, f"{_lbl}found {len(targets)} eligible account(s)"))
 
@@ -171,7 +171,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
             _p(client_log_line(account, _log_scope, f"{_lbl}ERROR: Could not open following dialog"))
             driver.close()
             driver.switch_to.window(main_window)
-            return 0, f"Could not open following dialog: {e}"
+            return 0, f"Could not open following dialog: {e}", ""
 
         # Open followers in new tab
         _p(client_log_line(account, _log_scope, f"{_lbl}opening followers tab…"))
@@ -193,7 +193,7 @@ def do_unfollow_database(driver, account, target_count, apiClient, account_id, u
             driver.switch_to.window(following_window)
             driver.close()
             driver.switch_to.window(main_window)
-            return 0, f"Could not open followers dialog: {e}"
+            return 0, f"Could not open followers dialog: {e}", ""
 
         # Process each target. Both tabs are open at this point, so cleanup
         # for them runs in `finally` below — a per-target exception used to

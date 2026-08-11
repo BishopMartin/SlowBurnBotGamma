@@ -628,6 +628,8 @@ class BurnBotApp(App):
             global_idx = next((i for i, (_, k) in enumerate(status_store._SETTINGS) if k == key), None)
             if global_idx is not None:
                 status_store.toggle_setting(global_idx)
+            if key == "bot_debug":
+                threading.Thread(target=self._persist_bot_debug, daemon=True).start()
         elif row_type == "cycle":
             status_store.cycle_notify(key)
             threading.Thread(target=self._persist_notify_prefs, daemon=True).start()
@@ -653,6 +655,17 @@ class BurnBotApp(App):
                         status_store.seed_notify_from_config(user_config)
             except Exception:
                 pass
+
+    def _persist_bot_debug(self) -> None:
+        """Push the /settings debug-mode toggle to the backend (runs off the UI thread).
+
+        Without this the toggle only ever mutated the in-memory INI value and
+        was never written anywhere, so it silently reset to the config-file
+        default on every restart.
+        """
+        ok = status_store.persist_bot_debug()
+        if not ok:
+            status_store.add_log(client_log_line(None, "api", "Failed to save debug-mode setting — will retry from server state."))
 
     # ------------------------------------------------------------------
     # Tint picker overlay

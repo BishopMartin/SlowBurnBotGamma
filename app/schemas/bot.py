@@ -91,6 +91,7 @@ class BotUserConfigRead(BaseModel):
     login_notify_email: str | None = None
     login_notify_phone: str | None = None
     vnc_pin: str | None = None
+    bot_debug: bool = False
 
 
 class BotUserConfigUpdate(BaseModel):
@@ -99,6 +100,7 @@ class BotUserConfigUpdate(BaseModel):
     notices_type: str | None = None
     notices_login: bool | None = None
     login_notices_type: str | None = None
+    bot_debug: bool | None = None
 
 
 class ClientAccountState(AccountRead):

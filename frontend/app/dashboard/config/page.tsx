@@ -37,6 +37,7 @@ export default function ConfigPage() {
   const [likeSponsored, setLikeSponsored] = useState(false);
   const [skipLoginCheck, setSkipLoginCheck] = useState(false);
   const [loginTries, setLoginTries] = useState(3);
+  const [botDebug, setBotDebug] = useState(false);
 
   // Notification settings
   const [noticesType, setNoticesType] = useState("email");
@@ -60,6 +61,7 @@ export default function ConfigPage() {
         setLikeSponsored(c.like_sponsored);
         setSkipLoginCheck(c.skip_login_check);
         setLoginTries(c.login_tries);
+        setBotDebug(c.bot_debug);
         setNoticesType(c.notices_type);
         setNoticesSession(c.notices_session);
         setNoticesLogin(c.notices_login);
@@ -85,6 +87,7 @@ export default function ConfigPage() {
         like_sponsored: likeSponsored,
         skip_login_check: skipLoginCheck,
         login_tries: loginTries,
+        bot_debug: botDebug,
         notices_type: noticesType,
         notices_session: noticesSession,
         notices_login: noticesLogin,
@@ -122,6 +125,7 @@ export default function ConfigPage() {
           <BracketCheckbox label="Like Suggested" checked={likeSuggested} onChange={setLikeSuggested} />
           <BracketCheckbox label="Like Sponsored" checked={likeSponsored} onChange={setLikeSponsored} />
           <BracketCheckbox label="Skip Login Check" checked={skipLoginCheck} onChange={setSkipLoginCheck} />
+          <BracketCheckbox label="Bot Debug Logging" checked={botDebug} onChange={setBotDebug} />
 
           <span className="inline-flex items-center gap-0">
             <span className="text-base04">{"login tries: "}</span>

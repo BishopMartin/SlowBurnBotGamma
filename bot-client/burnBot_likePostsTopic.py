@@ -9,9 +9,78 @@ from burnBot_imports import *
 from burnBot_utils import process_exception
 from burnBot_accountSession_setup import is_bot_debug_enabled
 from burnBot_client_log import client_log_line
+from burnBot_run_log import capture_failure_artifact, report_failure
 import random
 import time
 import burnBot_status as status_store
+
+# Fail-fast guards for the topic search loop (see do_like_posts_topic) — a
+# dead topic used to burn its full ~60s wait budget before moving on, and a
+# search UI that has genuinely changed would burn that for every remaining
+# topic in the list.
+_TOPIC_BUDGET_S = 90
+_MAX_CONSEC_SEARCH_FAILURES = 2
+
+# Labelled locator lists (name, By, xpath) — the name lets the log say which
+# strategy actually matched (or was tried and failed), matching the pattern
+# already used in burnBot_followGroup.py's follower/following dialog lookup.
+_SEARCH_ENTRY_LOCATORS = [
+    ("nav-explore-search",   By.XPATH, "//a[contains(@href,'/explore/search')]"),
+    ("nav-explore-aria",     By.XPATH, "//a[@href='/explore/' and (.//*[normalize-space()='Search'] or @aria-label='Search')]"),
+    ("span-search-ancestor", By.XPATH, "//span[normalize-space()='Search']/ancestor::*[self::a or self::button or @role='link' or @tabindex][1]"),
+    ("aria-search",          By.XPATH, "//*[self::a or self::div or self::button][@aria-label='Search']"),
+    ("role-link-search",     By.XPATH, "//*[@role='link' and @aria-label='Search']"),
+    ("text-search-fallback", By.XPATH, "//*[self::a or self::div or self::button][.//*[normalize-space()='Search'] or normalize-space()='Search']"),
+]
+
+_SEARCH_INPUT_LOCATORS = [
+    ("aria-search-input",    By.XPATH, "//input[@aria-label='Search input']"),
+    ("placeholder-search",   By.XPATH, "//input[@placeholder='Search']"),
+    ("aria-contains-search", By.XPATH, "//input[contains(@aria-label,'Search')]"),
+    ("text-input",           By.XPATH, "//input[@type='text']"),
+    ("textarea-search",      By.XPATH, "//textarea[contains(@aria-label,'Search') or @placeholder='Search']"),
+    ("role-searchbox",       By.XPATH, "//*[@role='searchbox']"),
+    ("role-textbox",         By.XPATH, "//*[@role='textbox']"),
+    ("contenteditable",      By.XPATH, "//*[@contenteditable='true']"),
+    ("aria-search-textbox",  By.XPATH, "//*[contains(@aria-label,'Search') and (@role='textbox' or @contenteditable='true')]"),
+]
+
+
+def _find_visible(driver, locators):
+    """Return (element, name) for the first visible match across a labelled
+    locator list, or (None, None). No wait — caller decides whether/how to poll."""
+    for name, by, xpath in locators:
+        try:
+            visible = [e for e in driver.find_elements(by, xpath) if e.is_displayed()]
+            if visible:
+                return visible[0], name
+        except Exception:
+            continue
+    return None, None
+
+
+def _wait_first_match(driver, timeout, locators):
+    """Wait up to `timeout` for ANY locator in a labelled list to yield visible
+    elements, returning (name, elements) as soon as one does. Raises
+    TimeoutException if none match within the budget.
+
+    Replaces the old pattern of giving each locator its own fresh
+    WebDriverWait in series: `until()` was fed a lambda returning a *list*,
+    and an empty list is falsy — so a locator with no match burned its FULL
+    timeout before falling through to the next one (two 15s locators = 30s
+    silently spent with no log line). This checks every locator on each
+    poll tick and returns the moment any one matches.
+    """
+    def _predicate(d):
+        for name, by, xpath in locators:
+            try:
+                elems = [e for e in d.find_elements(by, xpath) if e.is_displayed()]
+            except Exception:
+                continue
+            if elems:
+                return name, elems
+        return False
+    return WebDriverWait(driver, timeout).until(_predicate)
 
 _p = _builtins.print  # set per-call by do_like_posts_topic; safe because sessions run sequentially
 
@@ -265,33 +334,62 @@ def _close_open_post(driver, account, results_url):
     return False
 
 
-def _open_topic_search_results(driver, account, topic):
+def _open_topic_search_results(driver, account, topic, account_id=None):
     """
     Open Instagram search UI, search for a topic, and land on the
     keyword results page. Direct URL loads have proven unreliable for this flow.
+
+    Broken into named stages so a failure log says *where* the time went
+    instead of a bare `TimeoutException: Message:` (lambda-based
+    WebDriverWait timeouts carry no message of their own). Stage failures
+    always log and capture a diagnostic artifact — never gated on debug —
+    since a non-debug run still needs to explain a ~60s topic.
     """
     search_query = topic.strip()
     if not search_query:
         return False
 
+    _stage = {"name": "init", "t0": time.monotonic()}
+
+    def _enter(name):
+        _stage["name"] = name
+        _stage["t0"] = time.monotonic()
+
+    def _elapsed():
+        return time.monotonic() - _stage["t0"]
+
+    def _ok(detail=""):
+        if is_bot_debug_enabled():
+            _p(client_log_line(account, "like-topics", f"stage={_stage['name']} outcome=ok{(' ' + detail) if detail else ''}"))
+
+    def _fail(detail=""):
+        _p(client_log_line(
+            account, "like-topics",
+            f"stage={_stage['name']} outcome=timeout elapsed={_elapsed():.1f}s topic=[{topic}]{(' ' + detail) if detail else ''}"
+        ))
+        try:
+            _art = capture_failure_artifact(driver, account, stage=f"topic-search/{_stage['name']}", note=topic)
+            report_failure(
+                account_id, f"topic-search/{_stage['name']}", "timeout",
+                {"topic": topic, "elapsed_ms": int(_elapsed() * 1000), "artifact": _art, "detail": detail},
+            )
+        except Exception:
+            pass
+
     try:
+        _enter("home-load")
         driver.get("https://www.instagram.com/")
-        WebDriverWait(driver, 15).until(
-            lambda d: d.execute_script("return document.readyState") == "complete"
-        )
+        try:
+            WebDriverWait(driver, 10).until(
+                lambda d: d.execute_script("return document.readyState") == "complete"
+            )
+        except Exception:
+            pass  # pageLoadStrategy is already 'normal' — driver.get() already blocked on this
         time.sleep(random.uniform(2, 4))
 
+        _enter("search-open")
         search_clicked = False
-        search_locators = [
-            (By.XPATH, "//a[contains(@href,'/explore/search')]"),
-            (By.XPATH, "//a[@href='/explore/' and (.//*[normalize-space()='Search'] or @aria-label='Search')]"),
-            (By.XPATH, "//span[normalize-space()='Search']/ancestor::*[self::a or self::button or @role='link' or @tabindex][1]"),
-            (By.XPATH, "//*[self::a or self::div or self::button][@aria-label='Search']"),
-            (By.XPATH, "//*[@role='link' and @aria-label='Search']"),
-            (By.XPATH, "//*[self::a or self::div or self::button][.//*[normalize-space()='Search'] or normalize-space()='Search']"),
-        ]
-
-        for by, locator in search_locators:
+        for name, by, locator in _SEARCH_ENTRY_LOCATORS:
             try:
                 candidates = driver.find_elements(by, locator)
                 for candidate in candidates:
@@ -300,6 +398,7 @@ def _open_topic_search_results(driver, account, topic):
                         search_clicked = True
                         break
                 if search_clicked:
+                    _ok(f"via [{name}]")
                     break
             except Exception:
                 continue
@@ -318,13 +417,16 @@ def _open_topic_search_results(driver, account, topic):
                     }
                     return false;
                 """)
+                if search_clicked:
+                    _ok("via [js-span-search]")
             except Exception:
                 search_clicked = False
 
         if not search_clicked:
+            _enter("search-fallback")
             try:
                 driver.get("https://www.instagram.com/explore/search/")
-                WebDriverWait(driver, 15).until(
+                WebDriverWait(driver, 10).until(
                     lambda d: d.execute_script("return document.readyState") == "complete"
                 )
                 time.sleep(random.uniform(2, 4))
@@ -332,43 +434,19 @@ def _open_topic_search_results(driver, account, topic):
                 if is_bot_debug_enabled():
                     _p(client_log_line(account, "like-topics", f"using direct search page fallback for [{topic}]"))
             except Exception:
-                _p(client_log_line(account, "like-topics", f"error could not open search for [{topic}]"))
+                _fail("could not open search UI or its direct-URL fallback")
                 return False
 
-        search_input = None
-
-        try:
-            search_input = WebDriverWait(driver, 10).until(
-                EC.visibility_of_element_located((
-                    By.XPATH,
-                    "//input[@aria-label='Search input' and @placeholder='Search' and @type='text']"
-                ))
-            )
-        except Exception:
-            search_input = None
-
-        input_locators = [
-            (By.XPATH, "//input[@aria-label='Search input']"),
-            (By.XPATH, "//input[@placeholder='Search']"),
-            (By.XPATH, "//input[contains(@aria-label,'Search')]"),
-            (By.XPATH, "//input[@type='text']"),
-            (By.XPATH, "//textarea[contains(@aria-label,'Search') or @placeholder='Search']"),
-            (By.XPATH, "//*[@role='searchbox']"),
-            (By.XPATH, "//*[@role='textbox']"),
-            (By.XPATH, "//*[@contenteditable='true']"),
-            (By.XPATH, "//*[contains(@aria-label,'Search') and (@role='textbox' or @contenteditable='true')]"),
-        ]
-
+        _enter("search-input")
+        search_input, _input_name = _find_visible(driver, _SEARCH_INPUT_LOCATORS)
         if not search_input:
-            for by, locator in input_locators:
-                try:
-                    candidates = driver.find_elements(by, locator)
-                    visible_candidates = [elem for elem in candidates if elem.is_displayed()]
-                    if visible_candidates:
-                        search_input = visible_candidates[0]
-                        break
-                except Exception:
-                    continue
+            try:
+                search_input = WebDriverWait(driver, 8).until(
+                    EC.visibility_of_element_located(_SEARCH_INPUT_LOCATORS[0][1:])
+                )
+                _input_name = _SEARCH_INPUT_LOCATORS[0][0]
+            except Exception:
+                search_input = None
 
         if not search_input:
             try:
@@ -396,12 +474,14 @@ def _open_topic_search_results(driver, account, topic):
                     }
                     return null;
                 """)
+                _input_name = "js-fallback"
             except Exception:
                 search_input = None
 
         if not search_input:
-            _p(client_log_line(account, "like-topics", f"error search box not found for [{topic}]"))
+            _fail("search box not found")
             return False
+        _ok(f"via [{_input_name}]")
 
         try:
             search_input.click()
@@ -427,62 +507,80 @@ def _open_topic_search_results(driver, account, topic):
         search_input.send_keys(search_query)
         time.sleep(random.uniform(3, 5))
 
-        keyword_clicked = False
+        _enter("keyword-result")
         normalized_query = " ".join(search_query.lower().split())
-
         keyword_result_locators = [
-            (
-                By.XPATH,
-                f"//a[contains(@href, '/explore/search/keyword/')][.//span[normalize-space()=\"{search_query}\"]]"
-            ),
-            (
-                By.XPATH,
-                "//a[contains(@href, '/explore/search/keyword/')]"
-            ),
+            ("exact-span", By.XPATH,
+             f"//a[contains(@href, '/explore/search/keyword/')][.//span[normalize-space()=\"{search_query}\"]]"),
+            ("any-keyword-link", By.XPATH, "//a[contains(@href, '/explore/search/keyword/')]"),
         ]
 
-        for by, locator in keyword_result_locators:
-            try:
-                keyword_candidates = WebDriverWait(driver, 15).until(
-                    lambda d: [elem for elem in d.find_elements(by, locator) if elem.is_displayed()]
-                )
-                if keyword_candidates:
-                    if len(keyword_candidates) > 1:
-                        for candidate in keyword_candidates:
-                            try:
-                                candidate_text = " ".join((candidate.text or "").lower().split())
-                                if candidate_text and normalized_query in candidate_text:
-                                    driver.execute_script("arguments[0].click();", candidate)
-                                    keyword_clicked = True
-                                    break
-                            except Exception:
-                                continue
-                    if not keyword_clicked:
-                        driver.execute_script("arguments[0].click();", keyword_candidates[0])
-                        keyword_clicked = True
-                    if keyword_clicked:
-                        break
-            except Exception:
-                continue
+        keyword_clicked = False
+        try:
+            matched_name, keyword_candidates = _wait_first_match(driver, 8, keyword_result_locators)
+        except Exception:
+            matched_name, keyword_candidates = None, []
+            _fail(f"tried={[n for n, _, _ in keyword_result_locators]}")
+
+        if keyword_candidates:
+            if len(keyword_candidates) > 1:
+                for candidate in keyword_candidates:
+                    try:
+                        candidate_text = " ".join((candidate.text or "").lower().split())
+                        if candidate_text and normalized_query in candidate_text:
+                            driver.execute_script("arguments[0].click();", candidate)
+                            keyword_clicked = True
+                            break
+                    except Exception:
+                        continue
+            if not keyword_clicked:
+                driver.execute_script("arguments[0].click();", keyword_candidates[0])
+                keyword_clicked = True
+            if keyword_clicked:
+                _ok(f"via [{matched_name}]")
 
         if not keyword_clicked:
-            search_input.send_keys(Keys.ENTER)
-            time.sleep(2)
-            search_input.send_keys(Keys.ENTER)
+            # Fall back to submitting the search directly. `search_input` can be
+            # ~8s stale by this point (a real StaleElementReferenceException
+            # source) — re-locate before sending keys rather than reusing it.
+            _enter("search-input-enter")
+            fresh_input, _ = _find_visible(driver, _SEARCH_INPUT_LOCATORS)
+            try:
+                (fresh_input or search_input).send_keys(Keys.ENTER)
+            except StaleElementReferenceException:
+                _fail("search input went stale before ENTER fallback")
+                return False
 
-        WebDriverWait(driver, 15).until(
-            lambda d: (
-                "/explore/search/keyword/" in (d.current_url or "")
-                or len(d.find_elements(By.XPATH, "//a[contains(@href, '/p/')]")) > 0
+        _enter("results-page")
+        try:
+            WebDriverWait(driver, 12).until(
+                lambda d: (
+                    "/explore/search/keyword/" in (d.current_url or "")
+                    or len(d.find_elements(By.XPATH, "//a[contains(@href, '/p/')]")) > 0
+                )
             )
-        )
+        except Exception:
+            _fail("no keyword URL and no /p/ links after search submit")
+            return False
+        _ok()
         time.sleep(random.uniform(4, 6))
         return True
 
     except Exception as e:
         error_type = type(e).__name__
-        error_msg = str(e).split("\n")[0]
-        _p(client_log_line(account, "like-topics", f"error search failed for [{topic}] - {error_type}: {error_msg[:80]}"))
+        error_msg = str(e).split("\n")[0].strip() or "(no message — lambda predicate timeout)"
+        _p(client_log_line(
+            account, "like-topics",
+            f"error search failed for [{topic}] at stage={_stage['name']} after {_elapsed():.1f}s - {error_type}: {error_msg[:80]}"
+        ))
+        try:
+            _art = capture_failure_artifact(driver, account, stage=f"topic-search/{_stage['name']}", note=topic)
+            report_failure(
+                account_id, f"topic-search/{_stage['name']}", "exception",
+                {"topic": topic, "exc": error_type, "msg": error_msg[:200], "artifact": _art},
+            )
+        except Exception:
+            pass
         return False
 
 
@@ -541,6 +639,8 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
     target_formatted = f"{target_count:02d}"
     processed_urls = set()  # Track post URLs to avoid double-liking across topics
 
+    consec_search_failures = 0
+
     try:
         for topic in topic_list:
             if status_store.is_bot_paused():
@@ -549,10 +649,19 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                 break
 
             _p(client_log_line(account, _scope, f"searching topic [{topic}]"))
+            topic_t0 = time.monotonic()
 
-            if not _open_topic_search_results(driver, account, topic):
+            if not _open_topic_search_results(driver, account, topic, account_id=account_id):
                 moduleErrorsLog += f"like[topics]: [error] could not open search results for [{topic}]\n"
+                consec_search_failures += 1
+                if consec_search_failures >= _MAX_CONSEC_SEARCH_FAILURES:
+                    moduleErrorsLog += (
+                        f"like[topics]: [error] search unavailable — aborted after "
+                        f"{_MAX_CONSEC_SEARCH_FAILURES} consecutive topic failures\n"
+                    )
+                    break
                 continue
+            consec_search_failures = 0
 
             max_posts_per_topic = max(target_count * 3, 30)  # scan more than target to find unliked posts
             posts_scanned = 0
@@ -560,6 +669,9 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
             max_scrolls = 10
 
             while likes_performed < target_count and scrolls < max_scrolls:
+                if time.monotonic() - topic_t0 > _TOPIC_BUDGET_S:
+                    moduleErrorsLog += f"like[topics]: [warning] topic [{topic}] exceeded {_TOPIC_BUDGET_S}s budget\n"
+                    break
                 if status_store.is_bot_paused():
                     return likes_performed, moduleErrorsLog
                 if scrolls == 0:
@@ -596,6 +708,8 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                     break
 
                 for post_url in new_link_urls:
+                    if time.monotonic() - topic_t0 > _TOPIC_BUDGET_S:
+                        break
                     if likes_performed >= target_count or posts_scanned >= max_posts_per_topic:
                         break
 
@@ -723,11 +837,20 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                         if post_opened:
                             _close_open_post(driver, account, results_url)
 
-                # Re-open the search results page and scroll to load more posts if still needed
+                # Re-open the search results page and scroll to load more posts if still needed.
+                # _close_open_post above already asserts we're back on the keyword grid, so
+                # re-running the full search flow here is the rare recovery path, not the norm —
+                # doing it unconditionally on every scroll (up to max_scrolls times per topic)
+                # used to multiply a single dead topic's failure cost by up to 11x.
                 if likes_performed < target_count:
-                    if not _open_topic_search_results(driver, account, topic):
-                        moduleErrorsLog += f"like[topics]: [error] could not refresh search results for [{topic}]\n"
-                        break
+                    _on_results = (
+                        "/explore/search/keyword/" in (driver.current_url or "")
+                        and len(driver.find_elements(By.XPATH, "//a[contains(@href, '/p/')]")) > 0
+                    )
+                    if not _on_results:
+                        if not _open_topic_search_results(driver, account, topic, account_id=account_id):
+                            moduleErrorsLog += f"like[topics]: [error] could not refresh search results for [{topic}]\n"
+                            break
                     driver.execute_script("window.scrollBy(0, 900);")
                     time.sleep(random.uniform(2, 3))
                     scrolls += 1

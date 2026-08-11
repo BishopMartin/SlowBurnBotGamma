@@ -181,6 +181,12 @@ if config_file is None:
         print("[ERROR] Failed to load config after activation.")
         sys.exit(1)
 
+# Durable file log + failure-artifact capture — set up as soon as we know
+# where the config (and therefore /data) lives. Lines printed before this
+# point are TUI-only by design; init_file_sink() is idempotent.
+import burnBot_run_log
+burnBot_run_log.init_file_sink()
+
 # Load API connection
 api_url = CONFIG.get('api', 'api_url', fallback='')
 if not api_url:
@@ -478,11 +484,11 @@ try:
         _ua  = CONFIG.get('browser-config',  'system_user_agent',         fallback='').strip()
         _cs  = CONFIG.get('browser-session', 'close_browser_after_session', fallback='FALSE').strip().upper()
         _ce  = CONFIG.get('browser-session', 'close_browser_after_exit',    fallback='FALSE').strip().upper()
-        _dbg = CONFIG.get('bot_settings', 'bot_debug',             fallback='FALSE').strip().upper()
         _idl = str(bot_idle_delay_minutes).zfill(2)
         _st  = CONFIG.get('bot_settings', 'system_type',           fallback='').strip()
         _notif_cfg = _init_state.get("user_config") or {}
         status_store.seed_notify_from_config(_notif_cfg)
+        status_store.set_remote_debug(_notif_cfg.get('bot_debug'))
         _vnc_pin = (_notif_cfg.get('vnc_pin') or '').strip()
         _cur_vnc_url, _ = status_store.get_vnc_info()
         status_store.set_vnc_info(url=_cur_vnc_url, pin=_vnc_pin)
@@ -501,7 +507,7 @@ try:
 
         _started_at = datetime.now().strftime("%I:%M %p")
         _client_label = _client_name or "unnamed"
-        _dbg_on = _dbg.upper() == "TRUE"
+        _dbg_on = is_bot_debug_enabled()  # resolved value (remote UserConfig.bot_debug, else this INI key)
         _cs_on = _cs.upper() == "TRUE"
         _ce_on = _ce.upper() == "TRUE"
         _lks_on = _lks.upper() == "TRUE"
@@ -627,6 +633,7 @@ try:
                 if _state.get("changed"):
                     _known_version = _state.get("version", _known_version)
                     all_accounts = _state.get("accounts") or all_accounts
+                    status_store.set_remote_debug((_state.get("user_config") or {}).get('bot_debug'))
                 status_store.set_current_bot_version(_state.get("current_bot_version"))
 
             # Pre-populate table so all accounts appear immediately on first loop

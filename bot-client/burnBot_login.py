@@ -3,16 +3,8 @@
 from burnBot_imports import *
 from burnBot_utils import close_windows, has_internet_connection, process_exception, delay
 from burnBot_client_log import client_log_line
+from burnBot_accountSession_setup import is_bot_debug_enabled
 import burnBot_status as status_store
-
-
-def is_bot_debug_enabled():
-    """Check if bot_debug is enabled in config"""
-    try:
-        from burnBot_config import CONFIG
-        return CONFIG.getboolean('bot_settings', 'bot_debug', fallback=False)
-    except Exception:
-        return False
 
 
 def _find_browser_window_for_driver(driver):
@@ -601,48 +593,28 @@ def _capture_page_diag(driver):
     body text, and a page source snippet for element-not-found diagnostics.
     Returns (log_str, print_str).
     log_str is compact (URL + element counts); print_str also includes body/source.
+
+    Relocated to burnBot_run_log.capture_page_diag (shared with the general
+    failure-artifact capture path) — kept as a private alias here so the
+    existing call sites below are untouched.
     """
-    try:
-        page_url = driver.current_url
-        buttons = driver.find_elements(By.TAG_NAME, "button")
-        btn_texts = [b.text.strip() for b in buttons if b.text.strip()]
-        role_buttons = driver.find_elements(By.XPATH, "//*[@role='button']")
-        role_btn_texts = [b.text.strip() for b in role_buttons if b.text.strip()][:8]
-        iframes = driver.find_elements(By.TAG_NAME, "iframe")
-        iframe_count = len(iframes)
-        body_text = driver.execute_script(
-            "return (document.body && document.body.innerText) "
-            "? document.body.innerText.slice(0, 1500) : '(no body)'"
-        ).replace("\n", " ")
-        src_snippet = (driver.page_source or "")[:2000].replace("\n", " ")
-        log_str = (
-            f"url={page_url} | buttons={btn_texts} | role_buttons={role_btn_texts}"
-            f" | iframes={iframe_count}"
-        )
-        print_str = f"[login-diag] {log_str} | body={body_text} | src={src_snippet}"
-        return log_str, print_str
-    except Exception:
-        return "", ""
+    from burnBot_run_log import capture_page_diag
+    return capture_page_diag(driver)
 
 
 def _save_login_screenshot(driver, account, label="failure"):
     """
-    Save a PNG screenshot to the Chrome-profile volume directory for post-mortem
-    diagnostics. Named <account>_<label>_<timestamp>.png. Safe no-op on any error.
+    Save a PNG screenshot (+ page source + diag summary) under the durable
+    log directory for post-mortem diagnostics. Safe no-op on any error.
+
+    Thin wrapper over burnBot_run_log.capture_failure_artifact — screenshots
+    used to live under <ChromeUserData>/login_screenshots/; they now land
+    under <log_dir>/artifacts/ alongside every other failure capture.
     """
-    try:
-        import datetime as _dt
-        from burnBot_accountSession_setup import build_user_data_dir
-        base = build_user_data_dir(account or "unknown")
-        shots_dir = os.path.join(os.path.dirname(base), "login_screenshots")
-        os.makedirs(shots_dir, exist_ok=True)
-        ts = _dt.datetime.now().strftime("%Y%m%d_%H%M%S")
-        safe_acct = (account or "unknown").replace("/", "_")
-        path = os.path.join(shots_dir, f"{safe_acct}_{label}_{ts}.png")
-        driver.save_screenshot(path)
-        print(client_log_line(account, "login", f"diag screenshot: {path}"))
-    except Exception:
-        pass  # diagnostics must never throw
+    from burnBot_run_log import capture_failure_artifact
+    art_dir = capture_failure_artifact(driver, account, stage=f"login/{label}")
+    if art_dir:
+        print(client_log_line(account, "login", f"diag artifact: {art_dir}"))
 
 
 def dismiss_instagram_cookie_consent(driver, context_label="login"):

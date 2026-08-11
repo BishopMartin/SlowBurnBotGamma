@@ -15,14 +15,36 @@ from burnBot_client_log import client_log_line
 
 def is_bot_debug_enabled():
     """
-    Return True if verbose bot debug logging is enabled in config.
-    Controlled by [setup] bot_debug in burnBot_config.ini.
+    Return True if verbose bot debug logging is enabled.
+
+    Canonical implementation — all other modules import this one. Resolution
+    order: the remote UserConfig.bot_debug value (set from the dashboard,
+    polled into burnBot_status by burnBot.py) wins once one has ever been
+    received; otherwise fall back to [bot_settings] bot_debug in
+    burnBot_config.ini; otherwise False.
+
+    This used to have a second, independent copy in burnBot_login.py with
+    the opposite fallback (True here, False there) — unified to False so a
+    fresh install doesn't spam debug output before the dashboard toggle (or
+    this INI key) has ever been touched.
+
+    burnBot_status is imported lazily to sidestep the burnBot_imports <->
+    burnBot_login import cycle (burnBot_imports imports burnBot_login at
+    module load; a top-level import here is unaffected by that cycle, but
+    lazy keeps this function import-order-independent regardless of who
+    calls it first).
     """
     try:
-        return CONFIG.getboolean('bot_settings', 'bot_debug', fallback=True)
+        import burnBot_status as _st
+        remote = _st.get_remote_debug()
+        if remote is not None:
+            return remote
     except Exception:
-        # If config lookup fails for any reason, default to True
-        return True
+        pass
+    try:
+        return CONFIG.getboolean('bot_settings', 'bot_debug', fallback=False)
+    except Exception:
+        return False
 
 try:
     import requests

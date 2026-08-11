@@ -31,6 +31,11 @@ _SETTINGS = [
 
 _browser_only: bool = False
 
+# Remote bot_debug from UserConfig.bot_debug, polled by burnBot.py. None until
+# a value has ever been received from the backend (old backend / not-yet-polled
+# state) — is_bot_debug_enabled() falls back to the local INI when this is None.
+_remote_debug: bool | None = None
+
 _last_heartbeat_at: float = 0.0  # monotonic timestamp of last heartbeat send
 
 _vnc_url: str = ""
@@ -91,8 +96,15 @@ def get_effective_max_runs(account_name: str):
 
 
 def add_log(line: str) -> None:
+    raw = str(line)
+    try:
+        import burnBot_run_log as _run_log
+        _run_log.write_line(raw)
+    except Exception:
+        pass  # the durable file log must never break the TUI
+
     from rich.markup import escape
-    line = escape(str(line))
+    line = escape(raw)
     with _lock:
         _log_buffer.append(line)
     if _app is not None:
@@ -140,6 +152,19 @@ def deliver_operator_input(value: str) -> None:
 def get_pending_input_prompt() -> str | None:
     with _lock:
         return _pending_input_prompt
+
+
+def set_remote_debug(val) -> None:
+    """Record the backend's UserConfig.bot_debug value (or None if the
+    field was absent — an old backend, or state not yet fetched)."""
+    global _remote_debug
+    with _lock:
+        _remote_debug = bool(val) if val is not None else None
+
+
+def get_remote_debug() -> bool | None:
+    with _lock:
+        return _remote_debug
 
 
 def is_notify_enabled() -> bool:
@@ -283,12 +308,28 @@ def persist_notify_prefs() -> bool:
     return result is not None
 
 
+def persist_bot_debug() -> bool:
+    """Push the current bot_debug value to the backend via PUT /bot/config.
+
+    Fixes what used to be a TUI-only toggle: flipping it in /settings mutated
+    the in-memory CONFIG object and was never written back anywhere, so it
+    silently reset on every restart. This makes the dashboard and the TUI one
+    source of truth, the same way persist_notify_prefs() does for notices.
+    """
+    from burnBot_apiClient import get_shared_client
+    apiClient = get_shared_client()
+    if apiClient is None:
+        return False
+    result = apiClient.update_user_config(bot_debug=get_setting_value("bot_debug"))
+    return result is not None
+
+
 # ---------------------------------------------------------------------------
 # Private helpers
 # ---------------------------------------------------------------------------
 
 def _toggle_setting_locked(idx: int) -> None:
-    global _bot_paused, _notify_enabled, _browser_only
+    global _bot_paused, _notify_enabled, _browser_only, _remote_debug
     if idx < 0 or idx >= len(_SETTINGS):
         return
     _, key = _SETTINGS[idx]
@@ -297,8 +338,10 @@ def _toggle_setting_locked(idx: int) -> None:
     elif key == "_notify_enabled":
         _notify_enabled = not _notify_enabled
     elif key == "bot_debug":
-        cur = CONFIG.getboolean('bot_settings', 'bot_debug', fallback=False)
-        CONFIG.set('bot_settings', 'bot_debug', str(not cur))
+        cur = _remote_debug if _remote_debug is not None else CONFIG.getboolean('bot_settings', 'bot_debug', fallback=False)
+        new_val = not cur
+        _remote_debug = new_val
+        CONFIG.set('bot_settings', 'bot_debug', str(new_val))  # keep the INI fallback in sync too
     elif key == "_browser_only":
         _browser_only = not _browser_only
     elif key == "keep_browser_open":
@@ -394,6 +437,8 @@ def get_setting_value(key: str) -> bool:
     if key == "_notify_enabled":
         return _notify_enabled
     if key == "bot_debug":
+        if _remote_debug is not None:
+            return _remote_debug
         return CONFIG.getboolean('bot_settings', 'bot_debug', fallback=False)
     if key == "_browser_only":
         return _browser_only

@@ -14,10 +14,35 @@ from burnBot_followSuggested import do_follow_suggested
 from burnBot_followGroup import do_follow_group
 from burnBot_randomActions import do_random_action
 from burnBot_client_log import client_log_line, action_combo_slug, action_target_label
+from burnBot_run_log import set_session_context, clear_session_context, capture_failure_artifact, report_failure
 import burnBot_status as status_store
 
 # Global dictionary to store driver instances
 drivers = {}
+
+
+def _unpack_action_result(result, fn_name, account, slot_num, _print):
+    """Normalize a (count, errs) or (count, errs, warns) return from any
+    action module into (count, errs, warns).
+
+    Action modules are not uniform in arity (some return 2-tuples, some 3 —
+    see the file-by-file table in the design plan), and nothing enforces the
+    contract. A mismatch here used to be a hard ValueError that killed the
+    whole session (commit 5f46166 changed do_unfollow_database's arity
+    without updating all of its return paths). Normalizing at this one
+    boundary means a return-shape mistake in any module is reported as a
+    loud error line instead of crashing the session.
+    """
+    if isinstance(result, (tuple, list)):
+        if len(result) == 2:
+            return result[0], result[1], ""
+        if len(result) == 3:
+            return result[0], result[1], result[2]
+        bad_msg = f"action[{slot_num}]: bad return arity from {fn_name}: len={len(result)}"
+    else:
+        bad_msg = f"action[{slot_num}]: bad return arity from {fn_name}: {type(result).__name__}"
+    _print(client_log_line(account, f"action[{slot_num}]", f"ERROR: {bad_msg}"))
+    return 0, bad_msg + "\n", ""
 
 
 def _summarize_issue_log(log_text, max_len=60):
@@ -193,6 +218,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
 
             # Track session start time
             session_start_time = datetime.now().astimezone()
+            set_session_context(account, f"{account}#{session_start_time.strftime('%H%M%S')}")
 
             # Initialize action counts
             action_counts = [0, 0, 0, 0]
@@ -311,6 +337,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                         if status_store.is_bot_paused():
                             break
                         _count = 0
+                        _ran = False  # set True only once an action module actually ran to completion
 
                         if _enabled and _act_type:
                             _total = _fixed + (random.randint(1, _variable) if _variable > 0 else 0)
@@ -321,64 +348,92 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
 
                             try:
                                 if _act_type == "like" and _act_target in ["home", "homepage posts", "post[homepage]", "posts [homepage]"]:
-                                    actions_run += 1
-                                    _count, _errs = do_like_posts_home(driver, account, _total, apiClient, account_id, _print=_print, log_scope=_act_scope, action_label=_act_label)
+                                    _count, _errs, _warns = _unpack_action_result(
+                                        do_like_posts_home(driver, account, _total, apiClient, account_id, _print=_print, log_scope=_act_scope, action_label=_act_label),
+                                        "do_like_posts_home", account, _slot_num, _print)
                                     if _errs:
                                         moduleErrorsLog += _errs
+                                    if _warns:
+                                        moduleWarningsLog += _warns
+                                    _ran = True
 
                                 elif _act_type == "like" and _act_target in ["post[topics]", "posts [topics]"]:
                                     _topics = action_topics
                                     if _topics:
-                                        actions_run += 1
-                                        _count, _errs = do_like_posts_topic(driver, account, _total, apiClient, account_id, _topics, _print=_print, log_scope=_act_scope, action_label=_act_label)
+                                        _count, _errs, _warns = _unpack_action_result(
+                                            do_like_posts_topic(driver, account, _total, apiClient, account_id, _topics, _print=_print, log_scope=_act_scope, action_label=_act_label),
+                                            "do_like_posts_topic", account, _slot_num, _print)
                                         if _errs:
                                             moduleErrorsLog += _errs
+                                        if _warns:
+                                            moduleWarningsLog += _warns
+                                        _ran = True
                                     else:
                                         _print(client_log_line(account, _act_scope, f"{_act_label} ERROR: No topics specified"))
 
                                 elif _act_type == "follow" and _act_target in ["suggested", "home", "homepage", "suggested users"]:
-                                    actions_run += 1
-                                    _count, _errs, _warns = do_follow_suggested(driver, account, _total, apiClient, account_id, _print=_print, log_scope=_act_scope, action_label=_act_label)
+                                    _count, _errs, _warns = _unpack_action_result(
+                                        do_follow_suggested(driver, account, _total, apiClient, account_id, _print=_print, log_scope=_act_scope, action_label=_act_label),
+                                        "do_follow_suggested", account, _slot_num, _print)
                                     if _errs:
                                         moduleErrorsLog += _errs
                                     if _warns:
                                         moduleWarningsLog += _warns
+                                    _ran = True
 
                                 elif _act_type == "follow" and _act_target in ["followers[group]", "following[group]", "account list [followers]", "account list [following]"]:
                                     _target_accounts = account_list_tab
                                     if _target_accounts:
-                                        actions_run += 1
-                                        _count, _errs = do_follow_group(
-                                            driver, account, _total, apiClient, account_id,
-                                            _act_target, _target_accounts, _print=_print,
-                                            log_scope=_act_scope, action_label=_act_label,
-                                        )
+                                        _count, _errs, _warns = _unpack_action_result(
+                                            do_follow_group(
+                                                driver, account, _total, apiClient, account_id,
+                                                _act_target, _target_accounts, _print=_print,
+                                                log_scope=_act_scope, action_label=_act_label,
+                                            ),
+                                            "do_follow_group", account, _slot_num, _print)
                                         if _errs:
                                             moduleErrorsLog += _errs
+                                        if _warns:
+                                            moduleWarningsLog += _warns
+                                        _ran = True
                                     else:
                                         _print(client_log_line(account, _act_scope, f"{_act_label} ERROR: No target accounts specified"))
 
                                 elif _act_type == "unfollow" and _act_target in ["database", "previous follows"]:
-                                    actions_run += 1
-                                    _count, _errs, _warns = do_unfollow_database(
-                                        driver, account, _total, apiClient, account_id, unfollow_days,
-                                        _print=_print,
-                                        log_scope=_act_scope,
-                                        action_label=_act_label,
-                                    )
+                                    _count, _errs, _warns = _unpack_action_result(
+                                        do_unfollow_database(
+                                            driver, account, _total, apiClient, account_id, unfollow_days,
+                                            _print=_print,
+                                            log_scope=_act_scope,
+                                            action_label=_act_label,
+                                        ),
+                                        "do_unfollow_database", account, _slot_num, _print)
                                     if _errs:
                                         moduleErrorsLog += _errs
                                     if _warns:
                                         moduleWarningsLog += _warns
+                                    _ran = True
 
                                 else:
                                     if is_bot_debug_enabled():
                                         _print(client_log_line(account, _act_scope, f"placeholder {_act_type}/{_act_target}"))
-                                    actions_run += 1
+                                    _ran = True
 
                             except Exception as action_error:
-                                error_msg = process_exception(True, f"Action {_slot_num} failed: {action_error}", True, False)
-                                apiClient.log_error(account_id, error_msg)
+                                error_msg = process_exception(True, f"Action {_slot_num} ({_act_label}) failed: {action_error}", True, False)
+                                moduleErrorsLog += error_msg
+                                try:
+                                    apiClient.log_error(account_id, error_msg)
+                                except Exception:
+                                    pass
+                                try:
+                                    _art = capture_failure_artifact(driver, account, stage=f"action{_slot_num}-{_act_label}")
+                                    report_failure(
+                                        account_id, f"action{_slot_num}-{_act_label}", "exception",
+                                        {"exc": type(action_error).__name__, "msg": str(action_error)[:500], "artifact": _art},
+                                    )
+                                except Exception:
+                                    pass
                                 _count = 0
 
                         elif _enabled:
@@ -387,6 +442,12 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                             _act_label = action_target_label(_act_type, _act_target) if _act_type else None
                             _msg = f"{_act_label}-disabled" if _act_label else "disabled"
                             _print(client_log_line(account, f"action[{_slot_num}]", _msg))
+
+                        # Count completions, not attempts — a crashed action module
+                        # (caught above) leaves _ran False and does not inflate the
+                        # "N action(s) executed" summary.
+                        if _ran:
+                            actions_run += 1
 
                         # Index by the slot's original position (_slot_num), not the
                         # loop index — when actions_random_order shuffles the tuples,
@@ -491,6 +552,8 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                             pass
                     drivers.pop(account, None)
                     driver = None
+
+                clear_session_context()
 
         else:
             # IDLE STATE

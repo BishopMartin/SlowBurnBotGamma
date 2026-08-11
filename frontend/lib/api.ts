@@ -442,6 +442,7 @@ export interface UserConfig {
   login_notify_phone: string | null;
   notify_email: string | null;
   notify_phone: string | null;
+  bot_debug: boolean;
   updated_at: string;
 }
 

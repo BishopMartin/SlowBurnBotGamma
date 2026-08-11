@@ -415,11 +415,13 @@ class ApiClient:
             _log_api_err(e, "Failed to log session")
             return None
 
-    def log_activity(self, account_id, action, status, details=""):
-        """Post a fine-grained activity log."""
+    def log_activity(self, account_id, action, status, details="", kind="activity"):
+        """Post a fine-grained activity log. `kind` defaults to "activity";
+        pass "failure" for the diagnostic records burnBot_run_log.report_failure
+        uploads (see also `kind="error"`, sent via log_error below)."""
         payload = {
             "account_id": str(account_id),
-            "kind": "activity",
+            "kind": kind,
             "action": action,
             "status": status,
             "details": details or None,

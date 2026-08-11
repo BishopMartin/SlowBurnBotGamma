@@ -11,7 +11,7 @@ Full-stack bot management platform:
 - **Deployment:** Railway (backend service + frontend service + PostgreSQL)
 
 Key conventions:
-- `APP_VERSION` is bumped automatically by pre-push hook — never bump manually
+- `APP_VERSION` is bumped by `scripts/gpush.sh` — use it in place of `git push` (it bumps, commits, then pushes with the bump skipped on that push); never bump manually. `githooks/pre-push` is a no-op stub that just points to `gpush.sh`.
 - `BOT_VERSION` in `bot-client/burnBot_version.py` must be incremented with every bot-client change
 - Admin account is system-level only — never link to customer-facing pages
 - Use `----` for empty/unset fields in UI, `****` for set secrets

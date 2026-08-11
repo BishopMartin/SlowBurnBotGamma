@@ -16,6 +16,7 @@ from app.deps import require_active_subscription
 from app.plan_tiers import get_max_accounts
 from app.models.account import Account
 from app.models.account_settings import AccountSettings
+from app.models.activity_log import ActivityLog
 from app.models.client_heartbeat import ClientHeartbeat
 from app.models.desktop_build import DesktopBuild
 from app.models.follow_target import FollowTarget
@@ -720,6 +721,70 @@ async def get_account_log(
                 "action_4_count": lg.action_4_count,
                 "error_message": lg.error_message,
                 "warning_message": lg.warning_message,
+            }
+            for lg in logs
+        ],
+    }
+
+
+ACTIVITY_LOG_SORT_COLUMNS = {
+    "created": ActivityLog.created_at,
+    "kind": ActivityLog.kind,
+    "action": ActivityLog.action,
+    "status": ActivityLog.status,
+}
+
+
+@router.get("/{account_id}/activity-log", response_model=dict)
+async def get_account_activity_log(
+    account_id: uuid.UUID,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(100, ge=1, le=500),
+    kind: str | None = Query(None),
+    since: datetime | None = Query(None),
+    sort: str = Query("created"),
+    sort_dir: str = Query("desc"),
+):
+    """Fine-grained activity/error/failure rows (log_activity / log_error / the
+    burnBot_run_log failure uploader). ActivityLog is otherwise write-only —
+    this is the one place it can be read back."""
+    await _get_owned_account(account_id, user, session)
+    offset = (page - 1) * page_size
+
+    filters = [ActivityLog.account_id == account_id]
+    if kind:
+        filters.append(ActivityLog.kind == kind)
+    if since:
+        filters.append(ActivityLog.created_at >= since)
+
+    total = await session.scalar(select(func.count()).where(*filters))
+
+    col = ACTIVITY_LOG_SORT_COLUMNS.get(sort, ActivityLog.created_at)
+    order = col.desc().nullslast() if sort_dir == "desc" else col.asc().nullsfirst()
+
+    result = await session.execute(
+        select(ActivityLog)
+        .where(*filters)
+        .order_by(order, ActivityLog.created_at.desc())
+        .offset(offset)
+        .limit(page_size)
+    )
+    logs = result.scalars().all()
+
+    return {
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "items": [
+            {
+                "id": str(lg.id),
+                "kind": lg.kind,
+                "action": lg.action,
+                "status": lg.status,
+                "details": lg.details,
+                "created_at": lg.created_at.isoformat() if lg.created_at else None,
             }
             for lg in logs
         ],

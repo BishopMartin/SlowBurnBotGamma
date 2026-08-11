@@ -18,6 +18,7 @@ class UserConfigUpdate(BaseModel):
     login_notify_phone: str | None = None
     notify_email: str | None = None
     notify_phone: str | None = None
+    bot_debug: bool | None = None
 
 
 class UserConfigRead(BaseModel):
@@ -38,4 +39,5 @@ class UserConfigRead(BaseModel):
     login_notify_phone: str | None
     notify_email: str | None
     notify_phone: str | None
+    bot_debug: bool
     updated_at: datetime
