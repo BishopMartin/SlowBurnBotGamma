@@ -9,7 +9,7 @@ from burnBot_imports import *
 from burnBot_utils import process_exception
 from burnBot_accountSession_setup import is_bot_debug_enabled
 from burnBot_client_log import client_log_line
-from burnBot_run_log import capture_failure_artifact, report_failure
+from burnBot_run_log import capture_failure_context, report_failure
 import random
 import time
 import burnBot_status as status_store
@@ -368,10 +368,10 @@ def _open_topic_search_results(driver, account, topic, account_id=None):
             f"stage={_stage['name']} outcome=timeout elapsed={_elapsed():.1f}s topic=[{topic}]{(' ' + detail) if detail else ''}"
         ))
         try:
-            _art = capture_failure_artifact(driver, account, stage=f"topic-search/{_stage['name']}", note=topic)
             report_failure(
                 account_id, f"topic-search/{_stage['name']}", "timeout",
-                {"topic": topic, "elapsed_ms": int(_elapsed() * 1000), "artifact": _art, "detail": detail},
+                {"topic": topic, "elapsed_ms": int(_elapsed() * 1000), "detail": detail,
+                 "diag": capture_failure_context(driver)},
             )
         except Exception:
             pass
@@ -574,10 +574,10 @@ def _open_topic_search_results(driver, account, topic, account_id=None):
             f"error search failed for [{topic}] at stage={_stage['name']} after {_elapsed():.1f}s - {error_type}: {error_msg[:80]}"
         ))
         try:
-            _art = capture_failure_artifact(driver, account, stage=f"topic-search/{_stage['name']}", note=topic)
             report_failure(
                 account_id, f"topic-search/{_stage['name']}", "exception",
-                {"topic": topic, "exc": error_type, "msg": error_msg[:200], "artifact": _art},
+                {"topic": topic, "exc": error_type, "msg": error_msg[:200],
+                 "diag": capture_failure_context(driver)},
             )
         except Exception:
             pass

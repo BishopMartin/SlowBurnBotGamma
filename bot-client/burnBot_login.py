@@ -602,21 +602,6 @@ def _capture_page_diag(driver):
     return capture_page_diag(driver)
 
 
-def _save_login_screenshot(driver, account, label="failure"):
-    """
-    Save a PNG screenshot (+ page source + diag summary) under the durable
-    log directory for post-mortem diagnostics. Safe no-op on any error.
-
-    Thin wrapper over burnBot_run_log.capture_failure_artifact — screenshots
-    used to live under <ChromeUserData>/login_screenshots/; they now land
-    under <log_dir>/artifacts/ alongside every other failure capture.
-    """
-    from burnBot_run_log import capture_failure_artifact
-    art_dir = capture_failure_artifact(driver, account, stage=f"login/{label}")
-    if art_dir:
-        print(client_log_line(account, "login", f"diag artifact: {art_dir}"))
-
-
 def dismiss_instagram_cookie_consent(driver, context_label="login"):
     """
     Click 'Allow all cookies' on Instagram's GDPR cookie consent overlay.
@@ -1101,7 +1086,6 @@ def do_login(driver, username, password, apiClient=None):
                     print(client_log_line(None, "login", _print_diag))
                 if _log_diag:
                     moduleErrorsLog += f" | login-diag: {_log_diag}"
-                _save_login_screenshot(driver, username, label="username_not_found")
                 raise Exception("Could not find username input field")
             
             # Clear and enter username
@@ -1146,7 +1130,6 @@ def do_login(driver, username, password, apiClient=None):
                     print(client_log_line(None, "login", _print_diag))
                 if _log_diag:
                     moduleErrorsLog += f" | login-diag: {_log_diag}"
-                _save_login_screenshot(driver, username, label="password_not_found")
                 raise Exception("Could not find password input field")
             
             # Clear and enter password
@@ -1336,7 +1319,6 @@ def do_login(driver, username, password, apiClient=None):
                 _log_diag, _print_diag = _capture_page_diag(driver)
                 if _print_diag:
                     print(client_log_line(username, "login", _print_diag))
-                _save_login_screenshot(driver, username, label="still_on_login_page")
                 err = "Still on login page after login attempt - login likely failed"
                 if _log_diag:
                     err += f" | login-diag: {_log_diag}"
@@ -1354,7 +1336,6 @@ def do_login(driver, username, password, apiClient=None):
         _log_diag, _print_diag = _capture_page_diag(driver)
         if _print_diag:
             print(client_log_line(username, "login", _print_diag))
-        _save_login_screenshot(driver, username, label="unrecognised_result")
         if _log_diag:
             moduleErrorsLog += f"login result unrecognised | login-diag: {_log_diag}"
         return False, None, moduleErrorsLog

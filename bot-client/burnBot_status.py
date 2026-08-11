@@ -98,10 +98,14 @@ def get_effective_max_runs(account_name: str):
 def add_log(line: str) -> None:
     raw = str(line)
     try:
+        # Debug-gated session transcript buffer (uploaded to the backend at
+        # session end when bot_debug is on). Must stay BEFORE the `with _lock`
+        # below: buffer_line resolves the debug flag via get_remote_debug(),
+        # which takes this module's _lock.
         import burnBot_run_log as _run_log
-        _run_log.write_line(raw)
+        _run_log.buffer_line(raw)
     except Exception:
-        pass  # the durable file log must never break the TUI
+        pass  # diagnostics must never break the TUI
 
     from rich.markup import escape
     line = escape(raw)

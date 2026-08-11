@@ -181,12 +181,6 @@ if config_file is None:
         print("[ERROR] Failed to load config after activation.")
         sys.exit(1)
 
-# Durable file log + failure-artifact capture — set up as soon as we know
-# where the config (and therefore /data) lives. Lines printed before this
-# point are TUI-only by design; init_file_sink() is idempotent.
-import burnBot_run_log
-burnBot_run_log.init_file_sink()
-
 # Load API connection
 api_url = CONFIG.get('api', 'api_url', fallback='')
 if not api_url:

@@ -14,7 +14,7 @@ from burnBot_followSuggested import do_follow_suggested
 from burnBot_followGroup import do_follow_group
 from burnBot_randomActions import do_random_action
 from burnBot_client_log import client_log_line, action_combo_slug, action_target_label
-from burnBot_run_log import set_session_context, clear_session_context, capture_failure_artifact, report_failure
+from burnBot_run_log import set_session_context, clear_session_context, capture_failure_context, report_failure, flush_session_log
 import burnBot_status as status_store
 
 # Global dictionary to store driver instances
@@ -427,10 +427,10 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                                 except Exception:
                                     pass
                                 try:
-                                    _art = capture_failure_artifact(driver, account, stage=f"action{_slot_num}-{_act_label}")
                                     report_failure(
                                         account_id, f"action{_slot_num}-{_act_label}", "exception",
-                                        {"exc": type(action_error).__name__, "msg": str(action_error)[:500], "artifact": _art},
+                                        {"exc": type(action_error).__name__, "msg": str(action_error)[:500],
+                                         "diag": capture_failure_context(driver)},
                                     )
                                 except Exception:
                                     pass
@@ -553,6 +553,9 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     drivers.pop(account, None)
                     driver = None
 
+                # Upload the debug-gated session transcript (no-op when bot_debug
+                # was off), then drop this thread's session tag/buffer.
+                flush_session_log(account_id)
                 clear_session_context()
 
         else:
