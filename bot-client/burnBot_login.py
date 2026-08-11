@@ -3,7 +3,7 @@
 from burnBot_imports import *
 from burnBot_utils import close_windows, has_internet_connection, process_exception, delay
 from burnBot_client_log import client_log_line
-from burnBot_accountSession_setup import is_bot_debug_enabled
+from burnBot_run_log import debug_line
 import burnBot_status as status_store
 
 
@@ -45,8 +45,7 @@ def os_focus_browser_and_press_escape(presses=8, pause=0.48, context_label="", d
         import pyautogui
         import pygetwindow as gw  # noqa: F401 — used via _find_browser_window_for_driver
     except ImportError:
-        if is_bot_debug_enabled():
-            print(f"-- DEBUG: [{context_label}] pyautogui/pygetwindow missing; OS-level ESC skipped")
+        debug_line(f"-- DEBUG: [{context_label}] pyautogui/pygetwindow missing; OS-level ESC skipped")
         return False
 
     win = _find_browser_window_for_driver(driver) if driver else None
@@ -61,8 +60,7 @@ def os_focus_browser_and_press_escape(presses=8, pause=0.48, context_label="", d
         except Exception:
             pass
     if not win:
-        if is_bot_debug_enabled():
-            print(f"-- DEBUG: [{context_label}] No window found to activate for OS ESC")
+        debug_line(f"-- DEBUG: [{context_label}] No window found to activate for OS ESC")
         return False
 
     try:
@@ -76,14 +74,10 @@ def os_focus_browser_and_press_escape(presses=8, pause=0.48, context_label="", d
         for _ in range(presses):
             pyautogui.press("esc")
             time.sleep(pause)
-        if is_bot_debug_enabled():
-            print(
-                f"-- DEBUG: [login][escape][os] presses={presses} window={win.title!r} ({context_label})"
-            )
+        debug_line(f"-- DEBUG: [login][escape][os] presses={presses} window={win.title!r} ({context_label})")
         return True
     except Exception as e:
-        if is_bot_debug_enabled():
-            print(f"-- DEBUG: [{context_label}] OS-level ESC error: {e}")
+        debug_line(f"-- DEBUG: [{context_label}] OS-level ESC error: {e}")
         return False
 
 
@@ -155,8 +149,8 @@ def press_escape_to_dismiss_overlays(
             os_presses, pause, context_label=f"{context_label}_os_after", driver=driver
         )
 
-    if presses and is_bot_debug_enabled():
-        print(f"-- DEBUG: {prefix}Escape overlay dismissal: {presses} selenium rounds")
+    if presses:
+        debug_line(f"-- DEBUG: {prefix}Escape overlay dismissal: {presses} selenium rounds")
 
 
 def dismiss_browser_dialogs(driver, max_attempts=3, wait_between=0.3):
@@ -214,8 +208,7 @@ def dismiss_notifications_prompt(driver, context_label="login"):
     except Exception:
         return False
 
-    if is_bot_debug_enabled():
-        print(client_log_line(None, context_label, "notifications prompt detected — looking for 'Not Now'"))
+    debug_line(client_log_line(None, context_label, "notifications prompt detected — looking for 'Not Now'"))
 
     selectors = [
         # Exact text matches on button
@@ -245,15 +238,13 @@ def dismiss_notifications_prompt(driver, context_label="login"):
                 btn.click()
             except Exception:
                 driver.execute_script("arguments[0].click();", btn)
-            if is_bot_debug_enabled():
-                print(client_log_line(None, context_label, "notifications prompt dismissed"))
+            debug_line(client_log_line(None, context_label, "notifications prompt dismissed"))
             time.sleep(1.5)
             return True
         except Exception:
             continue
 
-    if is_bot_debug_enabled():
-        print(client_log_line(None, context_label, "notifications prompt found but 'Not Now' not clickable"))
+    debug_line(client_log_line(None, context_label, "notifications prompt found but 'Not Now' not clickable"))
     return False
 
 
@@ -372,8 +363,7 @@ def navigate_to_instagram_login_if_needed(driver, *, long_initial_settle=True):
         except Exception:
             pass
         time.sleep(2.0 if long_initial_settle else 1.0)
-        if is_bot_debug_enabled():
-            print(client_log_line(None, "login", "already on /accounts/login/ — skipped driver.get()"))
+        debug_line(client_log_line(None, "login", "already on /accounts/login/ — skipped driver.get()"))
         return True
     driver.get(INSTAGRAM_ACCOUNTS_LOGIN)
     WebDriverWait(driver, 22).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
@@ -428,13 +418,11 @@ def submit_instagram_credentials(driver, password_input, log_name="login"):
                 pass
             try:
                 btn.click()
-                if is_bot_debug_enabled():
-                    print(client_log_line(log_name, "login", "debug submit: native click (type=submit)"))
+                debug_line(client_log_line(log_name, "login", "debug submit: native click (type=submit)"))
                 return True
             except Exception:
                 driver.execute_script("arguments[0].click();", btn)
-                if is_bot_debug_enabled():
-                    print(client_log_line(log_name, "login", "debug submit: JS click (type=submit)"))
+                debug_line(client_log_line(log_name, "login", "debug submit: JS click (type=submit)"))
                 return True
         except Exception:
             continue
@@ -455,8 +443,7 @@ def submit_instagram_credentials(driver, password_input, log_name="login"):
             )
             time.sleep(0.4)
             driver.execute_script("arguments[0].click();", btn)
-            if is_bot_debug_enabled():
-                print(client_log_line(log_name, "login", "debug submit: xpath / role=button"))
+            debug_line(client_log_line(log_name, "login", "debug submit: xpath / role=button"))
             return True
         except Exception:
             continue
@@ -796,16 +783,14 @@ def check_phone_verification(driver):
         # Check page source for verification text
         for indicator in verification_indicators:
             if indicator in page_source:
-                if is_bot_debug_enabled():
-                    print(f"-- DEBUG: Verification indicator found: '{indicator}'")
+                debug_line(f"-- DEBUG: Verification indicator found: '{indicator}'")
                 return True, indicator
         
         # Check URL patterns for verification/challenge
         url_patterns = ["challenge", "accounts/confirm", "two_factor", "checkpoint"]
         for pattern in url_patterns:
             if pattern in current_url:
-                if is_bot_debug_enabled():
-                    print(f"-- DEBUG: Verification URL pattern found: '{pattern}'")
+                debug_line(f"-- DEBUG: Verification URL pattern found: '{pattern}'")
                 return True, f"challenge_url_{pattern}"
         
         # Check for code input field (various selectors)
@@ -829,8 +814,7 @@ def check_phone_verification(driver):
                         # Verify the input is visible (not hidden)
                         for code_input in code_inputs:
                             if code_input.is_displayed():
-                                if is_bot_debug_enabled():
-                                    print(f"-- DEBUG: Verification code input found with selector: '{selector}'")
+                                debug_line(f"-- DEBUG: Verification code input found with selector: '{selector}'")
                                 return True, "code_input_field"
                 except:
                     continue
@@ -842,8 +826,7 @@ def check_phone_verification(driver):
             verification_button_text = ["send code", "get code", "request code", "resend code"]
             for btn_text in verification_button_text:
                 if btn_text in page_source:
-                    if is_bot_debug_enabled():
-                        print(f"-- DEBUG: Verification button text found: '{btn_text}'")
+                    debug_line(f"-- DEBUG: Verification button text found: '{btn_text}'")
                     return True, f"button_{btn_text}"
         except:
             pass
@@ -852,8 +835,7 @@ def check_phone_verification(driver):
     
     except Exception as e:
         # If we can't check, assume no verification needed
-        if is_bot_debug_enabled():
-            print(f"-- DEBUG: Error checking phone verification: {str(e)}")
+        debug_line(f"-- DEBUG: Error checking phone verification: {str(e)}")
         return False, None
 
 
@@ -993,8 +975,7 @@ def do_login(driver, username, password, apiClient=None):
                 )
             dismiss_instagram_account_picker(driver, context_label="do_login")
             
-            if is_bot_debug_enabled():
-                print(f"-- DEBUG: Login page ready, current URL: {driver.current_url}")
+            debug_line(f"-- DEBUG: Login page ready, current URL: {driver.current_url}")
             
         except Exception as error:
             noteError = f"Error navigating to login page: {str(error)}"
@@ -1040,8 +1021,7 @@ def do_login(driver, username, password, apiClient=None):
             # Check current URL after ESC to see if page changed
             try:
                 current_url = driver.current_url
-                if is_bot_debug_enabled():
-                    print(f"-- DEBUG: Current URL after ESC: {current_url}")
+                debug_line(f"-- DEBUG: Current URL after ESC: {current_url}")
             except Exception as e:
                 print(client_log_line(None, "login", f"Could not get URL: {e}"))
             
@@ -1103,8 +1083,7 @@ def do_login(driver, username, password, apiClient=None):
             loginUsername.send_keys(username)
             time.sleep(0.3)
             
-            if is_bot_debug_enabled():
-                print(f"-- DEBUG: Username entered successfully")
+            debug_line(f"-- DEBUG: Username entered successfully")
             
             # Find password field — use element_to_be_clickable so an overlay-obscured
             # field doesn't pass the wait. 8s per selector matches the username timeout.
@@ -1147,13 +1126,11 @@ def do_login(driver, username, password, apiClient=None):
             loginPassword.send_keys(password)
             time.sleep(0.3)
             
-            if is_bot_debug_enabled():
-                print(f"-- DEBUG: Password entered successfully")
+            debug_line(f"-- DEBUG: Password entered successfully")
             
             login_submitted = submit_instagram_credentials(driver, loginPassword, log_name=username)
             if not login_submitted:
-                if is_bot_debug_enabled():
-                    print(f"-- DEBUG: [{username}] submit click failed, sending Return on password field")
+                debug_line(f"-- DEBUG: [{username}] submit click failed, sending Return on password field")
                 time.sleep(0.5)
                 try:
                     loginPassword.send_keys(Keys.RETURN)
@@ -1167,12 +1144,10 @@ def do_login(driver, username, password, apiClient=None):
             time.sleep(7)  # Give extra time for Instagram to process login
             
             # Immediately check for verification after submitting credentials
-            if is_bot_debug_enabled():
-                print(f"-- DEBUG: Checking for verification prompt after login submission...")
+            debug_line(f"-- DEBUG: Checking for verification prompt after login submission...")
             is_verification, verify_reason = check_phone_verification(driver)
             if is_verification:
-                if is_bot_debug_enabled():
-                    print(f"-- DEBUG: Verification detected immediately after login: {verify_reason}")
+                debug_line(f"-- DEBUG: Verification detected immediately after login: {verify_reason}")
                 error_msg = f"PHONE VERIFICATION REQUIRED - Reason: {verify_reason}"
                 moduleErrorsLog += error_msg
                 return "VERIFICATION_REQUIRED", None, moduleErrorsLog
@@ -1206,8 +1181,7 @@ def do_login(driver, username, password, apiClient=None):
             try:
                 page_source = driver.page_source.lower()
                 if "save your login info" in page_source or "save login info" in page_source:
-                    if is_bot_debug_enabled():
-                        print(f"-- DEBUG: 'Save login info' prompt detected, looking for 'Not now' button...")
+                    debug_line(f"-- DEBUG: 'Save login info' prompt detected, looking for 'Not now' button...")
                     # Try to click "Not now" to skip saving login info
                     not_now_selectors = [
                         (By.XPATH, "//button[contains(text(), 'Not now') or contains(text(), 'Not Now')]"),
@@ -1221,15 +1195,13 @@ def do_login(driver, username, password, apiClient=None):
                                 EC.element_to_be_clickable((selector_type, selector_value))
                             )
                             not_now_button.click()
-                            if is_bot_debug_enabled():
-                                print(f"-- DEBUG: Clicked 'Not now' on save login info prompt")
+                            debug_line(f"-- DEBUG: Clicked 'Not now' on save login info prompt")
                             time.sleep(2.5)
                             break
                         except Exception:
                             continue
             except Exception as e:
-                if is_bot_debug_enabled():
-                    print(f"-- DEBUG: Error handling 'Save login info' prompt: {str(e)}")
+                debug_line(f"-- DEBUG: Error handling 'Save login info' prompt: {str(e)}")
                 pass  # Continue even if we can't dismiss this prompt
             
             # Handle notifications prompt if it appears
@@ -1517,8 +1489,8 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
                     break
 
             # Log errors if any (to console only, session log will capture final result)
-            if loginErrors and is_bot_debug_enabled():
-                print(client_log_line(account, "login", f"debug check_login errors: {loginErrors}"))
+            if loginErrors:
+                debug_line(client_log_line(account, "login", f"debug check_login errors: {loginErrors}"))
 
             print(client_log_line(
                 account, "login",
@@ -1557,8 +1529,7 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
                 
                 if loginErrors:
                     loginDiag += loginErrors
-                    if is_bot_debug_enabled():
-                        print(client_log_line(account, "login", f"debug do_login errors: {loginErrors}"))
+                    debug_line(client_log_line(account, "login", f"debug do_login errors: {loginErrors}"))
 
                 print(client_log_line(
                     account, "login",
@@ -1572,8 +1543,8 @@ def handle_account_login(driver, account, accountPass, apiClient=None):
                 
                 if loginErrors:
                     loginDiag += loginErrors
-                if loginErrors and is_bot_debug_enabled():
-                    print(client_log_line(account, "login", f"debug switch_login errors: {loginErrors}"))
+                if loginErrors:
+                    debug_line(client_log_line(account, "login", f"debug switch_login errors: {loginErrors}"))
                 
                 print(client_log_line(
                     account, "login",

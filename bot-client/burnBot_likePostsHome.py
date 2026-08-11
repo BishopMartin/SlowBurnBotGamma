@@ -6,6 +6,7 @@ from burnBot_utils import process_exception
 from burnBot_login import check_phone_verification, switch_login
 from burnBot_accountSession_setup import is_bot_debug_enabled
 from burnBot_client_log import client_log_line
+from burnBot_run_log import debug_line
 import random
 import time
 import burnBot_status as status_store
@@ -283,8 +284,7 @@ def do_like_posts_home(driver, account, target_count, apiClient=None, account_id
         try:
             ignore_list = apiClient.get_ignore_handles()
             if ignore_list:
-                if is_bot_debug_enabled():
-                    _p(client_log_line(account, _scope, f"loaded {len(ignore_list)} ignored account(s)"))
+                debug_line(client_log_line(account, _scope, f"loaded {len(ignore_list)} ignored account(s)"))
         except Exception as e:
             _p(client_log_line(account, _scope, f"Warning: Could not load ignore list: {e}"))
     
@@ -354,8 +354,7 @@ def do_like_posts_home(driver, account, target_count, apiClient=None, account_id
                                         processed_articles.append(article)
                                     continue
                             except Exception as e:
-                                if is_bot_debug_enabled():
-                                    _p(client_log_line(account, _scope, f"debug sponsored check error: {e}"))
+                                debug_line(client_log_line(account, _scope, f"debug sponsored check error: {e}"))
 
                         # Check if account is on ignore list
                         if article_account in ignore_list:

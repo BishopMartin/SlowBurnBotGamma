@@ -3,7 +3,7 @@ import random
 import builtins
 from datetime import datetime
 from burnBot_config import CONFIG
-from burnBot_accountSession_setup import create_driver, is_bot_debug_enabled
+from burnBot_accountSession_setup import create_driver
 from burnBot_login import handle_account_login
 from burnBot_utils import check_schedule, process_exception, retry_on_connection_error
 from burnBot_notifications import send_login_failure_alert, send_session_complete_notification
@@ -14,7 +14,7 @@ from burnBot_followSuggested import do_follow_suggested
 from burnBot_followGroup import do_follow_group
 from burnBot_randomActions import do_random_action
 from burnBot_client_log import client_log_line, action_combo_slug, action_target_label
-from burnBot_run_log import set_session_context, clear_session_context, capture_failure_context, report_failure, flush_session_log
+from burnBot_run_log import set_session_context, clear_session_context, capture_failure_context, report_failure, flush_session_log, debug_line
 import burnBot_status as status_store
 
 # Global dictionary to store driver instances
@@ -158,14 +158,20 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
             # ========================================
             status_store.update(account, status="initializing", last_action="browser")
 
+            # Start the session transcript context up front — debug_line()
+            # silently drops lines on threads without one, and browser
+            # setup below emits debug detail before session_start_time is
+            # stamped. Re-entering here after a skipped/failed session
+            # simply resets the buffer.
+            set_session_context(account, f"{account}#{datetime.now().strftime('%H%M%S')}")
+
             # Open browser for this session
             account_idx_for_port = permanent_idx if permanent_idx is not None else idx
             if driver is not None:
                 try:
                     driver.current_url  # quick connectivity check
                     drivers[account] = driver
-                    if is_bot_debug_enabled():
-                        _print(client_log_line(account, "browser", "reusing existing browser session"))
+                    debug_line(client_log_line(account, "browser", "reusing existing browser session"))
                 except Exception:
                     driver = None
 
@@ -174,8 +180,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                 try:
                     driver = create_driver(account, accountAgent, account_idx=account_idx_for_port)
                     drivers[account] = driver
-                    if is_bot_debug_enabled():
-                        _print(client_log_line(account, "browser", "browser opened for session"))
+                    debug_line(client_log_line(account, "browser", "browser opened for session"))
                 except Exception as driver_error:
                     _print(client_log_line(account, "error", f"Failed to create Chrome driver: {driver_error}"))
                     apiClient.log_error(account_id, f"Chrome driver creation failed: {driver_error}")
@@ -203,11 +208,9 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     action_topics = settings.get("topics") or ""
                     account_list_tab = settings.get("account_group") or ""
 
-                    if is_bot_debug_enabled():
-                        _print(client_log_line(account, "browser", "Re-read settings from API"))
+                    debug_line(client_log_line(account, "browser", "Re-read settings from API"))
             except Exception as e:
-                if is_bot_debug_enabled():
-                    _print(client_log_line(account, "browser", f"Error re-reading settings, using cached: {e}"))
+                debug_line(client_log_line(account, "browser", f"Error re-reading settings, using cached: {e}"))
 
             # Use the scheduler's daily effective max (base max_runs_per_day + random
             # offset) so the session cap and the "Starting Session [n/max]" display match
@@ -218,7 +221,6 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
 
             # Track session start time
             session_start_time = datetime.now().astimezone()
-            set_session_context(account, f"{account}#{session_start_time.strftime('%H%M%S')}")
 
             # Initialize action counts
             action_counts = [0, 0, 0, 0]
@@ -310,8 +312,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                     # RUN BOT SCRIPT
                     try:
                         main_window = driver.current_window_handle
-                        if is_bot_debug_enabled():
-                            _print(client_log_line(account, "summary", "ready to execute actions"))
+                        debug_line(client_log_line(account, "summary", "ready to execute actions"))
                     except Exception:
                         main_window = None
 
@@ -415,8 +416,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                                     _ran = True
 
                                 else:
-                                    if is_bot_debug_enabled():
-                                        _print(client_log_line(account, _act_scope, f"placeholder {_act_type}/{_act_target}"))
+                                    debug_line(client_log_line(account, _act_scope, f"placeholder {_act_type}/{_act_target}"))
                                     _ran = True
 
                             except Exception as action_error:
@@ -546,8 +546,7 @@ def _accountSession_inner(account, account_id, idx, threads_active, stop_flag, a
                             chrome_user_data_dir = build_user_data_dir(account)
                             time.sleep(0.5)
                             kill_chrome_processes_for_profile(chrome_user_data_dir, account)
-                            if is_bot_debug_enabled():
-                                _print(client_log_line(account, "browser", "browser closed after session"))
+                            debug_line(client_log_line(account, "browser", "browser closed after session"))
                         except Exception:
                             pass
                     drivers.pop(account, None)

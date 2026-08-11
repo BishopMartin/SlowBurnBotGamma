@@ -125,7 +125,7 @@ export default function ConfigPage() {
           <BracketCheckbox label="Like Suggested" checked={likeSuggested} onChange={setLikeSuggested} />
           <BracketCheckbox label="Like Sponsored" checked={likeSponsored} onChange={setLikeSponsored} />
           <BracketCheckbox label="Skip Login Check" checked={skipLoginCheck} onChange={setSkipLoginCheck} />
-          <BracketCheckbox label="Bot Debug Logging" checked={botDebug} onChange={setBotDebug} />
+          <BracketCheckbox label="Debug Logging" checked={botDebug} onChange={setBotDebug} />
 
           <span className="inline-flex items-center gap-0">
             <span className="text-base04">{"login tries: "}</span>

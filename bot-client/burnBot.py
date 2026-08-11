@@ -5,6 +5,7 @@ from burnBot_config import load_config, CONFIG, resolve_path, clear_api_credenti
 from burnBot_utils import close_windows, has_internet_connection, process_exception, delay, check_schedule, consume_connectivity_recovery_notice, register_shutdown_flag
 from burnBot_accountSession import accountSession
 from burnBot_accountSession_setup import is_bot_debug_enabled
+from burnBot_run_log import debug_line
 from burnBot_apiClient import (
     ApiClient,
     AuthenticationError,
@@ -614,8 +615,7 @@ try:
                         stop_flag.set()
                         break
             except Exception as e:
-                if is_bot_debug_enabled():
-                    console.print(client_log_line(None, "system", f"Warning - state refresh failed, using cached values: {e}"))
+                debug_line(client_log_line(None, "system", f"Warning - state refresh failed, using cached values: {e}"))
 
             # Mid-run entitlement check and account/settings refresh
             if _state is not None:

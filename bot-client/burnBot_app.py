@@ -583,7 +583,7 @@ class BurnBotApp(App):
     # (type, label, key)  type: header | separator | toggle | cycle
     _SETTINGS_ROWS = [
         ("header",    "Client Settings",            None),
-        ("toggle",    "Debug mode",                 "bot_debug"),
+        ("toggle",    "Debug Logging",              "bot_debug"),
         ("toggle",    "Browser only mode",          "_browser_only"),
         ("toggle",    "Keep browser open",          "keep_browser_open"),
         ("separator", "",                           None),
@@ -657,15 +657,27 @@ class BurnBotApp(App):
                 pass
 
     def _persist_bot_debug(self) -> None:
-        """Push the /settings debug-mode toggle to the backend (runs off the UI thread).
+        """Push the /settings Debug Logging toggle to the backend (runs off the UI thread).
 
-        Without this the toggle only ever mutated the in-memory INI value and
-        was never written anywhere, so it silently reset to the config-file
-        default on every restart.
+        On failure, re-seed the in-memory value from the last-known server
+        config (same pattern as _persist_notify_prefs above) — otherwise the
+        client would keep the flipped value while the backend kept the old
+        one, and the state poll would never correct it: set_remote_debug only
+        runs on `changed: true`, and a value the server never received doesn't
+        change the payload hash.
         """
         ok = status_store.persist_bot_debug()
         if not ok:
-            status_store.add_log(client_log_line(None, "api", "Failed to save debug-mode setting — will retry from server state."))
+            status_store.add_log(client_log_line(None, "api", "Failed to save Debug Logging setting — reverting to server state."))
+            try:
+                from burnBot_apiClient import get_shared_client
+                apiClient = get_shared_client()
+                if apiClient is not None:
+                    user_config = apiClient.get_user_config()
+                    if user_config is not None:
+                        status_store.set_remote_debug(user_config.get('bot_debug'))
+            except Exception:
+                pass
 
     # ------------------------------------------------------------------
     # Tint picker overlay

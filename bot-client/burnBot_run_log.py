@@ -90,6 +90,30 @@ def buffer_line(raw_line: str) -> None:
         pass
 
 
+def debug_line(line) -> None:
+    """Route a debug-detail line into the uploaded session transcript ONLY —
+    never the customer-facing TUI. Same gating as buffer_line (Debug Logging
+    flag on + session context present). Replaces the old pattern of
+    `if is_bot_debug_enabled(): print(...)`, which spammed the customer's
+    TUI with internals whenever the flag was flipped for remote diagnosis.
+    Never raises."""
+    try:
+        lines = getattr(_context, "lines", None)
+        if lines is None:
+            return
+        from burnBot_accountSession_setup import is_bot_debug_enabled
+        if not is_bot_debug_enabled():
+            return
+        text = str(line)
+        # Many legacy payloads already carry their own "-- DEBUG:" prefix.
+        if not text.lstrip().startswith("-- DEBUG"):
+            text = f"-- DEBUG: {text}"
+        ts = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+        lines.append(f"{ts} {text}")
+    except Exception:
+        pass
+
+
 def flush_session_log(account_id) -> None:
     """Upload this thread's buffered session lines as one kind="run_log"
     activity record, then clear the buffer. No-op when the buffer is empty

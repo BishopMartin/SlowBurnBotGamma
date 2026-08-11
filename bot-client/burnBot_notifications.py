@@ -5,6 +5,7 @@
 import builtins
 
 from burnBot_client_log import client_log_line
+from burnBot_run_log import debug_line
 
 
 def send_admin_notification(account, message, subject_prefix="Alert", sms_summary=None, subject_override=None, apiClient=None, account_id=None, _print=None):
@@ -32,8 +33,7 @@ def send_admin_notification(account, message, subject_prefix="Alert", sms_summar
             _print(client_log_line(account, "notify", f"Type: {notices_type}, Phone: {redacted_phone}, Email: {email}"))
 
         if notices_type == 'none':
-            if is_bot_debug_enabled():
-                _print(client_log_line(account, "notify", "Notifications disabled (type=none)"))
+            debug_line(client_log_line(account, "notify", "Notifications disabled (type=none)"))
             return False
 
         subject = subject_override or f"SlowBurnBot {subject_prefix} - {account}"

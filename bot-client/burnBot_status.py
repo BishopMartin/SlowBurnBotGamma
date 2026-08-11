@@ -24,7 +24,7 @@ _pending_input_value: str | None = None
 _SETTINGS = [
     ("Pause sessions",    "_bot_paused"),
     ("Notifications",     "_notify_enabled"),
-    ("Debug mode",        "bot_debug"),
+    ("Debug Logging",     "bot_debug"),
     ("Browser only mode", "_browser_only"),
     ("Keep browser open", "keep_browser_open"),
 ]

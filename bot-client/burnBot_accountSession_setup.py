@@ -11,6 +11,7 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from webdriver_manager.chrome import ChromeDriverManager
 from burnBot_config import CONFIG, resolve_path
 from burnBot_client_log import client_log_line
+from burnBot_run_log import debug_line
 
 
 def is_bot_debug_enabled():
@@ -162,8 +163,7 @@ def update_local_state(account, chrome_user_data_dir):
             with open(local_state_file, 'w', encoding='utf-8') as f:
                 json.dump(local_state, f, indent=2)
             
-            if is_bot_debug_enabled():
-                print(f"- [{account}]: updated Local State")
+            debug_line(f"- [{account}]: updated Local State")
         except Exception as e:
             print(f"- [{account}]: could not update Local State: {e}")
 
@@ -207,8 +207,7 @@ def find_chrome_debugging_port(chrome_user_data_dir, account):
                                 result = sock.connect_ex(('127.0.0.1', port))
                                 sock.close()
                                 if result == 0:
-                                    if is_bot_debug_enabled():
-                                        print(f"- [{account}]: Found DevToolsActivePort file at: {devtools_file}")
+                                    debug_line(f"- [{account}]: Found DevToolsActivePort file at: {devtools_file}")
                                     return port
                             except (ValueError, socket.error, socket.timeout):
                                 pass
@@ -216,8 +215,7 @@ def find_chrome_debugging_port(chrome_user_data_dir, account):
                     # File might be locked, try next location
                     continue
     except Exception as e:
-        if is_bot_debug_enabled():
-            print(f"- [{account}]: Error checking DevToolsActivePort: {e}")
+        debug_line(f"- [{account}]: Error checking DevToolsActivePort: {e}")
     return None
 
 
@@ -233,8 +231,7 @@ def find_existing_chrome_process(chrome_user_data_dir, account, expected_port):
     Returns:
         tuple: (is_running, port) - True if running, port number if found
     """
-    if is_bot_debug_enabled():
-        print(f"- [{account}]: Check for Chrome on port {expected_port}, profile: {chrome_user_data_dir}")
+    debug_line(f"- [{account}]: Check for Chrome on port {expected_port}, profile: {chrome_user_data_dir}")
 
     # First, check if the expected port is listening (most reliable check)
     try:
@@ -404,8 +401,7 @@ def find_existing_chrome_process(chrome_user_data_dir, account, expected_port):
                                     pass
 
                         if found_port_in_cmdline:
-                            if is_bot_debug_enabled():
-                                print(f"- [{account}]: Process matches profile, found port {found_port_in_cmdline} in command line (expected {expected_port})")
+                            debug_line(f"- [{account}]: Process matches profile, found port {found_port_in_cmdline} in command line (expected {expected_port})")
 
                             # Check if the port from command line is listening
                             try:
@@ -413,27 +409,22 @@ def find_existing_chrome_process(chrome_user_data_dir, account, expected_port):
                                 sock.settimeout(1)
                                 if sock.connect_ex(('127.0.0.1', found_port_in_cmdline)) == 0:
                                     # Port is listening - this is our Chrome process
-                                    if is_bot_debug_enabled():
-                                        print(f"- [{account}]: SUCCESS: Found Chrome process with matching profile and listening port {found_port_in_cmdline}")
+                                    debug_line(f"- [{account}]: SUCCESS: Found Chrome process with matching profile and listening port {found_port_in_cmdline}")
                                     return True, found_port_in_cmdline
                                 else:
-                                    if is_bot_debug_enabled():
-                                        print(f"- [{account}]: Port {found_port_in_cmdline} from command line is not listening - ignoring")
+                                    debug_line(f"- [{account}]: Port {found_port_in_cmdline} from command line is not listening - ignoring")
                             except Exception:
-                                if is_bot_debug_enabled():
-                                    print(f"- [{account}]: Could not verify if port {found_port_in_cmdline} is listening")
+                                debug_line(f"- [{account}]: Could not verify if port {found_port_in_cmdline} is listening")
                         else:
                             # No port in command line - check if expected port is listening for this process
                             try:
                                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                                 sock.settimeout(1)
                                 if sock.connect_ex(('127.0.0.1', expected_port)) == 0:
-                                    if is_bot_debug_enabled():
-                                        print(f"- [{account}]: Process matches profile, expected port {expected_port} is listening")
+                                    debug_line(f"- [{account}]: Process matches profile, expected port {expected_port} is listening")
                                     return True, expected_port
                                 else:
-                                    if is_bot_debug_enabled():
-                                        print(f"- [{account}]: Process matches profile but expected port {expected_port} is not listening")
+                                    debug_line(f"- [{account}]: Process matches profile but expected port {expected_port} is not listening")
                             except Exception:
                                 pass
 
@@ -448,8 +439,7 @@ def find_existing_chrome_process(chrome_user_data_dir, account, expected_port):
                                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                                     sock.settimeout(1)
                                     if sock.connect_ex(('127.0.0.1', expected_port)) == 0:
-                                        if is_bot_debug_enabled():
-                                            print(f"- [{account}]: FALLBACK: Found process using expected port {expected_port} (PID {proc.info['pid']})")
+                                        debug_line(f"- [{account}]: FALLBACK: Found process using expected port {expected_port} (PID {proc.info['pid']})")
                                         return True, expected_port
                                     sock.close()
                                 except Exception:
@@ -593,17 +583,15 @@ def verify_profile_match(driver, account, chrome_user_data_dir):
                     
                     if user_data_dir_match and (account_match or profile_dir_match):
                         profile_found = True
-                        if is_bot_debug_enabled():
-                            print(f"- [{account}]: Profile verification passed - found matching Chrome process (PID: {proc.info['pid']})")
+                        debug_line(f"- [{account}]: Profile verification passed - found matching Chrome process (PID: {proc.info['pid']})")
                         break
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
         
         if not profile_found:
             # Only show detailed error if debug is enabled (to reduce noise)
-            if is_bot_debug_enabled():
-                print(f"- [{account}]: Profile verification FAILED - no Chrome process found with matching profile")
-                print(f"- [{account}]: Expected profile: {chrome_user_data_dir} / {account}")
+            debug_line(f"- [{account}]: Profile verification FAILED - no Chrome process found with matching profile")
+            debug_line(f"- [{account}]: Expected profile: {chrome_user_data_dir} / {account}")
             # This is a warning, not a fatal error - Chrome might still work
             # The driver connection succeeded, so Chrome is likely working correctly
             return False
@@ -644,8 +632,7 @@ def connect_to_existing_chrome(account, chrome_user_data_dir, debug_port, chrome
             result = sock.connect_ex(('127.0.0.1', debug_port))
             sock.close()
             if result != 0:
-                if is_bot_debug_enabled():
-                    print(f"- [{account}]: Port {debug_port} is not listening - Chrome may not be running with remote debugging")
+                debug_line(f"- [{account}]: Port {debug_port} is not listening - Chrome may not be running with remote debugging")
                 return None
         except Exception as e:
             print(f"- [{account}]: Error checking port {debug_port}: {e}")
@@ -655,19 +642,16 @@ def connect_to_existing_chrome(account, chrome_user_data_dir, debug_port, chrome
         # This allows us to verify we connected to the EXISTING Chrome, not a new one
         expected_window_count = get_window_count_via_devtools(debug_port)
         if expected_window_count is None:
-            if is_bot_debug_enabled():
-                print(f"- [{account}]: Cannot query existing Chrome windows via DevTools API")
-                print(f"- [{account}]: Proceeding with connection but cannot verify it's the existing instance")
+            debug_line(f"- [{account}]: Cannot query existing Chrome windows via DevTools API")
+            debug_line(f"- [{account}]: Proceeding with connection but cannot verify it's the existing instance")
         else:
-            if is_bot_debug_enabled():
-                print(f"- [{account}]: Existing Chrome has {expected_window_count} window(s) (verified via DevTools API)")
+            debug_line(f"- [{account}]: Existing Chrome has {expected_window_count} window(s) (verified via DevTools API)")
         
         # Create Chrome options with ONLY debuggerAddress
         options = ChromeOptions()
         options.add_experimental_option("debuggerAddress", f"127.0.0.1:{debug_port}")
         
-        if is_bot_debug_enabled():
-            print(f"- [{account}]: Connecting via Selenium with debuggerAddress: 127.0.0.1:{debug_port}")
+        debug_line(f"- [{account}]: Connecting via Selenium with debuggerAddress: 127.0.0.1:{debug_port}")
         
         # Use Selenium 4's automatic driver management
         # When using debuggerAddress, we need chromedriver but it won't launch Chrome
@@ -689,8 +673,7 @@ def connect_to_existing_chrome(account, chrome_user_data_dir, debug_port, chrome
             actual_window_count = len(driver.window_handles)
             
             # Verify profile match (but be more lenient when connecting to existing Chrome)
-            if is_bot_debug_enabled():
-                print(f"- [{account}]: Verifying profile match...")
+            debug_line(f"- [{account}]: Verifying profile match...")
             profile_ok = verify_profile_match(driver, account, chrome_user_data_dir)
             if not profile_ok:
                 print(f"- [{account}]: WARNING: Profile verification failed, but connected to Chrome successfully")
@@ -711,12 +694,10 @@ def connect_to_existing_chrome(account, chrome_user_data_dir, debug_port, chrome
                         pass
                     return None
                 else:
-                    if is_bot_debug_enabled():
-                        print(f"- [{account}]: Window count matches! ({actual_window_count} windows)")
+                    debug_line(f"- [{account}]: Window count matches! ({actual_window_count} windows)")
             
-            if is_bot_debug_enabled():
-                print(f"- [{account}]: Successfully reconnected to existing Chrome via Selenium")
-                print(f"- [{account}]: Using reconnected Selenium driver (anti-detection not needed for existing session)")
+            debug_line(f"- [{account}]: Successfully reconnected to existing Chrome via Selenium")
+            debug_line(f"- [{account}]: Using reconnected Selenium driver (anti-detection not needed for existing session)")
             
             return driver
             
@@ -921,12 +902,10 @@ def kill_chrome_processes_for_profile(chrome_user_data_dir, account, portable_ch
                     pass
             
             if remaining_count > 0:
-                if is_bot_debug_enabled():
-                    print(f"- [{account}]: Killed {killed_count} Portable Chrome process(es), but {remaining_count} still remain")
-                    print(f"- [{account}]: NOTE: Regular Chrome processes are NOT affected - only Portable Chrome")
+                debug_line(f"- [{account}]: Killed {killed_count} Portable Chrome process(es), but {remaining_count} still remain")
+                debug_line(f"- [{account}]: NOTE: Regular Chrome processes are NOT affected - only Portable Chrome")
             else:
-                if is_bot_debug_enabled():
-                    print(f"- [{account}]: Successfully killed {killed_count} Portable Chrome process(es)")
+                debug_line(f"- [{account}]: Successfully killed {killed_count} Portable Chrome process(es)")
     except Exception as e:
         print(f"- [{account}]: Error killing Chrome processes: {e}")
 
@@ -1009,8 +988,7 @@ def update_profile_preferences(account, chrome_user_data_dir):
             with open(preferences_file, 'w', encoding='utf-8') as f:
                 json.dump(prefs, f, indent=2)
             
-            if is_bot_debug_enabled():
-                print(f"- [{account}]: updated Preferences")
+            debug_line(f"- [{account}]: updated Preferences")
             return  # Success, exit function
             
         except PermissionError as e:
@@ -1229,8 +1207,7 @@ def create_driver(account, accountAgent, account_idx=0):
     
     # Get fixed debugging port for this account
     debugging_port = get_debugging_port(account_idx)
-    if is_bot_debug_enabled():
-        print(f"- [{account}]: using remote debugging port: {debugging_port}")
+    debug_line(f"- [{account}]: using remote debugging port: {debugging_port}")
     
     # Load configuration from [browser-config] and [browser-session] sections
     # If chrome_path is empty, Selenium will use system Chrome
@@ -1289,9 +1266,8 @@ def create_driver(account, accountAgent, account_idx=0):
         driver = connect_to_existing_chrome(account, chrome_user_data_dir, debug_port, 
                                             chrome_version=chrome_version, chrome_path=chrome_path)
         if driver:
-            if is_bot_debug_enabled():
-                print(f"- [{account}]: Reconnected to existing Chrome instance on port {debug_port}")
-                print(f"- [{account}]: IMPORTANT: Using existing Chrome - no new window should be created")
+            debug_line(f"- [{account}]: Reconnected to existing Chrome instance on port {debug_port}")
+            debug_line(f"- [{account}]: IMPORTANT: Using existing Chrome - no new window should be created")
             # Skip file updates and new driver creation since we're using existing instance
             # Return immediately to prevent any new Chrome instance creation
             return driver
@@ -1465,21 +1441,19 @@ def create_driver(account, accountAgent, account_idx=0):
                 port_found_in_options = False
                 for arg in options.arguments:
                     if '--remote-debugging-port=' in arg:
-                        if is_bot_debug_enabled():
-                            print(f"- [{account}]: Verified debugging port in options: {arg}")
+                        debug_line(f"- [{account}]: Verified debugging port in options: {arg}")
                         port_found_in_options = True
                         break
                 
-                if not port_found_in_options and is_bot_debug_enabled():
-                    print(f"- [{account}]: WARNING: Debugging port argument not found in options")
+                if not port_found_in_options:
+                    debug_line(f"- [{account}]: WARNING: Debugging port argument not found in options")
             
             # Use Selenium 4's automatic driver management (no service needed)
             # Selenium 4 will automatically download and manage the correct ChromeDriver version
             # This avoids version mismatches - Selenium 4 handles compatibility automatically
             service = None
             
-            if is_bot_debug_enabled():
-                print(f"- [{account}]: Launching Chrome (this may take a moment)...")
+            debug_line(f"- [{account}]: Launching Chrome (this may take a moment)...")
             
             # Try to create driver - this will launch Chrome
             # Use threading with timeout to prevent indefinite hanging
@@ -1600,8 +1574,7 @@ def create_driver(account, accountAgent, account_idx=0):
                             chrome_running = True
                             actual_port = debugging_port
                 except Exception as port_check_error:
-                    if is_bot_debug_enabled():
-                        print(f"- [{account}]: Error checking port {debugging_port}: {port_check_error}")
+                    debug_line(f"- [{account}]: Error checking port {debugging_port}: {port_check_error}")
                 
                 # Also check if Chrome process is running with our profile
                 # Look for any Chrome process that matches our profile, regardless of port
@@ -1829,12 +1802,10 @@ def create_driver(account, accountAgent, account_idx=0):
                 raise Exception("Chrome driver creation returned None (unknown error)")
             
             driver = driver_result[0]
-            if is_bot_debug_enabled():
-                print(f"- [{account}]: Chrome driver object created, verifying connection...")
+            debug_line(f"- [{account}]: Chrome driver object created, verifying connection...")
             
             # Give Chrome more time to fully initialize and load profile
-            if is_bot_debug_enabled():
-                print(f"- [{account}]: Waiting for Chrome to fully initialize and load profile...")
+            debug_line(f"- [{account}]: Waiting for Chrome to fully initialize and load profile...")
             time.sleep(8)  # Increased wait time for profile to load
             
             # Verify driver is actually connected by checking window_handles
@@ -1877,8 +1848,7 @@ def create_driver(account, accountAgent, account_idx=0):
                     raise Exception(f"Chrome driver connection verification failed after {max_retries} attempts")
             
             # Verify profile match with retry logic (profile may need time to load)
-            if is_bot_debug_enabled():
-                print(f"- [{account}]: Verifying profile match...")
+            debug_line(f"- [{account}]: Verifying profile match...")
             
             # Wait a bit for Chrome to fully start before verification
             time.sleep(2)
@@ -1890,20 +1860,17 @@ def create_driver(account, accountAgent, account_idx=0):
             while not profile_verified and profile_retry_count < max_profile_retries:
                 if verify_profile_match(driver, account, chrome_user_data_dir):
                     profile_verified = True
-                    if is_bot_debug_enabled():
-                        print(f"- [{account}]: Profile verification SUCCESS")
+                    debug_line(f"- [{account}]: Profile verification SUCCESS")
                 else:
                     profile_retry_count += 1
                     if profile_retry_count < max_profile_retries:
-                        if is_bot_debug_enabled():
-                            print(f"- [{account}]: Profile verification failed, waiting for profile to load (retry {profile_retry_count}/{max_profile_retries})...")
+                        debug_line(f"- [{account}]: Profile verification failed, waiting for profile to load (retry {profile_retry_count}/{max_profile_retries})...")
                         time.sleep(2)  # Wait for profile to load
                     else:
                         # Don't fail completely - Chrome might still work, just log the warning
                         # The profile verification might fail due to timing, but Chrome could still be functional
-                        if is_bot_debug_enabled():
-                            print(f"- [{account}]: WARNING: Profile verification failed after {max_profile_retries} attempts")
-                            print(f"- [{account}]: Chrome may still be working correctly - verification is not always reliable")
+                        debug_line(f"- [{account}]: WARNING: Profile verification failed after {max_profile_retries} attempts")
+                        debug_line(f"- [{account}]: Chrome may still be working correctly - verification is not always reliable")
             
             # Verify Chrome process is actually running with correct profile
             # This is a non-critical check - if driver connection succeeded, Chrome is working
@@ -1931,20 +1898,17 @@ def create_driver(account, accountAgent, account_idx=0):
                                 
                                 if user_data_dir_match and (account_match or profile_dir_match):
                                     chrome_running = True
-                                    if is_bot_debug_enabled():
-                                        print(f"- [{account}]: Verified Chrome process is running with correct profile (PID: {proc.info['pid']})")
+                                    debug_line(f"- [{account}]: Verified Chrome process is running with correct profile (PID: {proc.info['pid']})")
                                     break
                         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                             pass
                     
                     if not chrome_running:
                         # Only show warning if debug enabled - driver connection succeeded, so Chrome is working
-                        if is_bot_debug_enabled():
-                            print(f"- [{account}]: WARNING: Chrome driver created but process verification failed")
-                            print(f"- [{account}]: Chrome is likely working correctly - driver connection succeeded")
+                        debug_line(f"- [{account}]: WARNING: Chrome driver created but process verification failed")
+                        debug_line(f"- [{account}]: Chrome is likely working correctly - driver connection succeeded")
                 except Exception as proc_check_error:
-                    if is_bot_debug_enabled():
-                        print(f"- [{account}]: Could not verify Chrome process: {proc_check_error}")
+                    debug_line(f"- [{account}]: Could not verify Chrome process: {proc_check_error}")
             
             # If we get here, driver is connected and verified
             try:
@@ -2022,8 +1986,7 @@ def create_driver(account, accountAgent, account_idx=0):
                     '''
                 })
                 
-                if is_bot_debug_enabled():
-                    print(f"- [{account}]: Applied comprehensive stealth measures")
+                debug_line(f"- [{account}]: Applied comprehensive stealth measures")
             except Exception as cdp_error:
                 print(f"- [{account}]: Warning - Could not apply CDP stealth measures: {cdp_error}")
 
@@ -2037,14 +2000,11 @@ def create_driver(account, accountAgent, account_idx=0):
                 driver.execute_cdp_cmd('Emulation.setLocaleOverride', {
                     'locale': 'en-US'
                 })
-                if is_bot_debug_enabled():
-                    print(f"- [{account}]: Applied locale/language override (en-US)")
+                debug_line(f"- [{account}]: Applied locale/language override (en-US)")
             except Exception as locale_error:
-                if is_bot_debug_enabled():
-                    print(f"- [{account}]: Warning - Could not apply locale override: {locale_error}")
+                debug_line(f"- [{account}]: Warning - Could not apply locale override: {locale_error}")
 
-            if is_bot_debug_enabled():
-                print(f"- [{account}]: driver/browser created and verified")
+            debug_line(f"- [{account}]: driver/browser created and verified")
             
             # If running remotely, remind user how to verify Chrome is running
             if is_remote_session and not HEADLESS:

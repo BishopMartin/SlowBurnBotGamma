@@ -9,7 +9,7 @@ from burnBot_imports import *
 from burnBot_utils import process_exception
 from burnBot_accountSession_setup import is_bot_debug_enabled
 from burnBot_client_log import client_log_line
-from burnBot_run_log import capture_failure_context, report_failure
+from burnBot_run_log import capture_failure_context, report_failure, debug_line
 import random
 import time
 import burnBot_status as status_store
@@ -44,6 +44,29 @@ _SEARCH_INPUT_LOCATORS = [
     ("contenteditable",      By.XPATH, "//*[@contenteditable='true']"),
     ("aria-search-textbox",  By.XPATH, "//*[contains(@aria-label,'Search') and (@role='textbox' or @contenteditable='true')]"),
 ]
+
+
+# Instagram hides keyword search results for age-restricted terms (alcohol
+# etc.) — the page says "We've hidden most results for your search…" and
+# shows no post grid. That's a per-topic content policy, not a bot failure:
+# the customer fixes it by changing topics or age-verifying the account.
+# Deliberately apostrophe-free: IG may render "We've" with either an ASCII
+# or typographic apostrophe, and .lower() normalizes neither.
+_RESTRICTED_MARKERS = (
+    "hidden most results",
+)
+
+
+def _detect_restricted_search(driver):
+    """True if the current page is Instagram's hidden/age-restricted search
+    results notice. Never raises."""
+    try:
+        body = (driver.execute_script(
+            "return (document.body && document.body.innerText) || ''"
+        ) or "").lower()
+        return any(marker in body for marker in _RESTRICTED_MARKERS)
+    except Exception:
+        return False
 
 
 def _find_visible(driver, locators):
@@ -211,8 +234,7 @@ def _open_post_from_results(driver, account, post_url):
             )
         )
     except Exception:
-        if is_bot_debug_enabled():
-            _p(client_log_line(account, "like-topics", f"debug could not find result tile for [{post_path}]"))
+        debug_line(client_log_line(account, "like-topics", f"debug could not find result tile for [{post_path}]"))
         return False
 
     try:
@@ -240,8 +262,7 @@ def _open_post_from_results(driver, account, post_url):
             pass
 
     if not clicked:
-        if is_bot_debug_enabled():
-            _p(client_log_line(account, "like-topics", f"debug result tile click failed for [{post_path}]"))
+        debug_line(client_log_line(account, "like-topics", f"debug result tile click failed for [{post_path}]"))
         return False
 
     try:
@@ -254,8 +275,7 @@ def _open_post_from_results(driver, account, post_url):
         time.sleep(random.uniform(2, 3))
         return True
     except Exception:
-        if is_bot_debug_enabled():
-            _p(client_log_line(account, "like-topics", f"debug post did not finish opening for [{post_path}]"))
+        debug_line(client_log_line(account, "like-topics", f"debug post did not finish opening for [{post_path}]"))
         return False
 
 
@@ -329,8 +349,7 @@ def _close_open_post(driver, account, results_url):
     except Exception:
         pass
 
-    if is_bot_debug_enabled():
-        _p(client_log_line(account, "like-topics", "debug: could not return to results grid"))
+    debug_line(client_log_line(account, "like-topics", "debug: could not return to results grid"))
     return False
 
 
@@ -344,6 +363,12 @@ def _open_topic_search_results(driver, account, topic, account_id=None):
     WebDriverWait timeouts carry no message of their own). Stage failures
     always log and capture a diagnostic artifact — never gated on debug —
     since a non-debug run still needs to explain a ~60s topic.
+
+    Returns:
+        True          — landed on the keyword results page
+        "restricted"  — Instagram hid the results for this term (age/content
+                        policy); a customer-settings issue, not a bot failure
+        False         — search genuinely failed
     """
     search_query = topic.strip()
     if not search_query:
@@ -359,8 +384,7 @@ def _open_topic_search_results(driver, account, topic, account_id=None):
         return time.monotonic() - _stage["t0"]
 
     def _ok(detail=""):
-        if is_bot_debug_enabled():
-            _p(client_log_line(account, "like-topics", f"stage={_stage['name']} outcome=ok{(' ' + detail) if detail else ''}"))
+        debug_line(client_log_line(account, "like-topics", f"stage={_stage['name']} outcome=ok{(' ' + detail) if detail else ''}"))
 
     def _fail(detail=""):
         _p(client_log_line(
@@ -375,6 +399,22 @@ def _open_topic_search_results(driver, account, topic, account_id=None):
             )
         except Exception:
             pass
+
+    def _restricted():
+        """Log + report Instagram's hidden-results notice for this topic."""
+        _p(client_log_line(
+            account, "like-topics",
+            f"topic [{topic}] hidden by Instagram (age-restricted search)"
+        ))
+        try:
+            report_failure(
+                account_id, "topic-search/restricted", "restricted",
+                {"topic": topic, "elapsed_ms": int(_elapsed() * 1000),
+                 "diag": capture_failure_context(driver)},
+            )
+        except Exception:
+            pass
+        return "restricted"
 
     try:
         _enter("home-load")
@@ -431,8 +471,7 @@ def _open_topic_search_results(driver, account, topic, account_id=None):
                 )
                 time.sleep(random.uniform(2, 4))
                 search_clicked = True
-                if is_bot_debug_enabled():
-                    _p(client_log_line(account, "like-topics", f"using direct search page fallback for [{topic}]"))
+                debug_line(client_log_line(account, "like-topics", f"using direct search page fallback for [{topic}]"))
             except Exception:
                 _fail("could not open search UI or its direct-URL fallback")
                 return False
@@ -520,6 +559,8 @@ def _open_topic_search_results(driver, account, topic, account_id=None):
             matched_name, keyword_candidates = _wait_first_match(driver, 8, keyword_result_locators)
         except Exception:
             matched_name, keyword_candidates = None, []
+            if _detect_restricted_search(driver):
+                return _restricted()
             _fail(f"tried={[n for n, _, _ in keyword_result_locators]}")
 
         if keyword_candidates:
@@ -560,6 +601,8 @@ def _open_topic_search_results(driver, account, topic, account_id=None):
                 )
             )
         except Exception:
+            if _detect_restricted_search(driver):
+                return _restricted()
             _fail("no keyword URL and no /p/ links after search submit")
             return False
         _ok()
@@ -603,10 +646,12 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                       Leading '#' characters are stripped automatically.
 
     Returns:
-        tuple: (likes_performed, errors_log)
+        tuple: (likes_performed, errors_log, warnings_log)
     """
     likes_performed = 0
     moduleErrorsLog = ""
+    moduleWarningsLog = ""
+    restricted_topics = []
 
     # Parse topic list
     topic_list = []
@@ -620,7 +665,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
         msg = "[error] no topics configured for post[topics] action"
         _p(client_log_line(account, _scope, f"{_lbl}{msg}"))
         moduleErrorsLog += f"like[topics]: {msg}\n"
-        return 0, moduleErrorsLog
+        return 0, moduleErrorsLog, moduleWarningsLog
 
     # Load like_sponsored setting from API (suggested posts don't appear on hashtag pages)
     _user_cfg = apiClient.get_user_config() if apiClient else {}
@@ -631,8 +676,8 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
     if apiClient:
         try:
             ignore_list = apiClient.get_ignore_handles()
-            if ignore_list and is_bot_debug_enabled():
-                _p(client_log_line(account, _scope, f"loaded {len(ignore_list)} ignored account(s)"))
+            if ignore_list:
+                debug_line(client_log_line(account, _scope, f"loaded {len(ignore_list)} ignored account(s)"))
         except Exception as e:
             _p(client_log_line(account, _scope, f"Warning: Could not load ignore list: {e}"))
 
@@ -644,14 +689,27 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
     try:
         for topic in topic_list:
             if status_store.is_bot_paused():
-                return likes_performed, moduleErrorsLog
+                return likes_performed, moduleErrorsLog, moduleWarningsLog
             if likes_performed >= target_count:
                 break
 
             _p(client_log_line(account, _scope, f"searching topic [{topic}]"))
             topic_t0 = time.monotonic()
 
-            if not _open_topic_search_results(driver, account, topic, account_id=account_id):
+            _search_result = _open_topic_search_results(driver, account, topic, account_id=account_id)
+            if _search_result == "restricted":
+                # Instagram hid the results for this term (age/content policy).
+                # A customer-settings issue, not a bot failure: warn, don't
+                # error, and don't count it toward the consecutive-failure
+                # breaker — the search UI demonstrably worked.
+                restricted_topics.append(topic)
+                moduleWarningsLog += (
+                    f"like[topics]: [warning] topic [{topic}] hidden by Instagram "
+                    f"(age-restricted search)\n"
+                )
+                consec_search_failures = 0
+                continue
+            if not _search_result:
                 moduleErrorsLog += f"like[topics]: [error] could not open search results for [{topic}]\n"
                 consec_search_failures += 1
                 if consec_search_failures >= _MAX_CONSEC_SEARCH_FAILURES:
@@ -670,10 +728,10 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
 
             while likes_performed < target_count and scrolls < max_scrolls:
                 if time.monotonic() - topic_t0 > _TOPIC_BUDGET_S:
-                    moduleErrorsLog += f"like[topics]: [warning] topic [{topic}] exceeded {_TOPIC_BUDGET_S}s budget\n"
+                    moduleWarningsLog += f"like[topics]: [warning] topic [{topic}] exceeded {_TOPIC_BUDGET_S}s budget\n"
                     break
                 if status_store.is_bot_paused():
-                    return likes_performed, moduleErrorsLog
+                    return likes_performed, moduleErrorsLog, moduleWarningsLog
                 if scrolls == 0:
                     try:
                         WebDriverWait(driver, 12).until(
@@ -704,6 +762,18 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
 
                 if not new_link_urls:
                     if scrolls == 0:
+                        # A restricted term can still reach the keyword results
+                        # page (URL matches) while showing the hidden-results
+                        # notice instead of a post grid — classify it here too,
+                        # not just in the search-stage timeout branches.
+                        if _detect_restricted_search(driver):
+                            _p(client_log_line(account, _scope, f"topic [{topic}] hidden by Instagram (age-restricted search)"))
+                            restricted_topics.append(topic)
+                            moduleWarningsLog += (
+                                f"like[topics]: [warning] topic [{topic}] hidden by Instagram "
+                                f"(age-restricted search)\n"
+                            )
+                            break
                         _p(client_log_line(account, _scope, f"no posts found for topic [{topic}]"))
                     break
 
@@ -725,8 +795,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                     try:
                         post_opened = _open_post_from_results(driver, account, post_url)
                         if not post_opened:
-                            if is_bot_debug_enabled():
-                                _p(client_log_line(account, _scope, f"skip could not open [{post_url}] from results"))
+                            debug_line(client_log_line(account, _scope, f"skip could not open [{post_url}] from results"))
                             continue
 
                         article = WebDriverWait(driver, 8).until(
@@ -811,10 +880,9 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                                         _p(client_log_line(account, _scope, f"{_lbl}[{count_formatted}/{target_formatted}] - [{display_name}]"))
                                         time.sleep(random.randint(6, 8))
                                     except Exception:
-                                        if is_bot_debug_enabled():
-                                            _p(client_log_line(account, _scope, f"skip @{display_name} reason=like_state_unchanged"))
-                                elif is_bot_debug_enabled():
-                                    _p(client_log_line(account, _scope, f"skip @{display_name} reason=like_click_failed"))
+                                        debug_line(client_log_line(account, _scope, f"skip @{display_name} reason=like_state_unchanged"))
+                                else:
+                                    debug_line(client_log_line(account, _scope, f"skip @{display_name} reason=like_click_failed"))
                             else:
                                 if is_bot_debug_enabled():
                                     display_name = article_account[:15] if len(article_account) > 15 else article_account
@@ -829,8 +897,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                     except Exception as e:
                         error_type = type(e).__name__
                         msg = str(e).split('\n')[0]
-                        if is_bot_debug_enabled():
-                            _p(client_log_line(account, _scope, f"error {error_type}: {msg[:80]}"))
+                        debug_line(client_log_line(account, _scope, f"error {error_type}: {msg[:80]}"))
                         moduleErrorsLog += f"like[topics]: {error_type}: {msg}\n"
                         continue
                     finally:
@@ -848,8 +915,19 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                         and len(driver.find_elements(By.XPATH, "//a[contains(@href, '/p/')]")) > 0
                     )
                     if not _on_results:
-                        if not _open_topic_search_results(driver, account, topic, account_id=account_id):
-                            moduleErrorsLog += f"like[topics]: [error] could not refresh search results for [{topic}]\n"
+                        # Anything other than a clean True ends this topic — note
+                        # "restricted" is a truthy string, so an `if not` check
+                        # here would mistake a mid-topic restriction for success.
+                        _refresh = _open_topic_search_results(driver, account, topic, account_id=account_id)
+                        if _refresh is not True:
+                            if _refresh == "restricted":
+                                restricted_topics.append(topic)
+                                moduleWarningsLog += (
+                                    f"like[topics]: [warning] topic [{topic}] hidden by Instagram "
+                                    f"(age-restricted search)\n"
+                                )
+                            else:
+                                moduleErrorsLog += f"like[topics]: [error] could not refresh search results for [{topic}]\n"
                             break
                     driver.execute_script("window.scrollBy(0, 900);")
                     time.sleep(random.uniform(2, 3))
@@ -857,14 +935,25 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                 else:
                     break
 
-        # Final status
+        # Final status. When the shortfall is explained entirely by Instagram
+        # hiding restricted topics (no genuine errors accumulated), report it
+        # as a warning with actionable guidance — the customer fixes this by
+        # changing topics or age-verifying the account, not by filing a bug.
         if likes_performed < target_count:
-            if likes_performed == 0:
-                msg = "[error] no topic posts liked"
-            else:
-                msg = "[error] limited topic posts liked"
             _p(client_log_line(account, _scope, f"{_lbl}Incomplete[{likes_performed}/{target_count}]"))
-            moduleErrorsLog += f"like[topics]: {msg} ({likes_performed}/{target_count})\n"
+            if restricted_topics and not moduleErrorsLog:
+                _shortfall = "no" if likes_performed == 0 else "limited"
+                moduleWarningsLog += (
+                    f"like[topics]: [warning] {_shortfall} topic posts liked "
+                    f"({likes_performed}/{target_count}) — {len(restricted_topics)} topic(s) "
+                    f"age-restricted by Instagram; change topics or age-verify the account\n"
+                )
+            else:
+                if likes_performed == 0:
+                    msg = "[error] no topic posts liked"
+                else:
+                    msg = "[error] limited topic posts liked"
+                moduleErrorsLog += f"like[topics]: {msg} ({likes_performed}/{target_count})\n"
         else:
             _p(client_log_line(account, _scope, f"{_done_lbl}-Completed[{likes_performed}/{target_count}]"))
 
@@ -872,4 +961,4 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
         noteError = f"do_like_posts_topic catch all: {str(error)}"
         moduleErrorsLog += process_exception(True, noteError, True, False)
 
-    return likes_performed, moduleErrorsLog
+    return likes_performed, moduleErrorsLog, moduleWarningsLog
