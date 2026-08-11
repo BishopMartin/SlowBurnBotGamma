@@ -468,17 +468,28 @@ class BurnBotApp(App):
     # Header
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _version_status(local: str, server) -> str:
+        """Compare numerically, not by equality — a client running a newer
+        build than the server has synced (e.g. the release's EXE artifact
+        lagged the Docker image) is "ahead", not "behind"."""
+        if server is None:
+            return "—"
+        if local == server:
+            return "current"
+        try:
+            local_parts = [int(x) for x in str(local).split(".")]
+            server_parts = [int(x) for x in str(server).split(".")]
+            return "ahead" if local_parts > server_parts else "behind"
+        except Exception:
+            return "behind"  # unparseable — keep the old mismatch behavior
+
     def _refresh_header(self) -> None:
         p      = self._palette
         client_id_str = str(self._client_id).zfill(2)
 
         server_version = status_store.get_current_bot_version()
-        if server_version is None:
-            version_status = "—"
-        elif self._version == server_version:
-            version_status = "current"
-        else:
-            version_status = "behind"
+        version_status = self._version_status(self._version, server_version)
 
         header = Text(no_wrap=True)
         header.append("SlowBurnBot Client: ", style=f"bold {p['brand']}")

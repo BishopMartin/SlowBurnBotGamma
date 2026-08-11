@@ -70,8 +70,20 @@ jobs:
           BOT_VERSION: ${{ steps.ver.outputs.bot_version }}
         run: |
           pip install awscli
-          aws s3 cp dist/SlowBurnBot.exe "s3://${BUCKET_NAME}/releases/windows/SlowBurnBot-${BOT_VERSION}.exe" --endpoint-url "${ENDPOINT_URL}" --region "${AWS_DEFAULT_REGION}"
-          aws s3 cp dist/SlowBurnBot.exe "s3://${BUCKET_NAME}/releases/windows/SlowBurnBot-latest.exe" --endpoint-url "${ENDPOINT_URL}" --region "${AWS_DEFAULT_REGION}"
+          # Single-part PUT: the bucket endpoint intermittently cancels
+          # multipart UploadPart calls (killed the v1.167 release twice) —
+          # the EXE is far below 256MB so multipart buys nothing anyway.
+          aws configure set default.s3.multipart_threshold 256MB
+          upload() {
+            for attempt in 1 2 3; do
+              aws s3 cp dist/SlowBurnBot.exe "$1" --endpoint-url "${ENDPOINT_URL}" --region "${AWS_DEFAULT_REGION}" && return 0
+              echo "upload attempt ${attempt} failed for $1 — retrying in $((attempt * 10))s"
+              sleep $((attempt * 10))
+            done
+            return 1
+          }
+          upload "s3://${BUCKET_NAME}/releases/windows/SlowBurnBot-${BOT_VERSION}.exe"
+          upload "s3://${BUCKET_NAME}/releases/windows/SlowBurnBot-latest.exe"
           echo "Uploaded SlowBurnBot-${BOT_VERSION}.exe"
 
       - name: Prune old EXEs from object storage (keep 5)
