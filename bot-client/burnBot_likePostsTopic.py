@@ -643,7 +643,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
 
             while likes_performed < target_count and scrolls < max_scrolls:
                 if time.monotonic() - topic_t0 > _TOPIC_BUDGET_S:
-                    moduleWarningsLog += f"like[topics]: [warning] topic [{topic}] exceeded {_TOPIC_BUDGET_S}s budget\n"
+                    moduleWarningsLog += f"like[topics]: [warning] topic [{topic}] exceeded {_TOPIC_BUDGET_S}s budget - consider topic replacement\n"
                     break
                 if status_store.is_bot_paused():
                     return likes_performed, moduleErrorsLog, moduleWarningsLog

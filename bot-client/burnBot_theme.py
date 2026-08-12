@@ -33,6 +33,7 @@ MODE_LABELS = {
 # accent       : active, focus, "running" status
 # brand        : app title highlight
 # warn         : amber / warning / initializing
+# wait         : yellow / waiting between runs
 # error        : red / error / disabled
 # ghost        : autocomplete ghost text
 # on_accent    : text drawn on accent backgrounds (cursor foreground)
@@ -50,6 +51,7 @@ DEFAULT_PALETTE = {
     "accent":       "#adcc00",
     "brand":        "#d97757",
     "warn":         "#E5C07B",
+    "wait":         "#E8E06A",
     "error":        "#cf3b0a",
     "ghost":        "#4a4a45",
     "on_accent":    "#141413",
@@ -71,6 +73,7 @@ TERMINAL_INLINE = {
     "accent":       "green",
     "brand":        "magenta",
     "warn":         "yellow",
+    "wait":         "bright_yellow",
     "error":        "red",
     "ghost":        "bright_black",
     "on_accent":    "black",
@@ -86,6 +89,7 @@ TERMINAL_CSS = {
     "accent":       "#00cc00",    # approx ANSI green
     "brand":        "#cc00cc",    # approx ANSI magenta
     "warn":         "#cccc00",    # approx ANSI yellow
+    "wait":         "#ffff55",    # approx ANSI bright yellow
     "error":        "#cc0000",    # approx ANSI red
     "ghost":        "#444444",
     "on_accent":    "#000000",
@@ -93,7 +97,9 @@ TERMINAL_CSS = {
 
 # ------------------------------------------------------------------
 # base24 slot → palette role mapping (works for base16 too)
-# All roles map to base00-base0E, present in both base16 and base24.
+# All roles map to base00-base0E, present in both base16 and base24,
+# except "wait" (base13, bright yellow) which falls back to the default
+# palette on base16 schemes.
 # ------------------------------------------------------------------
 _BASE24_TO_ROLE = {
     "surface":      "base01",
@@ -105,6 +111,7 @@ _BASE24_TO_ROLE = {
     "accent":       "base0B",   # green
     "brand":        "base0E",   # keywords/accent color
     "warn":         "base0A",   # yellow
+    "wait":         "base13",   # bright yellow (base24 only)
     "error":        "base08",   # red
     "ghost":        "base03",   # comments
     "on_accent":    "base00",   # darkest background (readable on accent)
@@ -116,7 +123,7 @@ _BASE24_TO_ROLE = {
 _STATUS_TO_ROLE = {
     "running":         "accent",
     "initializing":    "warn",
-    "waiting":         "warn",
+    "waiting":         "wait",
     "paused":          "warn",
     "max runs":        "warn",
     "disabled":        "error",
