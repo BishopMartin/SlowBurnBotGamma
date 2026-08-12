@@ -2,7 +2,7 @@
 
 import builtins as _builtins
 from burnBot_imports import *
-from burnBot_utils import process_exception
+from burnBot_utils import process_exception, get_post_author_username
 from burnBot_login import check_phone_verification, switch_login
 from burnBot_accountSession_setup import is_bot_debug_enabled
 from burnBot_client_log import client_log_line
@@ -12,6 +12,21 @@ import time
 import burnBot_status as status_store
 
 _p = _builtins.print  # set per-call by do_like_posts_home; safe because sessions run sequentially
+
+# Ads don't always expose the word "Sponsored" (IG obfuscates it to defeat ad
+# blockers) or an /ads/about link, but they do carry a CTA button legitimate
+# posts never have — v1.170 liked an ad logged as "[Learn more]" because both
+# text signals were absent. Exact whole-text match on button/link elements.
+_AD_CTA_TEXTS = (
+    "Learn more", "Shop now", "Sign up", "Install now", "Book now",
+    "Order now", "Contact us", "Apply now", "Get offer", "Get quote",
+    "Download", "Subscribe", "Send message", "Call now", "Get directions",
+    "Listen now", "Watch more", "See menu", "Play game",
+)
+_AD_CTA_XPATH = " | ".join(
+    f".//*[(@role='button' or @role='link') and normalize-space()='{t}']"
+    for t in _AD_CTA_TEXTS
+)
 
 
 def check_login(driver):
@@ -308,10 +323,28 @@ def do_like_posts_home(driver, account, target_count, apiClient=None, account_id
                         return likes_performed, moduleErrorsLog
                     try:
                         try:
-                            article_account = article.find_element(By.CLASS_NAME, "_ap3a").text
-                        except:
+                            article_account = get_post_author_username(article)
+                        except Exception:
                             article_account = "unknown"
-                        
+
+                        # No parseable header profile link means this article is
+                        # an ad or an unrecognized layout — never like blind
+                        # (v1.170's first-text-match extraction liked ads logged
+                        # as "[Learn more]"/caption text, and the ignore list
+                        # can't match a garbage name).
+                        if article_account == "unknown":
+                            _p(client_log_line(account, _scope, f"{_lbl}[-skip] - [unknown-author]"))
+                            if is_bot_debug_enabled():
+                                try:
+                                    article_html = article.get_attribute("outerHTML")
+                                    debug_line(client_log_line(account, _scope, f"debug unknown-author article HTML: {article_html[:2000]}"))
+                                except Exception:
+                                    pass
+                            if article not in processed_articles:
+                                processed_articles.append(article)
+                            continue
+
+
                         # Skip suggested posts if like_suggested is disabled
                         if not like_suggested:
                             try:
@@ -340,6 +373,13 @@ def do_like_posts_home(driver, account, target_count, apiClient=None, account_id
                                     is_ad = len(article.find_elements(
                                         By.XPATH, ".//*[contains(@href,'/ads/about')]"
                                     )) > 0
+
+                                if not is_ad:
+                                    cta_hits = article.find_elements(By.XPATH, _AD_CTA_XPATH)
+                                    if cta_hits:
+                                        is_ad = True
+                                        if is_bot_debug_enabled():
+                                            debug_line(client_log_line(account, _scope, f"debug @{article_account} ad via CTA button"))
 
                                 if is_bot_debug_enabled():
                                     debug_line(client_log_line(account, _scope, f"debug @{article_account} is_ad={is_ad}"))

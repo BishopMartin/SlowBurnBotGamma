@@ -375,6 +375,94 @@ def check_schedule(scheduleDays, scheduleStart, scheduleEnd):
             print(f"[schedule]: Error parsing time - {e}")
             # If time parsing fails, allow execution (fail-safe)
             return True
-    
+
     return True
+
+
+def extract_username_from_href(href):
+    """Extract an Instagram username from a profile-style href."""
+    if not href:
+        return ""
+
+    cleaned_href = href.strip()
+    if "instagram.com" in cleaned_href:
+        cleaned_href = cleaned_href.split("instagram.com", 1)[1]
+
+    cleaned_href = cleaned_href.split("?", 1)[0].split("#", 1)[0]
+    if not cleaned_href.startswith("/"):
+        cleaned_href = f"/{cleaned_href}"
+
+    path_parts = [part for part in cleaned_href.split("/") if part]
+    if len(path_parts) != 1:
+        return ""
+
+    username = path_parts[0].strip()
+    if not username:
+        return ""
+
+    reserved_paths = {
+        "about",
+        "accounts",
+        "ads",
+        "api",
+        "challenge",
+        "developer",
+        "direct",
+        "explore",
+        "graphql",
+        "p",
+        "reel",
+        "reels",
+        "stories",
+        "tags",
+    }
+    if username.lower() in reserved_paths:
+        return ""
+
+    allowed_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._"
+    if any(ch not in allowed_chars for ch in username):
+        return ""
+
+    return username
+
+
+def get_post_author_username(article):
+    """Find the post author's username from profile links inside a post or
+    feed article. Returns "unknown" when no profile-style link parses — on
+    the home feed that means the article is an ad or an unrecognized layout
+    (every legitimate post has a header profile link)."""
+    candidate_locators = [
+        ".//header//a[@href]",
+        ".//a[@href]",
+    ]
+
+    for locator in candidate_locators:
+        try:
+            anchor_elements = article.find_elements(By.XPATH, locator)
+        except Exception:
+            continue
+
+        for anchor in anchor_elements:
+            try:
+                href = anchor.get_attribute("href") or ""
+                username = extract_username_from_href(href)
+                if not username:
+                    continue
+
+                anchor_text = " ".join((anchor.text or "").split())
+                if locator == ".//header//a[@href]":
+                    return username
+
+                if anchor_text and username.lower() in anchor_text.lower():
+                    return username
+
+                has_profile_image = len(anchor.find_elements(By.XPATH, ".//img")) > 0
+                if has_profile_image:
+                    return username
+            except StaleElementReferenceException:
+                continue
+            except Exception:
+                continue
+
+    return "unknown"
 

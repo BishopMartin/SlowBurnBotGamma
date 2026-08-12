@@ -6,7 +6,7 @@
 
 import builtins as _builtins
 from burnBot_imports import *
-from burnBot_utils import process_exception
+from burnBot_utils import process_exception, get_post_author_username
 from burnBot_accountSession_setup import is_bot_debug_enabled
 from burnBot_client_log import client_log_line
 from burnBot_run_log import capture_failure_context, report_failure, debug_line
@@ -125,91 +125,6 @@ def _normalize_post_path(post_url):
         cleaned_url = f"{cleaned_url}/"
 
     return cleaned_url
-
-
-def _extract_username_from_href(href):
-    """Extract an Instagram username from a profile-style href."""
-    if not href:
-        return ""
-
-    cleaned_href = href.strip()
-    if "instagram.com" in cleaned_href:
-        cleaned_href = cleaned_href.split("instagram.com", 1)[1]
-
-    cleaned_href = cleaned_href.split("?", 1)[0].split("#", 1)[0]
-    if not cleaned_href.startswith("/"):
-        cleaned_href = f"/{cleaned_href}"
-
-    path_parts = [part for part in cleaned_href.split("/") if part]
-    if len(path_parts) != 1:
-        return ""
-
-    username = path_parts[0].strip()
-    if not username:
-        return ""
-
-    reserved_paths = {
-        "about",
-        "accounts",
-        "ads",
-        "api",
-        "challenge",
-        "developer",
-        "direct",
-        "explore",
-        "graphql",
-        "p",
-        "reel",
-        "reels",
-        "stories",
-        "tags",
-    }
-    if username.lower() in reserved_paths:
-        return ""
-
-    allowed_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._"
-    if any(ch not in allowed_chars for ch in username):
-        return ""
-
-    return username
-
-
-def _get_post_author_username(article):
-    """Find the post owner's username from profile links inside the opened post."""
-    candidate_locators = [
-        ".//header//a[@href]",
-        ".//a[@href]",
-    ]
-
-    for locator in candidate_locators:
-        try:
-            anchor_elements = article.find_elements(By.XPATH, locator)
-        except Exception:
-            continue
-
-        for anchor in anchor_elements:
-            try:
-                href = anchor.get_attribute("href") or ""
-                username = _extract_username_from_href(href)
-                if not username:
-                    continue
-
-                anchor_text = " ".join((anchor.text or "").split())
-                if locator == ".//header//a[@href]":
-                    return username
-
-                if anchor_text and username.lower() in anchor_text.lower():
-                    return username
-
-                has_profile_image = len(anchor.find_elements(By.XPATH, ".//img")) > 0
-                if has_profile_image:
-                    return username
-            except StaleElementReferenceException:
-                continue
-            except Exception:
-                continue
-
-    return "unknown"
 
 
 def _open_post_from_results(driver, account, post_url):
@@ -801,7 +716,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                         article = WebDriverWait(driver, 8).until(
                             EC.presence_of_element_located((By.TAG_NAME, "article"))
                         )
-                        article_account = _get_post_author_username(article)
+                        article_account = get_post_author_username(article)
 
                         # Check ignore list
                         if article_account in ignore_list:
