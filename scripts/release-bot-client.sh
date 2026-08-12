@@ -96,7 +96,7 @@ print(f'exe={d.get(\"exe_ready\")} image={d.get(\"image_ready\")}')" 2>/dev/null
     REMAINING=$(( DEADLINE - NOW ))
     echo "  ... build still running (${STATE}); retrying in ${POLL_INTERVAL}s (${REMAINING}s left)"
     sleep "$POLL_INTERVAL"
-  elif [ "$HTTP_CODE" = "502" ] || [ "$HTTP_CODE" = "503" ] || [ "$HTTP_CODE" = "000" ]; then
+  elif [ "$HTTP_CODE" = "500" ] || [ "$HTTP_CODE" = "502" ] || [ "$HTTP_CODE" = "503" ] || [ "$HTTP_CODE" = "000" ]; then
     NOW=$(date +%s)
     if [ "$NOW" -ge "$DEADLINE" ]; then
       echo "error: server unreachable after 20 min (HTTP ${HTTP_CODE})" >&2

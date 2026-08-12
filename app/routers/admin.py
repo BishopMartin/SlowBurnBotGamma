@@ -465,8 +465,17 @@ async def sync_bot_version(
         raise HTTPException(status_code=502, detail="Could not read BOT_VERSION from GitHub main branch.")
 
     exe_key = f"releases/windows/SlowBurnBot-{version}.exe"
-    exe_ready = object_storage.object_exists(exe_key)
-    image_ready = await github_actions.ghcr_image_has_tag(version)
+    # Transient failures while checking artifact readiness (S3 timeouts, GHCR
+    # blips) mean "not ready yet", not a server error — return 202 so the
+    # release script keeps polling instead of aborting on a 500.
+    try:
+        exe_ready = object_storage.object_exists(exe_key)
+    except Exception:
+        exe_ready = False
+    try:
+        image_ready = await github_actions.ghcr_image_has_tag(version)
+    except Exception:
+        image_ready = False
 
     if not (exe_ready and image_ready):
         return JSONResponse(
