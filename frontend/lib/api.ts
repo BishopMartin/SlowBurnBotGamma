@@ -519,7 +519,6 @@ export interface DownloadInfo {
   filename?: string;
   // Linux
   image_ref?: string;
-  pull_cmd?: string;
   run_cmd?: string;
 }
 

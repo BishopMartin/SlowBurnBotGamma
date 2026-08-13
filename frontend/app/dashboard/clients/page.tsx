@@ -139,7 +139,7 @@ export default function ClientPage() {
   const [copiedToken, setCopiedToken] = useState(false);
 
   const [expandedCmdsKey, setExpandedCmdsKey] = useState<string | null>(null);
-  const [cmdsByBuildId, setCmdsByBuildId] = useState<Record<string, { pull_cmd: string; run_cmd: string }>>({});
+  const [cmdsByBuildId, setCmdsByBuildId] = useState<Record<string, { run_cmd: string }>>({});
   const [copiedCmd, setCopiedCmd] = useState<string | null>(null);
 
   const [pageError, setPageError] = useState<string | null>(null);
@@ -237,7 +237,7 @@ export default function ClientPage() {
     setDownloading(build.id);
     try {
       const info = await getDownloadInfo(build.id);
-      setCmdsByBuildId((prev) => ({ ...prev, [build.id]: { pull_cmd: info.pull_cmd ?? "", run_cmd: info.run_cmd ?? "" } }));
+      setCmdsByBuildId((prev) => ({ ...prev, [build.id]: { run_cmd: info.run_cmd ?? "" } }));
       setExpandedCmdsKey(build.id);
     } catch (e: unknown) {
       setPageError(e instanceof Error ? e.message : "Failed to fetch commands.");
@@ -414,14 +414,6 @@ export default function ClientPage() {
                           <td colSpan={7} className="p-0">
                             <div className="px-4 py-3 space-y-2 bg-base01">
                               <div className="grid gap-x-4 gap-y-1" style={{ gridTemplateColumns: "max-content 1fr" }}>
-                                <span className="text-base04">pull:</span>
-                                <div>
-                                  <code className="text-base0a break-all">{cmdsByBuildId[build.id].pull_cmd}</code>
-                                  <button onClick={() => copyCmd(cmdsByBuildId[build.id].pull_cmd, `pull-${build.id}`)} className="inline group cursor-pointer transition-colors ml-2">
-                                    <Bracket className="text-base04 group-hover:text-base05">{copiedCmd === `pull-${build.id}` ? "copied!" : "copy"}</Bracket>
-                                  </button>
-                                </div>
-                                <span></span><span></span>
                                 <span className="text-base04">run:</span>
                                 <div>
                                   <code className="text-base0a break-all">{cmdsByBuildId[build.id].run_cmd}</code>
@@ -429,6 +421,8 @@ export default function ClientPage() {
                                     <Bracket className="text-base04 group-hover:text-base05">{copiedCmd === `run-${build.id}` ? "copied!" : "copy"}</Bracket>
                                   </button>
                                 </div>
+                                <span></span>
+                                <p className="text-base04">Starts the SlowBurnBot client in an interactive Docker container that auto-updates to the latest image on launch, maintains a persistent /data volume, and exposes the browser via noVNC on port 6080.</p>
                               </div>
                             </div>
                           </td>
@@ -500,7 +494,7 @@ export default function ClientPage() {
           <div className="space-y-1">
             <p className="text-base05">linux/docker</p>
             <p><span className="text-base05">1.</span> Click <span className="text-base05">token</span> on an empty slot, select <span className="text-base05">linux/docker</span>, enter a name and your VNC URL, and copy the activation token shown after saving.</p>
-            <p><span className="text-base05">2.</span> Click <span className="text-base05">commands</span> on your slot — run <code className="text-base0a">docker pull</code> once to fetch the image, then <code className="text-base0a">docker run</code> to start it. Port <code className="text-base0a">6080</code> is included for browser access.</p>
+            <p><span className="text-base05">2.</span> Click <span className="text-base05">commands</span> on your slot and run the <code className="text-base0a">docker run</code> command — it checks for image updates on every start, so no separate pull is needed. Port <code className="text-base0a">6080</code> is included for browser access.</p>
             <p><span className="text-base05">3.</span> On first launch paste your Activation Token when prompted — the config is saved to a named volume and you won&apos;t be asked again.</p>
             <p><span className="text-base05">4.</span> If a CAPTCHA challenge appears during login, open your VNC URL in a browser to solve it, then type <code className="text-base0a">done</code> in the terminal.</p>
             <p><span className="text-base05">5.</span> Use the <code className="text-base0a">docker run</code> command to restart the client after exiting or a reboot.</p>
