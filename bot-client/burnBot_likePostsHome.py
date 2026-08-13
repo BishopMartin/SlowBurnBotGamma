@@ -410,11 +410,8 @@ def do_like_posts_home(driver, account, target_count, apiClient=None, account_id
                         like_status = like_box.get_attribute("aria-label")
                         
                         if like_status == "Like":
-                            likes_performed += 1
-                            count_formatted = f"{likes_performed:02d}"
                             display_name = article_account[:15] if len(article_account) > 15 else article_account
-                            _p(client_log_line(account, _scope, f"{_lbl}[{count_formatted}/{target_formatted}] - [{display_name}]"))
-                            
+
                             like_button = WebDriverWait(article, 5).until(
                                 EC.element_to_be_clickable((By.CSS_SELECTOR, "svg[aria-label='Like']"))
                             )
@@ -422,7 +419,26 @@ def do_like_posts_home(driver, account, target_count, apiClient=None, account_id
                             actions.move_to_element(article)
                             actions.click(like_button)
                             actions.perform()
-                            
+
+                            # Count the like only after the heart actually flips
+                            # (2026-08-13: an entire topics action's clicks
+                            # silently failed to register — click-and-count
+                            # would have reported 6/6 while liking nothing).
+                            # Scoped to the action-bar <section> so a comment
+                            # heart can't satisfy the check.
+                            try:
+                                WebDriverWait(article, 6).until(
+                                    lambda a: len(a.find_elements(
+                                        By.XPATH,
+                                        ".//section//*[@role='button'][.//*[local-name()='svg' and @aria-label='Unlike']]"
+                                    )) > 0
+                                )
+                                likes_performed += 1
+                                count_formatted = f"{likes_performed:02d}"
+                                _p(client_log_line(account, _scope, f"{_lbl}[{count_formatted}/{target_formatted}] - [{display_name}]"))
+                            except TimeoutException:
+                                debug_line(client_log_line(account, _scope, f"skip @{display_name} reason=like_state_unchanged"))
+
                             time.sleep(random.randint(6, 8))
                         else:
                             if like_status:

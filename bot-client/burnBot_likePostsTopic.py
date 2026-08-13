@@ -634,6 +634,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
 
             _p(client_log_line(account, _scope, f"searching topic [{topic}]"))
             topic_t0 = time.monotonic()
+            topic_likes_at_start = likes_performed
 
             _search_result = _open_topic_search_results(driver, account, topic, account_id=account_id)
             if _search_result == "restricted":
@@ -667,7 +668,20 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
 
             while likes_performed < target_count and scrolls < max_scrolls:
                 if time.monotonic() - topic_t0 > _TOPIC_BUDGET_S:
-                    moduleWarningsLog += f"like[topics]: [warning] topic [{topic}] exceeded {_TOPIC_BUDGET_S}s budget - consider topic replacement\n"
+                    topic_likes = likes_performed - topic_likes_at_start
+                    if topic_likes == 0:
+                        # Dead topic: burned its whole budget without a single
+                        # like — that's the case the budget exists for, and
+                        # the only one worth telling the customer about.
+                        moduleWarningsLog += f"like[topics]: [warning] topic [{topic}] produced no likes within {_TOPIC_BUDGET_S}s budget - consider topic replacement\n"
+                    else:
+                        # Healthy topic that simply used its time slice —
+                        # ~15s per human-paced like means ~5-6 likes fill the
+                        # budget. Normal pacing, transcript-only.
+                        debug_line(client_log_line(
+                            account, _scope,
+                            f"topic [{topic}] budget reached after {topic_likes} like(s), moving to next topic"
+                        ))
                     break
                 if status_store.is_bot_paused():
                     return likes_performed, moduleErrorsLog, moduleWarningsLog
@@ -776,12 +790,26 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                             except Exception:
                                 pass
 
-                        # Find like button
+                        # Find like button — scoped to the action-bar <section>.
+                        # Comment hearts are also role=button wrapping an
+                        # svg[aria-label='Like'], so an article-wide match on an
+                        # already-liked post (main button reads 'Unlike') used to
+                        # pick the first comment heart, like a random COMMENT, and
+                        # count it as a post like because verification passed off
+                        # the already-lit main button.
                         try:
+                            if article.find_elements(
+                                By.XPATH,
+                                ".//section//*[@role='button'][.//*[local-name()='svg' and @aria-label='Unlike']]"
+                            ):
+                                display_name = article_account[:15] if len(article_account) > 15 else article_account
+                                _p(client_log_line(account, _scope, f"{_lbl}[-skip] - [{display_name}] - [already liked]"))
+                                continue
+
                             like_button = WebDriverWait(article, 8).until(
                                 EC.presence_of_element_located((
                                     By.XPATH,
-                                    ".//*[@role='button'][.//*[local-name()='svg' and @aria-label='Like']]"
+                                    ".//section//*[@role='button'][.//*[local-name()='svg' and @aria-label='Like']]"
                                 ))
                             )
 
@@ -823,7 +851,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                                         WebDriverWait(article, 6).until(
                                             lambda a: len(a.find_elements(
                                                 By.XPATH,
-                                                ".//*[@role='button'][.//*[local-name()='svg' and @aria-label='Unlike']]"
+                                                ".//section//*[@role='button'][.//*[local-name()='svg' and @aria-label='Unlike']]"
                                             )) > 0
                                         )
                                         likes_performed += 1
