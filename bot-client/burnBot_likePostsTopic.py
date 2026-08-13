@@ -12,6 +12,7 @@ from burnBot_client_log import client_log_line
 from burnBot_run_log import capture_failure_context, report_failure, debug_line
 import random
 import time
+from urllib.parse import quote
 import burnBot_status as status_store
 
 # Fail-fast guards for the topic search loop (see do_like_posts_topic) — a
@@ -20,6 +21,14 @@ import burnBot_status as status_store
 # topic in the list.
 _TOPIC_BUDGET_S = 90
 _MAX_CONSEC_SEARCH_FAILURES = 2
+
+# 2026-08-13: a full topics action failed 0/37 with every post reading
+# author=unknown and no Unlike flip after the click, while the same flow
+# worked from a fresh session — the bot's session is being served a post
+# modal whose content doesn't render/react normally. These failures only
+# left bare debug lines, so cap a couple of full-page diagnostic uploads
+# per action to capture the DOM the bot actually sees.
+_MAX_LIKE_DIAG_REPORTS = 2
 
 # Labelled locator lists (name, By, xpath) — the name lets the log say which
 # strategy actually matched (or was tried and failed), matching the pattern
@@ -476,7 +485,14 @@ def _open_topic_search_results(driver, account, topic, account_id=None):
             matched_name, keyword_candidates = None, []
             if _detect_restricted_search(driver):
                 return _restricted()
-            _fail(f"tried={[n for n, _, _ in keyword_result_locators]}")
+            # No keyword row in the dropdown — expected for short/generic
+            # terms (e.g. "rtd"); the direct-URL fallback below handles it.
+            # Transcript-only: not a failure, so no visible line and no
+            # failure record for the end user.
+            debug_line(client_log_line(
+                account, "like-topics",
+                f"stage={_stage['name']} no keyword row in dropdown after {_elapsed():.1f}s topic=[{topic}] — using direct URL"
+            ))
 
         if keyword_candidates:
             if len(keyword_candidates) > 1:
@@ -496,15 +512,22 @@ def _open_topic_search_results(driver, account, topic, account_id=None):
                 _ok(f"via [{matched_name}]")
 
         if not keyword_clicked:
-            # Fall back to submitting the search directly. `search_input` can be
-            # ~8s stale by this point (a real StaleElementReferenceException
-            # source) — re-locate before sending keys rather than reusing it.
-            _enter("search-input-enter")
-            fresh_input, _ = _find_visible(driver, _SEARCH_INPUT_LOCATORS)
+            # Short/generic terms (e.g. "rtd") get only account rows in the
+            # search dropdown — no keyword link to click — but the keyword
+            # results URL still works when loaded directly. The previous
+            # ENTER-the-search-box fallback left the browser on /explore/
+            # with the search panel open, where the results-page check
+            # false-positived on the grid behind the panel and every tile
+            # click then failed as not-visible.
+            _enter("keyword-url-fallback")
             try:
-                (fresh_input or search_input).send_keys(Keys.ENTER)
-            except StaleElementReferenceException:
-                _fail("search input went stale before ENTER fallback")
+                driver.get(f"https://www.instagram.com/explore/search/keyword/?q={quote(search_query)}")
+                WebDriverWait(driver, 10).until(
+                    lambda d: d.execute_script("return document.readyState") == "complete"
+                )
+                debug_line(client_log_line(account, "like-topics", f"using direct keyword URL for [{topic}]"))
+            except Exception:
+                _fail("direct keyword URL fallback failed")
                 return False
 
         _enter("results-page")
@@ -598,6 +621,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
 
     target_formatted = f"{target_count:02d}"
     processed_urls = set()  # Track post URLs to avoid double-liking across topics
+    like_diag_reports = 0  # cap on full-page diagnostics uploaded per action
 
     consec_search_failures = 0
 
@@ -718,6 +742,18 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                         )
                         article_account = get_post_author_username(article)
 
+                        if article_account == "unknown" and like_diag_reports < _MAX_LIKE_DIAG_REPORTS:
+                            like_diag_reports += 1
+                            try:
+                                report_failure(
+                                    account_id, "topic-search/post-author", "unknown",
+                                    {"topic": topic, "post": post_url,
+                                     "article_html": (article.get_attribute("outerHTML") or "")[:2000],
+                                     "diag": capture_failure_context(driver)},
+                                )
+                            except Exception:
+                                pass
+
                         # Check ignore list
                         if article_account in ignore_list:
                             display_name = article_account[:15] if len(article_account) > 15 else article_account
@@ -796,6 +832,21 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                                         time.sleep(random.randint(6, 8))
                                     except Exception:
                                         debug_line(client_log_line(account, _scope, f"skip @{display_name} reason=like_state_unchanged"))
+                                        if like_diag_reports < _MAX_LIKE_DIAG_REPORTS:
+                                            like_diag_reports += 1
+                                            try:
+                                                unlike_anywhere = len(driver.find_elements(
+                                                    By.XPATH, "//*[local-name()='svg' and @aria-label='Unlike']"
+                                                ))
+                                                report_failure(
+                                                    account_id, "topic-search/like-verify", "unchanged",
+                                                    {"topic": topic, "post": post_url,
+                                                     "unlike_svgs_on_page": unlike_anywhere,
+                                                     "article_html": (article.get_attribute("outerHTML") or "")[:2000],
+                                                     "diag": capture_failure_context(driver)},
+                                                )
+                                            except Exception:
+                                                pass
                                 else:
                                     debug_line(client_log_line(account, _scope, f"skip @{display_name} reason=like_click_failed"))
                             else:
