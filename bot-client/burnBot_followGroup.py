@@ -142,10 +142,21 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
         user_boxes_done = []
         stall_scrolls = 0
         max_stall_scrolls = 5  # consecutive no-new-boxes scrolls before treating as end of list
+        scan_entries_seen = 0
+        scan_heartbeat_at = time.time() + 60
+
+        def _scan_heartbeat():
+            # Periodic progress line so long dialog scans (private-heavy lists,
+            # silent skips) are diagnosable from the run log instead of going dark.
+            nonlocal scan_heartbeat_at
+            if time.time() >= scan_heartbeat_at:
+                _p(client_log_line(account, _scope, f"{_lbl}scanning dialog… {scan_entries_seen} entries seen, {followed_count}/{target_count} followed"))
+                scan_heartbeat_at = time.time() + 60
 
         while followed_count < target_count:
             if status_store.is_bot_paused():
                 return followed_count, module_errors_log
+            _scan_heartbeat()
             try:
                 # Find all user boxes in the dialog
                 user_boxes_found = driver.find_elements(By.CLASS_NAME, "xozqiw3")
@@ -168,6 +179,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                         break
                 else:
                     stall_scrolls = 0
+                    scan_entries_seen += len(user_boxes_new)
 
             except Exception as e:
                 # Error loading user boxes, try scrolling
@@ -183,7 +195,8 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
             for user_box in user_boxes_new:
                 if status_store.is_bot_paused() or followed_count >= target_count:
                     break
-                
+                _scan_heartbeat()
+
                 try:
                     user_name_element = user_box.find_element(By.CLASS_NAME, "_aad7")
                     user_status_element = user_box.find_element(By.CLASS_NAME, "_aad6")
