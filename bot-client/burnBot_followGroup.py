@@ -10,9 +10,15 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 from burnBot_utils import process_exception
 from burnBot_client_log import client_log_line
+from burnBot_run_log import debug_line
 import burnBot_status as status_store
 
 _p = _builtins.print  # set per-call by do_follow_group; safe because sessions run sequentially
+
+# Target-saturation warning: fire only on a meaningful sample so a small dialog
+# that happens to open on a run of already-followeds doesn't cry wolf.
+_SATURATION_MIN_ENTRIES = 40
+_SATURATION_WARN_RATIO = 0.80
 
 
 def do_follow_group(driver, account, target_count, apiClient, account_id, group_type, target_accounts, _print=None, log_scope=None, action_label=None):
@@ -143,6 +149,8 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
         stall_scrolls = 0
         max_stall_scrolls = 5  # consecutive no-new-boxes scrolls before treating as end of list
         scan_entries_seen = 0
+        skip_already = 0   # entries that can never produce a follow from this pool
+        skip_private = 0   # config choice, not pool exhaustion — excluded from saturation
         scan_heartbeat_at = time.time() + 60
 
         def _scan_heartbeat():
@@ -209,12 +217,14 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                 try:
                     # Check if already in database
                     if user_name in database_names:
+                        skip_already += 1
                         _p(client_log_line(account, _scope, f"{target_account}[{action_type}]-[-skip] - [{user_name}] - [already followed]"))
                         time.sleep(random.uniform(1, 1))
                         continue
-                    
+
                     # Check if already following
                     if user_status != "Follow":
+                        skip_already += 1
                         _p(client_log_line(account, _scope, f"{target_account}[{action_type}]-[-skip] - [{user_name}] - [{user_status.lower()}]"))
                         time.sleep(random.uniform(1, 1))
                         continue
@@ -251,6 +261,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                         actions.move_to_element(target_link)
                         actions.perform()
 
+                        skip_private += 1
                         _p(client_log_line(account, _scope, f"{target_account}[{action_type}]-[-skip] - [{user_name}] - [private]"))
 
                     else:
@@ -311,7 +322,17 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                     pass
         
         _p(client_log_line(account, _scope, f"{_done_lbl}-Completed[{followed_count}/{target_count}]"))
-    
+
+        # Saturation check: how much of the target's list was un-followable.
+        processed = skip_already + skip_private + followed_count
+        if processed > 0:
+            saturation = skip_already / processed
+            pct = round(saturation * 100)
+            if processed >= _SATURATION_MIN_ENTRIES and saturation >= _SATURATION_WARN_RATIO:
+                _p(client_log_line(account, _scope, f"{_lbl}Warning: [{target_account}] {pct}% saturated ({skip_already} of {processed} entries already followed) - consider rotating target accounts"))
+            else:
+                debug_line(client_log_line(account, _scope, f"{_lbl}debug target [{target_account}] saturation {pct}% ({skip_already} of {processed} entries already followed)"))
+
     except Exception as e:
         error_msg = process_exception(True, f"follow group failed: {e}", True, True)
         module_errors_log += error_msg
