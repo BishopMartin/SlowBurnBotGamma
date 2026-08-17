@@ -22,6 +22,12 @@ import burnBot_status as status_store
 _TOPIC_BUDGET_S = 90
 _MAX_CONSEC_SEARCH_FAILURES = 2
 
+# Topic-saturation warning (mirrors the follow-group target-saturation check):
+# fire only on a meaningful per-topic sample so a topic that happens to open on
+# a couple of already-liked posts doesn't cry wolf.
+_TOPIC_SATURATION_MIN_POSTS = 8
+_TOPIC_SATURATION_WARN_RATIO = 0.75
+
 # 2026-08-13: a full topics action failed 0/37 with every post reading
 # author=unknown and no Unlike flip after the click, while the same flow
 # worked from a fresh session — the bot's session is being served a post
@@ -635,6 +641,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
             _p(client_log_line(account, _scope, f"searching topic [{topic}]"))
             topic_t0 = time.monotonic()
             topic_likes_at_start = likes_performed
+            topic_already_liked = 0
 
             _search_result = _open_topic_search_results(driver, account, topic, account_id=account_id)
             if _search_result == "restricted":
@@ -803,6 +810,7 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                                 ".//section//*[@role='button'][.//*[local-name()='svg' and @aria-label='Unlike']]"
                             ):
                                 display_name = article_account[:15] if len(article_account) > 15 else article_account
+                                topic_already_liked += 1
                                 _p(client_log_line(account, _scope, f"{_lbl}[-skip] - [{display_name}] - [already liked]"))
                                 continue
 
@@ -928,6 +936,15 @@ def do_like_posts_topic(driver, account, target_count, apiClient=None, account_i
                     scrolls += 1
                 else:
                     break
+
+            # Saturation check: how much of this topic's feed was already liked.
+            _topic_processed = (likes_performed - topic_likes_at_start) + topic_already_liked
+            if _topic_processed >= _TOPIC_SATURATION_MIN_POSTS:
+                _sat = topic_already_liked / _topic_processed
+                if _sat >= _TOPIC_SATURATION_WARN_RATIO:
+                    _sat_pct = round(_sat * 100)
+                    _p(client_log_line(account, _scope, f"{_lbl}Warning: topic [{topic}] {_sat_pct}% already liked ({topic_already_liked} of {_topic_processed} posts) - consider topic replacement"))
+                    moduleWarningsLog += f"like[topics]: [warning] topic [{topic}] {_sat_pct}% already liked ({topic_already_liked}/{_topic_processed}) - consider topic replacement\n"
 
         # Final status. When the shortfall is explained entirely by Instagram
         # hiding restricted topics (no genuine errors accumulated), report it

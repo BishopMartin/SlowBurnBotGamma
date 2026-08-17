@@ -213,7 +213,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
 
                 try:
                     if user_name in database_names:
-                        _p(client_log_line(account, _scope, f"{_lbl}[-skip] - [{user_name}] - [already followed]"))
+                        _p(client_log_line(account, _scope, f"{_lbl}[-skip] - [{user_name}] - [in database]"))
                         continue
 
                     # Hover over username anchor to trigger preview (optional)
@@ -336,7 +336,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
 
                         # Check if already in database
                         if user_name in database_names:
-                            _p(client_log_line(account, _scope, f"{_lbl}[-skip] - [{user_name}] - [already followed]"))
+                            _p(client_log_line(account, _scope, f"{_lbl}[-skip] - [{user_name}] - [in database]"))
                             continue
 
                         # Check if already following
@@ -434,7 +434,7 @@ def do_follow_suggested(driver, account, target_count, apiClient, account_id, _p
 
                     try:
                         if user_name in database_names:
-                            _p(client_log_line(account, _scope, f"{_lbl}[-skip] - [{user_name}] - [already followed]"))
+                            _p(client_log_line(account, _scope, f"{_lbl}[-skip] - [{user_name}] - [in database]"))
                             continue
 
                         if user_name_anchor is not None:

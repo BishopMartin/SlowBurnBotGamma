@@ -40,9 +40,10 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
         target_accounts: Comma-separated list of target account usernames
 
     Returns:
-        tuple: (followed_count, error_log_string)
+        tuple: (followed_count, error_log_string, warning_log_string)
     """
     module_errors_log = ""
+    module_warnings_log = ""
     followed_count = 0
 
     try:
@@ -218,7 +219,7 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
                     # Check if already in database
                     if user_name in database_names:
                         skip_already += 1
-                        _p(client_log_line(account, _scope, f"{target_account}[{action_type}]-[-skip] - [{user_name}] - [already followed]"))
+                        _p(client_log_line(account, _scope, f"{target_account}[{action_type}]-[-skip] - [{user_name}] - [in database]"))
                         time.sleep(random.uniform(1, 1))
                         continue
 
@@ -330,13 +331,14 @@ def do_follow_group(driver, account, target_count, apiClient, account_id, group_
             pct = round(saturation * 100)
             if processed >= _SATURATION_MIN_ENTRIES and saturation >= _SATURATION_WARN_RATIO:
                 _p(client_log_line(account, _scope, f"{_lbl}Warning: [{target_account}] {pct}% saturated ({skip_already} of {processed} entries already followed) - consider rotating target accounts"))
+                module_warnings_log += f"{action_label or 'follow[group]'}: [{target_account}] {pct}% saturated ({skip_already}/{processed} already followed) - rotate targets\n"
             else:
                 debug_line(client_log_line(account, _scope, f"{_lbl}debug target [{target_account}] saturation {pct}% ({skip_already} of {processed} entries already followed)"))
 
     except Exception as e:
         error_msg = process_exception(True, f"follow group failed: {e}", True, True)
         module_errors_log += error_msg
-    
-    return followed_count, module_errors_log
+
+    return followed_count, module_errors_log, module_warnings_log
 
 
